@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance.xsd" xsi:noNamespaceSchemaLocation="http://maven.apache.org/xsd/maven-project-3.0.0.xsd">
 	<pomVersion>3</pomVersion>
-	<artifactId>communication-tcp</artifactId>
-	<name>communication-tcp</name>
-	<groupId>net.weta.components</groupId>
+	<artifactId>ingrid-communication</artifactId>
+	<name>ingrid-communication</name>
+	<groupId>ingrid</groupId>
 	<currentVersion>0.1-SNAPSHOT</currentVersion>
 	<shortDescription>communication</shortDescription>
 	<issueTrackingUrl>http://jira.media-style.com/browse/INGRID</issueTrackingUrl>
