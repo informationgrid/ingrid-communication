@@ -19,28 +19,28 @@ public class TcpCommunicationTest extends TestCase {
 
     private TcpCommunication _tcpCommunicationServer;
 
-    protected void setUp() throws Exception {
-        _tcpCommunicationServer = new TcpCommunication();
-        _tcpCommunicationServer.setIsCommunicationServer(true);
-        _tcpCommunicationServer.addServer("127.0.0.1:55556");
-        _tcpCommunicationServer.setPeerName(SERVER);
-        _tcpCommunicationServer.startup();
-        _tcpCommunicationServer.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
-
-        _tcpCommunicationClient = new TcpCommunication();
-        _tcpCommunicationClient.setIsCommunicationServer(false);
-        _tcpCommunicationClient.setPeerName(CLIENT);
-        _tcpCommunicationClient.addServer("127.0.0.1:55556");
-        _tcpCommunicationClient.startup();
-        _tcpCommunicationClient.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
-    }
-
-    protected void tearDown() throws Exception {
-        _tcpCommunicationClient.closeConnection(SERVER);
-        _tcpCommunicationClient.shutdown();
-        _tcpCommunicationServer.closeConnection(CLIENT);
-        _tcpCommunicationServer.shutdown();
-    }
+//    protected void setUp() throws Exception {
+//        _tcpCommunicationServer = new TcpCommunication();
+//        _tcpCommunicationServer.setIsCommunicationServer(true);
+//        _tcpCommunicationServer.addServer("127.0.0.1:55556");
+//        _tcpCommunicationServer.setPeerName(SERVER);
+//        _tcpCommunicationServer.startup();
+//        _tcpCommunicationServer.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
+//
+//        _tcpCommunicationClient = new TcpCommunication();
+//        _tcpCommunicationClient.setIsCommunicationServer(false);
+//        _tcpCommunicationClient.setPeerName(CLIENT);
+//        _tcpCommunicationClient.addServer("127.0.0.1:55556");
+//        _tcpCommunicationClient.startup();
+//        _tcpCommunicationClient.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
+//    }
+//
+//    protected void tearDown() throws Exception {
+//        _tcpCommunicationClient.closeConnection(SERVER);
+//        _tcpCommunicationClient.shutdown();
+//        _tcpCommunicationServer.closeConnection(CLIENT);
+//        _tcpCommunicationServer.shutdown();
+//    }
 
     // public void testSendSyncMessageFromClientToServer() {
     // Message message = new Message("type");
