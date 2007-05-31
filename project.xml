@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance.xsd" xsi:noNamespaceSchemaLocation="http://maven.apache.org/xsd/maven-project-3.0.0.xsd">
+	<pomVersion>3</pomVersion>
+	<artifactId>communication-tcp</artifactId>
+	<name>communication-tcp</name>
+	<groupId>net.weta.components</groupId>
+	<currentVersion>0.1-SNAPSHOT</currentVersion>
+	<shortDescription>communication</shortDescription>
+	<issueTrackingUrl>http://jira.media-style.com/browse/INGRID</issueTrackingUrl>
+	<siteAddress>http://213.144.28.209/ingrid/ingrid-communication</siteAddress>
+	<siteDirectory>/srv/www/htdocs/ingrid/ingrid-communication</siteDirectory>
+	<repository>
+        <connection>scm:svn:https://127.0.0.1:444/svn/ingrid/ingrid-communication/trunk</connection>
+    </repository>
+	<build>
+		<sourceDirectory>${basedir}/src/main/java</sourceDirectory>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.9</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	
+</project>
