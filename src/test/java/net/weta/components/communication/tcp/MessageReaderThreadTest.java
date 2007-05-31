@@ -22,6 +22,9 @@ public class MessageReaderThreadTest extends TestCase {
 
     private ServerSocket _serverSocket;
 
+    public void testBla() throws Exception {
+        assertTrue(true);
+    }
 //    protected void setUp() throws Exception {
 //        Runnable runnable = new Runnable() {
 //
