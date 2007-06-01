@@ -13,6 +13,7 @@ import net.weta.components.communication.tcp.client.CommunicationClient;
 import net.weta.components.communication.tcp.client.MultiCommunicationClient;
 import net.weta.components.communication.tcp.server.CommunicationServer;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 public class TcpCommunication implements ICommunication {
@@ -98,8 +99,14 @@ public class TcpCommunication implements ICommunication {
 
     public void shutdown() {
         if (_isCommunicationServer) {
+            if (LOG.isEnabledFor(Level.INFO)) {
+                LOG.info("Shutdown the server.");
+            }
             _communicationServer.interrupt();
         } else {
+            if (LOG.isEnabledFor(Level.INFO)) {
+                LOG.info("Shutdown the client.");
+            }
             _communicationClient.interrupt();
         }
     }
