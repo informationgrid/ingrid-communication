@@ -29,7 +29,7 @@ public class TcpCommunicationTest extends TestCase {
             public void run() {
                 _tcpCommunicationServer = new TcpCommunication();
                 _tcpCommunicationServer.setIsCommunicationServer(true);
-                _tcpCommunicationServer.addServer("127.0.0.1:55556");
+                _tcpCommunicationServer.addServer("127.0.0.1:9191");
                 _tcpCommunicationServer.setPeerName(SERVER);
                 try {
                     _tcpCommunicationServer.startup();
@@ -45,7 +45,7 @@ public class TcpCommunicationTest extends TestCase {
                 _tcpCommunicationClient = new TcpCommunication();
                 _tcpCommunicationClient.setIsCommunicationServer(false);
                 _tcpCommunicationClient.setPeerName(CLIENT);
-                _tcpCommunicationClient.addServer("127.0.0.1:55556");
+                _tcpCommunicationClient.addServer("127.0.0.1:9191");
                 try {
                     _tcpCommunicationClient.startup();
                 } catch (IOException e) {
