@@ -9,7 +9,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -137,9 +136,9 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
     public void interrupt() {
         super.interrupt();
         Set peerNames = _messageReaderMap.keySet();
-        Iterator iterator = peerNames.iterator();
-        while (iterator.hasNext()) {
-            String peerName = (String) iterator.next();
+        String[] peerNameArray = (String[]) peerNames.toArray(new String[peerNames.size()]);
+        for (int i = 0; i < peerNameArray.length; i++) {
+            String peerName = peerNameArray[i];
             deregister(peerName);
         }
         try {
