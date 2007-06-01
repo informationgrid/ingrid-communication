@@ -4,7 +4,6 @@
 package net.weta.components.communication.tcp;
 
 import java.io.IOException;
-import java.net.Socket;
 
 import junit.framework.TestCase;
 import net.weta.components.communication.messaging.Message;
@@ -16,34 +15,54 @@ public class TcpCommunicationTest extends TestCase {
 
     private static final String SERVER = "/kug-group:server";
 
-    private TcpCommunication _tcpCommunicationClient;
+    private Runnable _serverRunnable;
+
+    private Runnable _clientRunnable;
 
     private TcpCommunication _tcpCommunicationServer;
 
-    protected void setUp() throws Exception {
-        _tcpCommunicationServer = new TcpCommunication();
-        _tcpCommunicationServer.setIsCommunicationServer(true);
-        _tcpCommunicationServer.addServer("127.0.0.1:55556");
-        _tcpCommunicationServer.setPeerName(SERVER);
-        _tcpCommunicationServer.startup();
-        _tcpCommunicationServer.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
+    private TcpCommunication _tcpCommunicationClient;
 
-        boolean started = false;
-        while (!started )
-        try {
-            new Socket("127.0.0.1", 55556);
-            started = true;
-        } catch (Exception e) {
-            //
-        }
-        _tcpCommunicationClient = new TcpCommunication();
-        _tcpCommunicationClient.setIsCommunicationServer(false);
-        _tcpCommunicationClient.setPeerName(CLIENT);
-        _tcpCommunicationClient.addServer("127.0.0.1:55556");
-        _tcpCommunicationClient.startup();
-        _tcpCommunicationClient.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
-        
-        Thread.sleep(10000);
+    protected void setUp() throws Exception {
+
+        _serverRunnable = new Runnable() {
+            public void run() {
+                _tcpCommunicationServer = new TcpCommunication();
+                _tcpCommunicationServer.setIsCommunicationServer(true);
+                _tcpCommunicationServer.addServer("127.0.0.1:55556");
+                _tcpCommunicationServer.setPeerName(SERVER);
+                try {
+                    _tcpCommunicationServer.startup();
+                } catch (IOException e) {
+                    fail(e.getMessage());
+                }
+                _tcpCommunicationServer.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
+            }
+        };
+
+        _clientRunnable = new Runnable() {
+            public void run() {
+                _tcpCommunicationClient = new TcpCommunication();
+                _tcpCommunicationClient.setIsCommunicationServer(false);
+                _tcpCommunicationClient.setPeerName(CLIENT);
+                _tcpCommunicationClient.addServer("127.0.0.1:55556");
+                try {
+                    _tcpCommunicationClient.startup();
+                } catch (IOException e) {
+                    fail(e.getMessage());
+                }
+                _tcpCommunicationClient.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
+            }
+        };
+
+        Thread thread = new Thread(_serverRunnable);
+        thread.start();
+        thread.join();
+
+        Thread thread2 = new Thread(_clientRunnable);
+        thread2.start();
+        thread2.join();
+
     }
 
     protected void tearDown() throws Exception {
@@ -53,7 +72,12 @@ public class TcpCommunicationTest extends TestCase {
         _tcpCommunicationServer.shutdown();
     }
 
-    public void testSendSyncMessageFromClientToServer() {
+    public void testSendMessage() throws Exception {
+        sendSyncMessageFromClientToServer();
+        sendSyncMessageFromServerToClient();
+    }
+
+    public void sendSyncMessageFromClientToServer() throws Exception {
         Message message = new Message("type");
         Message result = null;
         try {
@@ -68,7 +92,7 @@ public class TcpCommunicationTest extends TestCase {
         assertEquals("", result.getType());
     }
 
-    public void testSendSyncMessageFromServerToClient() throws Exception {
+    public void sendSyncMessageFromServerToClient() throws Exception {
         Message message = new Message("type");
         Message result = null;
         try {
