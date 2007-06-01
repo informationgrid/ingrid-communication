@@ -139,12 +139,14 @@ public class MessageReaderThread extends Thread {
     }
 
     public void interrupt() {
+        if (LOG.isEnabledFor(Level.INFO)) {
+            LOG.info("Shutdown MessageReaderThread.");
+        }
         super.interrupt();
         try {
-            Thread.sleep(1000);
             _socket.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("Error on closing socket.");
         }
     }
 }
