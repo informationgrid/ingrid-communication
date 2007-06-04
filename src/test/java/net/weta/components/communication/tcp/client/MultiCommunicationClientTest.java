@@ -100,7 +100,7 @@ public class MultiCommunicationClientTest extends TestCase {
         _tcpCommunicationServer2.shutdown();
     }
 
-    public void sendSyncMessageFromServerToClient() throws Exception {
+    public void testSendSyncMessageFromServerToClient() throws Exception {
         Message message = new Message("type");
         Message result = null;
         try {
