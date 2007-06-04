@@ -19,9 +19,9 @@ public class TcpCommunicationTest extends TestCase {
 
     private Runnable _clientRunnable;
 
-    private TcpCommunication _tcpCommunicationServer;
+    TcpCommunication _tcpCommunicationServer;
 
-    private TcpCommunication _tcpCommunicationClient;
+    TcpCommunication _tcpCommunicationClient;
 
     protected void setUp() throws Exception {
 
