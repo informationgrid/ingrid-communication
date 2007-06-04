@@ -10,8 +10,8 @@ public class MultiCommunicationClient extends Thread implements IMessageSender {
     private final CommunicationClient[] _clients;
 
     public MultiCommunicationClient(CommunicationClient[] clients) {
-        _clients = clients;
         assert clients.length > 0;
+        _clients = clients;
     }
 
     public void run() {
