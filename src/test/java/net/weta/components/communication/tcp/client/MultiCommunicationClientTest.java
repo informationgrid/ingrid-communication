@@ -52,7 +52,7 @@ public class MultiCommunicationClientTest extends TestCase {
                 _tcpCommunicationServer2 = new TcpCommunication();
                 _tcpCommunicationServer2.setIsCommunicationServer(true);
                 _tcpCommunicationServer2.addServer("127.0.0.1:9194");
-                _tcpCommunicationServer2.setPeerName(SERVER);
+                _tcpCommunicationServer2.setPeerName(SERVER2);
                 try {
                     _tcpCommunicationServer2.startup();
                 } catch (IOException e) {
@@ -68,7 +68,9 @@ public class MultiCommunicationClientTest extends TestCase {
                 _tcpCommunicationClient.setIsCommunicationServer(false);
                 _tcpCommunicationClient.setPeerName(CLIENT);
                 _tcpCommunicationClient.addServer("127.0.0.1:9193");
+                _tcpCommunicationClient.addServerName(SERVER);
                 _tcpCommunicationClient.addServer("127.0.0.1:9194");
+                _tcpCommunicationClient.addServerName(SERVER2);
                 try {
                     _tcpCommunicationClient.startup();
                 } catch (IOException e) {

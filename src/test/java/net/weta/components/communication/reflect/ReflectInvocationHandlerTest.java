@@ -27,6 +27,7 @@ public class ReflectInvocationHandlerTest extends TestCase {
         _tcpCommunicationClient.setIsCommunicationServer(false);
         _tcpCommunicationClient.setPeerName("a");
         _tcpCommunicationClient.addServer("127.0.0.1:55556");
+        _tcpCommunicationClient.addServerName("b");
         _tcpCommunicationClient.setMessageHandleTimeout(2);
         _tcpCommunicationClient.startup();
     }

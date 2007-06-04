@@ -23,6 +23,7 @@ public class CommunicationServerTest extends TestCase {
         client1.setIsCommunicationServer(false);
         client1.setPeerName("client");
         client1.addServer("127.0.0.1:55556");
+        client1.addServerName("server");
         client1.startup();
         client1.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
 
@@ -34,6 +35,7 @@ public class CommunicationServerTest extends TestCase {
         client2.setIsCommunicationServer(false);
         client2.setPeerName("client");
         client2.addServer("127.0.0.1:55556");
+        client2.addServerName("server");
         client2.startup();
         client2.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
 
