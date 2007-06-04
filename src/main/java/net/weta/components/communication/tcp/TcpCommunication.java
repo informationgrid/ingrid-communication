@@ -123,7 +123,7 @@ public class TcpCommunication implements ICommunication {
             String proxyPort = _proxy != null ? _proxy.substring(_proxy.indexOf(":") + 1, _proxy.length()) : "0";
             List clients = new ArrayList();
             for (int i = 0; i < _servers.size(); i++) {
-                String server = (String) _servers.get(0);
+                String server = (String) _servers.get(i);
                 String host = server.substring(0, server.indexOf(":"));
                 String port = server.substring(server.indexOf(":") + 1, server.length());
                 CommunicationClient client = new CommunicationClient(_peerName, host, Integer.parseInt(port),
@@ -152,6 +152,10 @@ public class TcpCommunication implements ICommunication {
 
     public void addServer(String server) {
         _servers.add(server);
+    }
+    
+    public List getServer() {
+        return _servers;
     }
 
     public void setProxy(String proxy) {
