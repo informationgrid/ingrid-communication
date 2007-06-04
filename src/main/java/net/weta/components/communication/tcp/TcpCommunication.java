@@ -28,6 +28,8 @@ public class TcpCommunication implements ICommunication {
 
     private List _servers = new ArrayList();
 
+    private List _serverNames = new ArrayList();
+
     private String _proxy = null;
 
     private CommunicationServer _communicationServer;
@@ -119,22 +121,26 @@ public class TcpCommunication implements ICommunication {
                     _maxMessageSize, _connectTimeout);
             _communicationServer.start();
         } else {
-            String proxyHost = _proxy != null ? _proxy.substring(0, _proxy.indexOf(":")) : "";
-            String proxyPort = _proxy != null ? _proxy.substring(_proxy.indexOf(":") + 1, _proxy.length()) : "0";
-            List clients = new ArrayList();
-            for (int i = 0; i < _servers.size(); i++) {
-                String server = (String) _servers.get(i);
-                String host = server.substring(0, server.indexOf(":"));
-                String port = server.substring(server.indexOf(":") + 1, server.length());
-                CommunicationClient client = new CommunicationClient(_peerName, host, Integer.parseInt(port),
-                        proxyHost, Integer.parseInt(proxyPort), _useProxy, _messageQueue, _maxThreadCount,
-                        _maxMessageSize, _connectTimeout);
-                clients.add(client);
+            if (_servers.size() == _serverNames.size()) {
+                String proxyHost = _proxy != null ? _proxy.substring(0, _proxy.indexOf(":")) : "";
+                String proxyPort = _proxy != null ? _proxy.substring(_proxy.indexOf(":") + 1, _proxy.length()) : "0";
+                List clients = new ArrayList();
+                for (int i = 0; i < _servers.size(); i++) {
+                    String server = (String) _servers.get(i);
+                    String host = server.substring(0, server.indexOf(":"));
+                    String port = server.substring(server.indexOf(":") + 1, server.length());
+                    CommunicationClient client = new CommunicationClient(_peerName, host, Integer.parseInt(port),
+                            proxyHost, Integer.parseInt(proxyPort), _useProxy, _messageQueue, _maxThreadCount,
+                            _maxMessageSize, _connectTimeout, (String) _serverNames.get(i));
+                    clients.add(client);
+                }
+                CommunicationClient[] clientArray = (CommunicationClient[]) clients
+                        .toArray(new CommunicationClient[clients.size()]);
+                _communicationClient = new MultiCommunicationClient(clientArray);
+                _communicationClient.start();
+            } else {
+                throw new IOException("Start failed! Please set for every server the name.");
             }
-            CommunicationClient[] clientArray = (CommunicationClient[]) clients.toArray(new CommunicationClient[clients
-                    .size()]);
-            _communicationClient = new MultiCommunicationClient(clientArray);
-            _communicationClient.start();
         }
     }
 
@@ -153,9 +159,17 @@ public class TcpCommunication implements ICommunication {
     public void addServer(String server) {
         _servers.add(server);
     }
-    
-    public List getServer() {
+
+    public void addServerName(String server) {
+        _serverNames.add(server);
+    }
+
+    public List getServers() {
         return _servers;
+    }
+
+    public List getServerNames() {
+        return _serverNames;
     }
 
     public void setProxy(String proxy) {

@@ -59,8 +59,10 @@ public class CommunicationClient implements IMessageSender {
 
     private final int _connectTimeout;
 
+    private final String _serverName;
+
     public CommunicationClient(String peerName, String serverHost, int serverPort, String proxyServer, int proxyPort,
-            boolean useProxy, MessageQueue messageQueue, int maxThreadCount, int maxMessageSize, int connectTimeout) {
+            boolean useProxy, MessageQueue messageQueue, int maxThreadCount, int maxMessageSize, int connectTimeout, String serverName) {
         _peerName = peerName;
         _serverHost = serverHost;
         _serverPort = serverPort;
@@ -71,6 +73,7 @@ public class CommunicationClient implements IMessageSender {
         _maxThreadCount = maxThreadCount;
         _maxMessageSize = maxMessageSize;
         _connectTimeout = connectTimeout;
+        _serverName = serverName;
     }
 
     public synchronized void connect(String url) {
@@ -186,5 +189,9 @@ public class CommunicationClient implements IMessageSender {
 
         socket.setSoTimeout(0);
         return ret;
+    }
+
+    public String getServerName() {
+        return _serverName;
     }
 }

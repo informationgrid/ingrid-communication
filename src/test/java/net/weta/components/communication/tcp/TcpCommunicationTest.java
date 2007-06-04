@@ -46,6 +46,7 @@ public class TcpCommunicationTest extends TestCase {
                 _tcpCommunicationClient.setIsCommunicationServer(false);
                 _tcpCommunicationClient.setPeerName(CLIENT);
                 _tcpCommunicationClient.addServer("127.0.0.1:9191");
+                _tcpCommunicationClient.addServerName(SERVER);
                 try {
                     _tcpCommunicationClient.startup();
                 } catch (IOException e) {

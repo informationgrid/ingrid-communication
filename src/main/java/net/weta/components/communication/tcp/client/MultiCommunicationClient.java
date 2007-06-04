@@ -1,17 +1,25 @@
 package net.weta.components.communication.tcp.client;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.tcp.server.IMessageSender;
 
+import org.apache.log4j.Logger;
+
 public class MultiCommunicationClient extends Thread implements IMessageSender {
 
-    private final CommunicationClient[] _clients;
+    private static final Logger LOG = Logger.getLogger(MultiCommunicationClient.class);
+
+    private final HashMap _clients = new HashMap();
 
     public MultiCommunicationClient(CommunicationClient[] clients) {
         assert clients.length > 0;
-        _clients = clients;
+        for (int i = 0; i < clients.length; i++) {
+            _clients.put(clients[i].getServerName(), clients[i]);
+        }
     }
 
     public void run() {
@@ -19,20 +27,24 @@ public class MultiCommunicationClient extends Thread implements IMessageSender {
     }
 
     public void sendMessage(String peerName, Message message) throws IOException {
-        // FIXME currently only the first client is used to send messages
-        _clients[0].sendMessage(peerName, message);
+        CommunicationClient client = (CommunicationClient) _clients.get(peerName);
+        if (client != null) {
+            client.sendMessage(peerName, message);
+        } else {
+            LOG.error("No client for server (" + peerName + ") initialized.");
+        }
     }
 
     public void interrupt() {
-        for (int i = 0; i < _clients.length; i++) {
-            CommunicationClient client = _clients[i];
+        for (Iterator iterator = _clients.values().iterator(); iterator.hasNext();) {
+            CommunicationClient client = (CommunicationClient) iterator.next();
             client.interrupt();
         }
     }
 
     public void connect(String url) {
-        for (int i = 0; i < _clients.length; i++) {
-            CommunicationClient client = _clients[i];
+        for (Iterator iterator = _clients.values().iterator(); iterator.hasNext();) {
+            CommunicationClient client = (CommunicationClient) iterator.next();
             client.connect(url);
         }
     }

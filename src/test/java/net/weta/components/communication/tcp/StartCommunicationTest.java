@@ -2,17 +2,20 @@ package net.weta.components.communication.tcp;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import junit.framework.TestCase;
-import net.weta.components.communication.ICommunication;
 
 public class StartCommunicationTest extends TestCase {
 
     public void testStart() {
         InputStream resourceAsStream = StartCommunication.class.getResourceAsStream("/communication.properties");
         try {
-            ICommunication communication = StartCommunication.create(resourceAsStream);
+            TcpCommunication communication = (TcpCommunication) StartCommunication.create(resourceAsStream);
             assertEquals("message-server", communication.getPeerName());
+            List server = communication.getServers();
+            assertTrue(server.contains("127.0.0.1:8080"));
+            assertTrue(server.contains("127.0.0.1:8081"));
         } catch (IOException e) {
             e.printStackTrace();
             fail();
