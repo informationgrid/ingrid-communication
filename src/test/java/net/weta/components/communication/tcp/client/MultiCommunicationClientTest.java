@@ -103,6 +103,7 @@ public class MultiCommunicationClientTest extends TestCase {
     }
 
     public void testSendSyncMessageFromServerToClient() throws Exception {
+        Thread.sleep(3000);
         Message message = new Message("type");
         Message result = null;
         try {
