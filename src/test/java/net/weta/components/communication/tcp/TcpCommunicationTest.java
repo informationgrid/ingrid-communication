@@ -74,6 +74,7 @@ public class TcpCommunicationTest extends TestCase {
     }
 
     public void testSendMessage() throws Exception {
+        Thread.sleep(3000);
         sendSyncMessageFromClientToServer();
         sendSyncMessageFromServerToClient();
     }
