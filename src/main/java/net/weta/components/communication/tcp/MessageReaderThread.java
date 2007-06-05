@@ -142,11 +142,11 @@ public class MessageReaderThread extends Thread {
         if (LOG.isEnabledFor(Level.INFO)) {
             LOG.info("Shutdown MessageReaderThread.");
         }
-        super.interrupt();
         try {
             _socket.close();
         } catch (Exception e) {
             LOG.error("Error on closing socket.");
         }
+        super.interrupt();
     }
 }
