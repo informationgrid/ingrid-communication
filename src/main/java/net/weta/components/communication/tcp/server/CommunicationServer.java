@@ -72,24 +72,25 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         if (_messageReaderMap.containsKey(peerName)) {
             if (LOG.isEnabledFor(Level.WARN)) {
                 LOG.warn("Registration of new client from ip [" + socket.getRemoteSocketAddress()
-                        + "] disallow, client with the same name already registered: [" + peerName + "]");
+                        + "], client with the same name already registered: [" + peerName + "]");
             }
-            writeRegisteredStatus(socket, false);
-        } else {
-            LOG.info("new client [" + peerName + "] registered from ip [" + socket.getRemoteSocketAddress() + "]");
-            writeRegisteredStatus(socket, true);
-            MessageReaderThread thread = new MessageReaderThread(peerName, socket, _messageQueue, this,
-                    _maxThreadCount, _maxMessageSize);
-            thread.start();
-            try {
-                OutputStream outputStream = socket.getOutputStream();
-                DataOutputStream dataOutput = new DataOutputStream(new BufferedOutputStream(outputStream, 65535));
-                _messageReaderMap.put(peerName, thread);
-                _outputStreamMap.put(peerName, dataOutput);
-            } catch (IOException e) {
-                LOG.error(e);
-                thread.interrupt();
-            }
+            MessageReaderThread thread = (MessageReaderThread) _messageReaderMap.get(peerName);
+            thread.interrupt();
+        }
+
+        LOG.info("new client [" + peerName + "] registered from ip [" + socket.getRemoteSocketAddress() + "]");
+        writeRegisteredStatus(socket, true);
+        MessageReaderThread thread = new MessageReaderThread(peerName, socket, _messageQueue, this, _maxThreadCount,
+                _maxMessageSize);
+        thread.start();
+        try {
+            OutputStream outputStream = socket.getOutputStream();
+            DataOutputStream dataOutput = new DataOutputStream(new BufferedOutputStream(outputStream, 65535));
+            _messageReaderMap.put(peerName, thread);
+            _outputStreamMap.put(peerName, dataOutput);
+        } catch (IOException e) {
+            LOG.error(e);
+            thread.interrupt();
         }
     }
 
@@ -111,7 +112,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         MessageReaderThread thread = (MessageReaderThread) _messageReaderMap.remove(peerName);
         if (thread != null) {
             if (LOG.isInfoEnabled()) {
-                LOG.info("shutdown peer: [" + peerName + "]");
+                LOG.info("shutdown peer connection: [" + peerName + "]");
             }
             thread.interrupt();
         }
