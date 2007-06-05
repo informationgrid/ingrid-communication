@@ -74,8 +74,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
                 LOG.warn("Registration of new client from ip [" + socket.getRemoteSocketAddress()
                         + "], client with the same name already registered: [" + peerName + "]");
             }
-            MessageReaderThread thread = (MessageReaderThread) _messageReaderMap.get(peerName);
-            thread.interrupt();
+            deregister(peerName);
         }
 
         LOG.info("new client [" + peerName + "] registered from ip [" + socket.getRemoteSocketAddress() + "]");
