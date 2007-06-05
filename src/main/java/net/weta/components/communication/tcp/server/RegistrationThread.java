@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 public class RegistrationThread extends Thread {
@@ -32,7 +33,14 @@ public class RegistrationThread extends Thread {
         String peerName;
         try {
             peerName = readPeerName(_socket);
-            _registration.register(peerName, _socket);
+            if (peerName != null) {
+                _registration.register(peerName, _socket);
+            } else {
+                if (LOG.isEnabledFor(Level.WARN)) {
+                    LOG.warn("Registration failed, peerName invalid (message too big)).");
+                }
+                _socket.close();
+            }
         } catch (IOException e) {
             LOG.error("client can not register to communication server", e);
             try {
@@ -41,7 +49,9 @@ public class RegistrationThread extends Thread {
                 LOG.error("can not close socket.", ioe);
             }
         }
-
+        if (LOG.isInfoEnabled()) {
+            LOG.info("Registration to server successfully.");
+        }
     }
 
     private String readPeerName(Socket socket) throws IOException {
@@ -51,9 +61,15 @@ public class RegistrationThread extends Thread {
             InputStream inputStream = socket.getInputStream();
             DataInput dataInput = new DataInputStream(inputStream);
             int byteLength = dataInput.readInt();
-            byte[] bytes = new byte[byteLength];
-            dataInput.readFully(bytes, 0, bytes.length);
-            peerName = new String(bytes);
+            if (byteLength > _maxMessageSize) {
+                if (LOG.isEnabledFor(Level.WARN)) {
+                    LOG.warn("new message ignored, message size to big: [" + byteLength + "]");
+                }
+            } else {
+                byte[] bytes = new byte[byteLength];
+                dataInput.readFully(bytes, 0, bytes.length);
+                peerName = new String(bytes);
+            }
         } catch (SocketTimeoutException e) {
             throw new IOException("timeout while registration.");
         }
