@@ -43,9 +43,7 @@ public class CommunicationServerTest extends TestCase {
         try {
             message = client2.sendSyncMessage(new Message("type"), "server");
         } catch (SocketException e) {
-            assertEquals("Socket closed", e.getMessage());
-            return;
+            fail();
         }
-        fail();
     }
 }
