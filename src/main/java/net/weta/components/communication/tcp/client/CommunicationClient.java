@@ -14,6 +14,7 @@ import java.net.SocketTimeoutException;
 
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.MessageQueue;
+import net.weta.components.communication.security.SecurityUtil;
 import net.weta.components.communication.tcp.MessageReaderThread;
 import net.weta.components.communication.tcp.server.IMessageSender;
 import net.weta.components.communication.util.MessageUtil;
@@ -61,8 +62,11 @@ public class CommunicationClient implements IMessageSender {
 
     private final String _serverName;
 
+    private final SecurityUtil _securityUtil;
+
     public CommunicationClient(String peerName, String serverHost, int serverPort, String proxyServer, int proxyPort,
-            boolean useProxy, MessageQueue messageQueue, int maxThreadCount, int maxMessageSize, int connectTimeout, String serverName) {
+            boolean useProxy, MessageQueue messageQueue, int maxThreadCount, int maxMessageSize, int connectTimeout,
+            String serverName, SecurityUtil securityUtil) {
         _peerName = peerName;
         _serverHost = serverHost;
         _serverPort = serverPort;
@@ -74,6 +78,7 @@ public class CommunicationClient implements IMessageSender {
         _maxMessageSize = maxMessageSize;
         _connectTimeout = connectTimeout;
         _serverName = serverName;
+        _securityUtil = securityUtil;
     }
 
     public synchronized void connect(String url) {
@@ -120,6 +125,9 @@ public class CommunicationClient implements IMessageSender {
 
             boolean isRegistered = isRegistered(_socket);
             if (isRegistered) {
+                if (LOG.isEnabledFor(Level.INFO)) {
+                    LOG.info("Registration to server [" + _serverHost + ":" + _serverPort + "] successfully.");
+                }
                 _messageReaderThread = new MessageReaderThread(_peerName, _socket, _messageQueue, this,
                         _maxThreadCount, _maxMessageSize);
                 _messageReaderThread.start();
@@ -151,6 +159,10 @@ public class CommunicationClient implements IMessageSender {
     public synchronized void sendMessage(String peerName, Message message) throws IOException {
         waitUntilClientIsConnected();
         byte[] bytes = MessageUtil.serialize(message);
+        sendByteArray(bytes);
+    }
+
+    private void sendByteArray(byte[] bytes) throws IOException {
         _dataOutput.writeInt(bytes.length);
         _dataOutput.write(bytes);
         _dataOutput.flush();
@@ -182,7 +194,25 @@ public class CommunicationClient implements IMessageSender {
         try {
             InputStream inputStream = socket.getInputStream();
             DataInput dataInput = new DataInputStream(inputStream);
-            ret = dataInput.readBoolean();
+            int byteLength = dataInput.readInt();
+            if (byteLength < _maxMessageSize) {
+                byte[] bytes = new byte[byteLength];
+                dataInput.readFully(bytes, 0, byteLength);
+                if (LOG.isEnabledFor(Level.INFO)) {
+                    LOG.info("receive byte array for signing...");
+                }
+                byte[] signature = _securityUtil.computeSignature(_peerName, bytes);
+                if (LOG.isEnabledFor(Level.INFO)) {
+                    LOG.info("send signature to server...");
+                }
+                sendByteArray(signature);
+                ret = dataInput.readBoolean();
+            } else {
+                if (LOG.isEnabledFor(Level.WARN)) {
+                    LOG.warn("ignore byte array for signing, message size to big: [" + byteLength + "]");
+                }
+            }
+
         } catch (SocketTimeoutException e) {
             throw new IOException("timeout while registration.");
         }

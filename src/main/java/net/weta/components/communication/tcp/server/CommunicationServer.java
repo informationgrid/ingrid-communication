@@ -15,6 +15,7 @@ import java.util.Set;
 import net.weta.components.communication.messaging.IMessageQueue;
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.MessageQueue;
+import net.weta.components.communication.security.SecurityUtil;
 import net.weta.components.communication.tcp.MessageReaderThread;
 import net.weta.components.communication.util.MessageUtil;
 
@@ -41,13 +42,16 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
 
     private int _connectTimeout;
 
+    private final SecurityUtil _securityUtil;
+
     public CommunicationServer(int port, MessageQueue messageQueue, int maxThreadCount, int maxMessageSize,
-            int connectTimeout) {
+            int connectTimeout, SecurityUtil securityUtil) {
         _port = port;
         _messageQueue = messageQueue;
         _maxThreadCount = maxThreadCount;
         _maxMessageSize = maxMessageSize;
         _connectTimeout = connectTimeout;
+        _securityUtil = securityUtil;
     }
 
     public void run() {
@@ -57,7 +61,9 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
             LOG.info("Communication server is startet...");
             while (!isInterrupted()) {
                 Socket socket = _serverSocket.accept();
-                new RegistrationThread(socket, this, _maxMessageSize, _connectTimeout).start();
+                LOG.info("new client is connected from ip: [" + socket.getRemoteSocketAddress()
+                        + "], start registration...");
+                new RegistrationThread(socket, this, _maxMessageSize, _connectTimeout, _securityUtil).start();
             }
         } catch (BindException e) {
             LOG.error(e.getMessage() + " " + _port);

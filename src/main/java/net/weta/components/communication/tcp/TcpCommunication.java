@@ -1,5 +1,6 @@
 package net.weta.components.communication.tcp;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,8 @@ import net.weta.components.communication.messaging.IMessageQueue;
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.MessageQueue;
 import net.weta.components.communication.messaging.PayloadMessage;
+import net.weta.components.communication.security.JavaKeystore;
+import net.weta.components.communication.security.SecurityUtil;
 import net.weta.components.communication.tcp.client.CommunicationClient;
 import net.weta.components.communication.tcp.client.MultiCommunicationClient;
 import net.weta.components.communication.tcp.server.CommunicationServer;
@@ -47,6 +50,10 @@ public class TcpCommunication implements ICommunication {
     private int _maxMessageSize = 1024 * 1024; // 1mb
 
     private int _connectTimeout = 10;
+
+    private String _keystorePassword;
+
+    private String _keystore;
 
     public TcpCommunication() {
         _messageQueue = new MessageQueue();
@@ -114,11 +121,15 @@ public class TcpCommunication implements ICommunication {
     }
 
     public void startup() throws IOException {
+        
+        JavaKeystore keystore = new JavaKeystore(new File(_keystore), _keystorePassword);
+        SecurityUtil util = new SecurityUtil(keystore);
+        
         if (_isCommunicationServer) {
             String server = (String) _servers.get(0);
             String port = server.substring(server.indexOf(":") + 1, server.length());
             _communicationServer = new CommunicationServer(Integer.parseInt(port), _messageQueue, _maxThreadCount,
-                    _maxMessageSize, _connectTimeout);
+                    _maxMessageSize, _connectTimeout, util);
             _communicationServer.start();
         } else {
             if (_servers.size() == _serverNames.size()) {
@@ -131,7 +142,7 @@ public class TcpCommunication implements ICommunication {
                     String port = server.substring(server.indexOf(":") + 1, server.length());
                     CommunicationClient client = new CommunicationClient(_peerName, host, Integer.parseInt(port),
                             proxyHost, Integer.parseInt(proxyPort), _useProxy, _messageQueue, _maxThreadCount,
-                            _maxMessageSize, _connectTimeout, (String) _serverNames.get(i));
+                            _maxMessageSize, _connectTimeout, (String) _serverNames.get(i), util);
                     clients.add(client);
                 }
                 CommunicationClient[] clientArray = (CommunicationClient[]) clients
@@ -205,5 +216,13 @@ public class TcpCommunication implements ICommunication {
      */
     public void setConnectTimeout(int connectTimeout) {
         _connectTimeout = connectTimeout;
+    }
+
+    public void setKeystorePassword(String keystorePassword) {
+        _keystorePassword = keystorePassword;
+    }
+
+    public void setKeystore(String keystore) {
+        _keystore = keystore;
     }
 }

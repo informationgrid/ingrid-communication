@@ -3,7 +3,10 @@
  */
 package net.weta.components.communication.tcp;
 
+import java.io.File;
 import java.io.IOException;
+
+import sun.security.tools.KeyTool;
 
 import junit.framework.TestCase;
 import net.weta.components.communication.messaging.Message;
@@ -23,7 +26,26 @@ public class TcpCommunicationTest extends TestCase {
 
     TcpCommunication _tcpCommunicationClient;
 
+    private File _securityFolder;
+
     protected void setUp() throws Exception {
+
+        _securityFolder = new File(System.getProperty("java.io.tmpdir"), "" + System.currentTimeMillis());
+        _securityFolder.mkdirs();
+        final File keystoreServer = new File(_securityFolder, "keystore-server");
+        final File keystoreClient = new File(_securityFolder, "keystore-client");
+        File clientCertificate = new File(_securityFolder, "client.cer");
+
+        KeyTool.main(new String[] { "-genkey", "-keystore", keystoreServer.getAbsolutePath(), "-alias", SERVER,
+                "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
+                "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
+        KeyTool.main(new String[] { "-genkey", "-keystore", keystoreClient.getAbsolutePath(), "-alias", CLIENT,
+                "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
+                "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
+        KeyTool.main(new String[] { "-export", "-keystore", keystoreClient.getAbsolutePath(), "-storepass", "password",
+                "-alias", CLIENT, "-file", clientCertificate.getAbsolutePath() });
+        KeyTool.main(new String[] { "-import", "-keystore", keystoreServer.getAbsolutePath(), "-noprompt",
+                "-storepass", "password", "-alias", CLIENT, "-file", clientCertificate.getAbsolutePath() });
 
         _serverRunnable = new Runnable() {
             public void run() {
@@ -31,6 +53,8 @@ public class TcpCommunicationTest extends TestCase {
                 _tcpCommunicationServer.setIsCommunicationServer(true);
                 _tcpCommunicationServer.addServer("127.0.0.1:10091");
                 _tcpCommunicationServer.setPeerName(SERVER);
+                _tcpCommunicationServer.setKeystore(keystoreServer.getAbsolutePath());
+                _tcpCommunicationServer.setKeystorePassword("password");
                 try {
                     _tcpCommunicationServer.startup();
                 } catch (IOException e) {
@@ -47,6 +71,9 @@ public class TcpCommunicationTest extends TestCase {
                 _tcpCommunicationClient.setPeerName(CLIENT);
                 _tcpCommunicationClient.addServer("127.0.0.1:10091");
                 _tcpCommunicationClient.addServerName(SERVER);
+                _tcpCommunicationClient.setKeystore(keystoreClient.getAbsolutePath());
+                _tcpCommunicationClient.setKeystorePassword("password");
+
                 try {
                     _tcpCommunicationClient.startup();
                 } catch (IOException e) {
@@ -71,6 +98,12 @@ public class TcpCommunicationTest extends TestCase {
         _tcpCommunicationClient.shutdown();
         _tcpCommunicationServer.closeConnection(CLIENT);
         _tcpCommunicationServer.shutdown();
+
+        File[] files = _securityFolder.listFiles();
+        for (int i = 0; i < files.length; i++) {
+            assertTrue(files[i].delete());
+        }
+        assertTrue(_securityFolder.delete());
     }
 
     public void testSendMessage() throws Exception {
