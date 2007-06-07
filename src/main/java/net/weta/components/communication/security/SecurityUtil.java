@@ -8,7 +8,11 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.X509Certificate;
 
+import org.apache.log4j.Logger;
+
 public class SecurityUtil {
+
+    private static final Logger LOG = Logger.getLogger(SecurityUtil.class);
 
     public static final String SHA1_DSA = "SHA1withDSA";
 
@@ -19,7 +23,13 @@ public class SecurityUtil {
     }
 
     public byte[] computeSignature(String alias, byte[] bytesToSign) throws SecurityException {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("try to load private with alias: [" + alias + "]");
+        }
         PrivateKey privateKey = _javaKeystore.getPrivateKey(alias);
+        if (privateKey == null) {
+            throw new SecurityException("private key for alias [" + alias + "] not found.", null);
+        }
         return computeSignature(privateKey, bytesToSign);
     }
 
