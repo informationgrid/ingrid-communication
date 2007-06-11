@@ -179,7 +179,9 @@ public class CommunicationClient implements IMessageSender {
                     LOG.warn("client not yet connected, waiting...");
                 }
                 try {
-                    this.wait(_connectTimeout * 1000);
+                    synchronized (this) {
+                        this.wait(_connectTimeout * 1000);
+                    }
                 } catch (InterruptedException e) {
                     if (LOG.isEnabledFor(Level.ERROR)) {
                         LOG.error("Interrupted during wait for connection with server." + e);
