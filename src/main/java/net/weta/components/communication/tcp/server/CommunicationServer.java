@@ -123,15 +123,21 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         }
     }
 
-    public synchronized void sendMessage(String peerName, Message message) throws IOException {
+    public void sendMessage(String peerName, Message message) throws IOException {
         DataOutputStream dataOutput = (DataOutputStream) _outputStreamMap.get(peerName);
         if (dataOutput != null) {
             byte[] bytes = MessageUtil.serialize(message);
+            sendBytes(dataOutput, bytes);
+        } else {
+            LOG.warn("communication partner unknown, message not sent to: " + peerName);
+        }
+    }
+
+    private void sendBytes(DataOutputStream dataOutput, byte[] bytes) throws IOException {
+        synchronized (dataOutput) {
             dataOutput.writeInt(bytes.length);
             dataOutput.write(bytes);
             dataOutput.flush();
-        } else {
-            LOG.warn("communication partner unknown, message not sent to: " + peerName);
         }
     }
 

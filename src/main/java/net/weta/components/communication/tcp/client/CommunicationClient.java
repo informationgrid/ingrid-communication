@@ -156,16 +156,18 @@ public class CommunicationClient implements IMessageSender {
         }
     }
 
-    public synchronized void sendMessage(String peerName, Message message) throws IOException {
+    public void sendMessage(String peerName, Message message) throws IOException {
         waitUntilClientIsConnected();
         byte[] bytes = MessageUtil.serialize(message);
-        sendByteArray(bytes);
+        sendByteArray(_dataOutput, bytes);
     }
 
-    private void sendByteArray(byte[] bytes) throws IOException {
-        _dataOutput.writeInt(bytes.length);
-        _dataOutput.write(bytes);
-        _dataOutput.flush();
+    private void sendByteArray(DataOutputStream dataOutput, byte[] bytes) throws IOException {
+        synchronized (dataOutput) {
+            dataOutput.writeInt(bytes.length);
+            dataOutput.write(bytes);
+            dataOutput.flush();
+        }
     }
 
     private void waitUntilClientIsConnected() throws IOException {
@@ -205,7 +207,7 @@ public class CommunicationClient implements IMessageSender {
                 if (LOG.isEnabledFor(Level.INFO)) {
                     LOG.info("send signature to server...");
                 }
-                sendByteArray(signature);
+                sendByteArray(_dataOutput, signature);
                 ret = dataInput.readBoolean();
             } else {
                 if (LOG.isEnabledFor(Level.WARN)) {
