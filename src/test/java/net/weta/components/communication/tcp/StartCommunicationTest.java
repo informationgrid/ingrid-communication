@@ -22,12 +22,4 @@ public class StartCommunicationTest extends TestCase {
         }
     }
 
-    public void testMain() {
-        try {
-            StartCommunication.main(null);
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail();
-        }
-    }
 }

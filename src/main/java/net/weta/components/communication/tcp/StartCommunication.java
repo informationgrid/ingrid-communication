@@ -74,8 +74,4 @@ public class StartCommunication {
                 + "' in " + class1.getName());
     }
 
-    public static void main(String[] args) throws Exception {
-        InputStream resourceAsStream = StartCommunication.class.getResourceAsStream("/communication.properties");
-        ICommunication communication = StartCommunication.create(resourceAsStream);
-    }
 }

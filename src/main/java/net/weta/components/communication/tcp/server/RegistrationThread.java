@@ -45,25 +45,18 @@ public class RegistrationThread extends Thread {
                 LOG.info("receive peerName: [" + peerName + "]");
             }
             if (peerName != null) {
-                byte[] bytesToSign = ("" + System.currentTimeMillis()).getBytes();
-                if (LOG.isEnabledFor(Level.INFO)) {
-                    LOG.info("send bytes for signing to peerName: [" + peerName + "]");
-                }
-                sendByteArray(_socket, bytesToSign);
-                byte[] signedBytes = readByteArray(_socket);
-                boolean signatureOk = _securityUtil.verifySignature(peerName, bytesToSign, signedBytes);
+                boolean signatureOk = _securityUtil != null ? verifySignature(_socket, _securityUtil, peerName) : true;
                 if (signatureOk) {
-                    _communicationServer.register(peerName, _socket);
                     if (LOG.isEnabledFor(Level.INFO)) {
-                        LOG.info("Signature OK: [" + new String(signedBytes) + "]");
                         LOG.info("Registration successfully for peerName: [" + peerName + "]");
                     }
+                    _communicationServer.register(peerName, _socket);
                 } else {
                     if (LOG.isEnabledFor(Level.WARN)) {
-                        LOG.warn("Signature invalid: [" + new String(signedBytes) + "]");
                         LOG.warn("Registration failed for peerName: [" + peerName + "]");
                     }
                     writeBoolean(_socket, false);
+                    _socket.close();
                 }
             } else {
                 if (LOG.isEnabledFor(Level.WARN)) {
@@ -127,5 +120,25 @@ public class RegistrationThread extends Thread {
                 LOG.error("can not post regsiter status to client", e);
             }
         }
+    }
+
+    private boolean verifySignature(Socket socket, SecurityUtil securityUtil, String peerName) throws IOException {
+        byte[] bytesToSign = ("" + System.currentTimeMillis()).getBytes();
+        if (LOG.isEnabledFor(Level.INFO)) {
+            LOG.info("send bytes for signing to peerName: [" + peerName + "]");
+        }
+        sendByteArray(socket, bytesToSign);
+        byte[] signedBytes = readByteArray(socket);
+        boolean ret = securityUtil.verifySignature(peerName, bytesToSign, signedBytes);
+        if (ret) {
+            if (LOG.isEnabledFor(Level.INFO)) {
+                LOG.info("Signature OK: [" + new String(signedBytes) + "]");
+            }
+        } else {
+            if (LOG.isEnabledFor(Level.WARN)) {
+                LOG.warn("Signature invalid. [" + new String(signedBytes) + "]");
+            }
+        }
+        return ret;
     }
 }

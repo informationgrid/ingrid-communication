@@ -55,6 +55,8 @@ public class TcpCommunication implements ICommunication {
 
     private String _keystore;
 
+    private boolean _isSecure;
+
     public TcpCommunication() {
         _messageQueue = new MessageQueue();
     }
@@ -121,10 +123,9 @@ public class TcpCommunication implements ICommunication {
     }
 
     public void startup() throws IOException {
-        
-        JavaKeystore keystore = new JavaKeystore(new File(_keystore), _keystorePassword);
-        SecurityUtil util = new SecurityUtil(keystore);
-        
+
+        SecurityUtil util = createSecurityUtil();
+
         if (_isCommunicationServer) {
             String server = (String) _servers.get(0);
             String port = server.substring(server.indexOf(":") + 1, server.length());
@@ -153,6 +154,15 @@ public class TcpCommunication implements ICommunication {
                 throw new IOException("Start failed! Please set for every server the name.");
             }
         }
+    }
+
+    private SecurityUtil createSecurityUtil() throws IOException {
+        SecurityUtil util = null;
+        if (_isSecure) {
+            JavaKeystore keystore = new JavaKeystore(new File(_keystore), _keystorePassword);
+            util = new SecurityUtil(keystore);
+        }
+        return util;
     }
 
     public void subscribeGroup(String url) throws IOException {
@@ -224,5 +234,9 @@ public class TcpCommunication implements ICommunication {
 
     public void setKeystore(String keystore) {
         _keystore = keystore;
+    }
+
+    public void setIsSecure(boolean isSecure) {
+        _isSecure = isSecure;
     }
 }

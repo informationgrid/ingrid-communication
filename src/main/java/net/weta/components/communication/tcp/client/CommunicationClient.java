@@ -2,7 +2,6 @@ package net.weta.components.communication.tcp.client;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -123,7 +122,7 @@ public class CommunicationClient implements IMessageSender {
             _dataOutput.write(_peerName.getBytes());
             _dataOutput.flush();
 
-            boolean isRegistered = isRegistered(_socket);
+            boolean isRegistered = isRegistered(_socket, _dataOutput, _securityUtil);
             if (isRegistered) {
                 if (LOG.isEnabledFor(Level.INFO)) {
                     LOG.info("Registration to server [" + _serverHost + ":" + _serverPort + "] successfully.");
@@ -192,37 +191,44 @@ public class CommunicationClient implements IMessageSender {
         }
     }
 
-    private boolean isRegistered(Socket socket) throws IOException {
+    private boolean isRegistered(Socket socket, DataOutputStream dataOutput, SecurityUtil securityUtil)
+            throws IOException {
         socket.setSoTimeout(_connectTimeout * 1000);
         boolean ret = false;
         try {
             InputStream inputStream = socket.getInputStream();
-            DataInput dataInput = new DataInputStream(inputStream);
-            int byteLength = dataInput.readInt();
-            if (byteLength < _maxMessageSize) {
-                byte[] bytes = new byte[byteLength];
-                dataInput.readFully(bytes, 0, byteLength);
-                if (LOG.isEnabledFor(Level.INFO)) {
-                    LOG.info("receive byte array for signing...");
-                }
-                byte[] signature = _securityUtil.computeSignature(_peerName, bytes);
-                if (LOG.isEnabledFor(Level.INFO)) {
-                    LOG.info("send signature to server...");
-                }
-                sendByteArray(_dataOutput, signature);
-                ret = dataInput.readBoolean();
-            } else {
-                if (LOG.isEnabledFor(Level.WARN)) {
-                    LOG.warn("ignore byte array for signing, message size to big: [" + byteLength + "]");
-                }
+            DataInputStream dataInput = new DataInputStream(inputStream);
+            if (securityUtil != null) {
+                sendSignedBytes(dataInput, dataOutput, securityUtil);
             }
-
+            ret = dataInput.readBoolean();
         } catch (SocketTimeoutException e) {
             throw new IOException("timeout while registration.");
         }
-
         socket.setSoTimeout(0);
         return ret;
+    }
+
+    private void sendSignedBytes(DataInputStream dataInput, DataOutputStream dataOutput, SecurityUtil securityUtil)
+            throws IOException {
+        int byteLength = dataInput.readInt();
+        if (byteLength < _maxMessageSize) {
+            byte[] bytes = new byte[byteLength];
+            dataInput.readFully(bytes, 0, byteLength);
+            if (LOG.isEnabledFor(Level.INFO)) {
+                LOG.info("receive byte array for signing...");
+            }
+            byte[] signature = securityUtil.computeSignature(_peerName, bytes);
+            if (LOG.isEnabledFor(Level.INFO)) {
+                LOG.info("send signature to server...");
+            }
+            sendByteArray(dataOutput, signature);
+
+        } else {
+            if (LOG.isEnabledFor(Level.WARN)) {
+                LOG.warn("ignore byte array for signing, message size to big: [" + byteLength + "]");
+            }
+        }
     }
 
     public String getServerName() {
