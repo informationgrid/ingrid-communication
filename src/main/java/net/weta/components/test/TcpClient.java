@@ -10,6 +10,8 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.HashMap;
 
+import sun.misc.BASE64Encoder;
+
 public class TcpClient {
 
     private static final String CRLF = "\r\n";
@@ -38,6 +40,10 @@ public class TcpClient {
         proxyPort = extractProxyPort(arguments, proxyPort);
         int maxMessages = 15000;
         maxMessages = extractMaxMessages(arguments, maxMessages);
+        String userName = "";
+        userName = extractUserName(arguments, userName);
+        String password = "";
+        password = extractPassword(arguments, password);
 
         if (!proxyHost.trim().equals("")) {
             useProxy = true;
@@ -61,19 +67,34 @@ public class TcpClient {
         DataOutputStream dataOutput = new DataOutputStream(new BufferedOutputStream(outputStream, 65535));
 
         if (useProxy) {
+
+            // ISA PATCH
+            System.getProperties().put("proxySet", "true");
+            System.getProperties().put("http.auth.digest.validateProxy", "true");
+            System.getProperties().put("http.auth.digest.validateServer", "true");
+            // ISA PATCH
+            
             StringBuffer builder = new StringBuffer();
+            String authString = userName + ":" + password;
+            String auth = "Basic " + new BASE64Encoder().encode(authString.getBytes());
             builder.append("CONNECT " + host + ":" + port + " HTTP/1.1" + CRLF);
             builder.append("HOST: " + host + ":" + port + CRLF);
+            builder.append(("Proxy-Authorization: " + auth + CRLF));
             builder.append(CRLF);
 
             String string = builder.toString();
             System.out.println("connected to host over proxy...");
+            System.out.println("---");
+            System.out.println(string);
+            System.out.println("---");
             dataOutput.write(string.getBytes());
             dataOutput.flush();
 
             byte[] buffer = new byte[ACCEPT_MESSAGE.getBytes().length];
             System.out.println("read accept message from proxy...");
-            dataInput.read(buffer, 0, buffer.length);
+            while ((dataInput.read(buffer, 0, buffer.length)) != -1) {
+                System.out.println(new String(buffer));
+            }
             // assert ACCEPT_MESSAGE.equals(new String(buffer));
         }
 
@@ -105,6 +126,20 @@ public class TcpClient {
         socket.close();
         System.out.println("client end");
 
+    }
+
+    private static String extractPassword(HashMap arguments, String password) {
+        if (arguments.containsKey("--password")) {
+            password = (String) arguments.get("--password");
+        }
+        return password;
+    }
+
+    private static String extractUserName(HashMap arguments, String userName) {
+        if (arguments.containsKey("--userName")) {
+            userName = (String) arguments.get("--userName");
+        }
+        return userName;
     }
 
     private static int extractMaxMessages(HashMap arguments, int maxMessages) {

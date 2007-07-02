@@ -39,7 +39,7 @@ public interface IMessageQueue {
      *            Time in seconds to wait.
      * @return A serializable object.
      */
-    public Message waitForMessage(int id, int timeout);
+    public Message waitForMessage(String id, int timeout);
 
     /**
      * Returns the message prozessor registry for this queue.

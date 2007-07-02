@@ -57,8 +57,11 @@ public class TcpCommunication implements ICommunication {
 
     private boolean _isSecure;
 
+    private int _maxMessageQueueSize = 2000;
+
     public TcpCommunication() {
         _messageQueue = new MessageQueue();
+        _messageQueue.setMaxSize(_maxMessageQueueSize );
     }
 
     public void closeConnection(String url) throws IOException {
@@ -86,8 +89,12 @@ public class TcpCommunication implements ICommunication {
     }
 
     public Message sendSyncMessage(Message message, String url) throws IOException {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("message count in queue: [" + _messageQueue.size() + "]");
+            printStatus();
+        }
         synchronized (this) {
-            message.setId(++_id);
+            message.setId(_peerName + '_' + (++_id));
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("send message [" + message.getId() + "] to peer: [" + url + "]");
@@ -130,7 +137,7 @@ public class TcpCommunication implements ICommunication {
             String server = (String) _servers.get(0);
             String port = server.substring(server.indexOf(":") + 1, server.length());
             _communicationServer = new CommunicationServer(Integer.parseInt(port), _messageQueue, _maxThreadCount,
-                    _maxMessageSize, _connectTimeout, util);
+                    _connectTimeout, util);
             _communicationServer.start();
         } else {
             if (_servers.size() == _serverNames.size()) {
@@ -143,7 +150,7 @@ public class TcpCommunication implements ICommunication {
                     String port = server.substring(server.indexOf(":") + 1, server.length());
                     CommunicationClient client = new CommunicationClient(_peerName, host, Integer.parseInt(port),
                             proxyHost, Integer.parseInt(proxyPort), _useProxy, _messageQueue, _maxThreadCount,
-                            _maxMessageSize, _connectTimeout, (String) _serverNames.get(i), util);
+                            _connectTimeout, (String) _serverNames.get(i), util);
                     clients.add(client);
                 }
                 CommunicationClient[] clientArray = (CommunicationClient[]) clients
@@ -238,5 +245,30 @@ public class TcpCommunication implements ICommunication {
 
     public void setIsSecure(boolean isSecure) {
         _isSecure = isSecure;
+    }
+
+    /**
+     * @return the maxMessageQueueSize
+     */
+    public int getMaxMessageQueueSize() {
+        return _maxMessageQueueSize;
+    }
+
+    /**
+     * @param maxMessageQueueSize the maxMessageQueueSize to set
+     */
+    public void setMaxMessageQueueSize(int maxMessageQueueSize) {
+        _maxMessageQueueSize = maxMessageQueueSize;
+    }
+
+    private void printStatus() {
+        Runtime runtime = Runtime.getRuntime();
+        long freeMemory = runtime.freeMemory();
+        long maxMemory = runtime.maxMemory();
+        long reservedMemory = runtime.totalMemory();
+        long used = reservedMemory - freeMemory;
+        float percent = 100 * used / maxMemory;
+        LOG.info("Memory Usage: [" + (used / (1024 * 1024)) + " MB used of " + (maxMemory / (1024 * 1024))
+                + " MB total (" + percent + " %)" + "]");
     }
 }

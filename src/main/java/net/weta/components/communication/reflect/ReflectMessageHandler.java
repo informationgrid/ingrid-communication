@@ -18,10 +18,12 @@
 
 package net.weta.components.communication.reflect;
 
+import java.io.Externalizable;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
+import net.weta.components.communication.CommunicationException;
 import net.weta.components.communication.messaging.IMessageHandler;
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.PayloadMessage;
@@ -47,6 +49,10 @@ public class ReflectMessageHandler implements IMessageHandler {
     public static final String MESSAGE_TYPE = ReflectMessageHandler.class.getName();
 
     private HashMap _ObjectsToCallByClassName = new HashMap(3);
+
+    public ReflectMessageHandler() {
+        // nothing todo
+    }
 
     /**
      * @param interfac ,
@@ -76,7 +82,7 @@ public class ReflectMessageHandler implements IMessageHandler {
                 _LOGGER.error("local exception on proxy-method-call '" + reflectMessage.getMethodName()
                         + "' on object '" + reflectMessage.getObjectToCallClass() + "'", e);
             }
-            reply = e;
+            reply = new CommunicationException(e.getMessage(), e);
         }
         PayloadMessage payloadMessage = new PayloadMessage(reply, message.getType());
         payloadMessage.setId(message.getId());

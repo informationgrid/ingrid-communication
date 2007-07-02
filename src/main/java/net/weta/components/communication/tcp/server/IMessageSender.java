@@ -10,5 +10,6 @@ public interface IMessageSender {
 
     void connect(String url);
     
-    
+    void disconnect(String url);
+
 }

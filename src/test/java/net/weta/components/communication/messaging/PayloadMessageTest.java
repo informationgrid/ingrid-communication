@@ -1,14 +1,14 @@
 package net.weta.components.communication.messaging;
 
 import junit.framework.TestCase;
+import net.weta.components.test.DummyExternalizable;
 
 public class PayloadMessageTest extends TestCase {
 
     public void testSetPayload() {
-        PayloadMessage msg = new PayloadMessage("some Payload", String.class.getName());
-        assertEquals("some Payload", msg.getPayload());
-        msg.setPayload("new Payload");
-        assertEquals("new Payload", msg.getPayload());
+        DummyExternalizable externalizable1 = new DummyExternalizable();
+        PayloadMessage msg = new PayloadMessage(externalizable1, String.class.getName());
+        assertEquals(externalizable1, msg.getPayload());
     }
 
 }

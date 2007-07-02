@@ -1,7 +1,6 @@
 package net.weta.components.test;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 import net.weta.components.communication.reflect.ProxyService;
@@ -13,8 +12,10 @@ public class Server {
         TcpCommunication tc = new TcpCommunication();
         tc.setPeerName("/101tec-group:server");
         tc.setIsCommunicationServer(true);
-        tc.addServer("localhost:55555");
+        tc.addServer("127.0.0.1:55555");
+        tc.addServerName("/101tec-group:server");
         tc.setUseProxy(false);
+        tc.setIsSecure(false);
 
         try {
             tc.startup();
@@ -28,12 +29,15 @@ public class Server {
             e.printStackTrace();
         }
 
-        Map hm = new HashMap();
-        hm.put("bla", "blavalue");
-        hm.put("ms", "msvalue");
-        hm.put("mb", "mb is a cool guy");
+        DummyExternalizable externalizable = new DummyExternalizable();
+        DummyExternalizable externalizable2 = new DummyExternalizable();
+        externalizable2.put("a", "b");
+        for (int i = 0; i < 1000; i++) {
+            externalizable2.put(new Integer(i), ""+System.currentTimeMillis()+"dfdsgfdhfghfgjgf");
+        }
+        externalizable.put("key", externalizable2);
 
-        ProxyService.createProxyServer(tc, Map.class, hm);
+        ProxyService.createProxyServer(tc, Map.class, externalizable);
         while (true) {
             try {
                 Thread.sleep(10000);

@@ -1,19 +1,26 @@
 package net.weta.components.communication.tcp.server;
 
-import java.io.DataInput;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 
+import net.weta.components.communication.messaging.AuthenticationMessage;
+import net.weta.components.communication.messaging.RegistrationMessage;
 import net.weta.components.communication.security.SecurityUtil;
+import net.weta.components.communication.stream.IInput;
+import net.weta.components.communication.stream.IOutput;
+import net.weta.components.communication.stream.Input;
+import net.weta.components.communication.stream.Output;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 public class RegistrationThread extends Thread {
+
+    private static final int BUFFER_SIZE = 65535;
 
     private static final Logger LOG = Logger.getLogger(RegistrationThread.class);
 
@@ -21,17 +28,18 @@ public class RegistrationThread extends Thread {
 
     private final ICommunicationServer _communicationServer;
 
-    private final int _maxMessageSize;
-
     private int _connectTimeout;
 
     private final SecurityUtil _securityUtil;
 
-    public RegistrationThread(Socket socket, ICommunicationServer registration, int maxMessageSize, int connectTimeout,
+    private IInput _in;
+
+    private IOutput _out;
+
+    public RegistrationThread(Socket socket, ICommunicationServer registration, int connectTimeout,
             SecurityUtil securityUtil) {
         _socket = socket;
         _communicationServer = registration;
-        _maxMessageSize = maxMessageSize;
         _connectTimeout = connectTimeout;
         _securityUtil = securityUtil;
     }
@@ -40,35 +48,49 @@ public class RegistrationThread extends Thread {
         String peerName;
         try {
 
-            peerName = readPeerName(_socket);
-            if (LOG.isEnabledFor(Level.INFO)) {
-                LOG.info("receive peerName: [" + peerName + "]");
-            }
-            if (peerName != null) {
-                boolean signatureOk = _securityUtil != null ? verifySignature(_socket, _securityUtil, peerName) : true;
-                if (signatureOk) {
-                    if (LOG.isEnabledFor(Level.INFO)) {
-                        LOG.info("Registration successfully for peerName: [" + peerName + "]");
-                    }
-                    _communicationServer.register(peerName, _socket);
-                } else {
-                    if (LOG.isEnabledFor(Level.WARN)) {
-                        LOG.warn("Registration failed for peerName: [" + peerName + "]");
-                    }
-                    writeBoolean(_socket, false);
-                    _socket.close();
+            _socket.setSoTimeout(_connectTimeout * 1000);
+            _out = new Output(new DataOutputStream(new BufferedOutputStream(_socket.getOutputStream(), BUFFER_SIZE)));
+            _in = new Input(new DataInputStream(new BufferedInputStream(_socket.getInputStream(), BUFFER_SIZE)));
+
+            AuthenticationMessage authenticationMessage = null;
+            if (_securityUtil != null) {
+                if (LOG.isEnabledFor(Level.INFO)) {
+                    LOG.info("Send bytes for signing.");
                 }
+                authenticationMessage = new AuthenticationMessage(("" + System.currentTimeMillis()).getBytes());
+                authenticationMessage.write(_out);
+            }
+
+            RegistrationMessage registrationMessage = new RegistrationMessage();
+            registrationMessage.read(_in);
+
+            peerName = registrationMessage.getRegistrationName();
+            boolean signatureOk = true;
+            if (_securityUtil != null) {
+                byte[] signature = registrationMessage.getSignature();
+                if (LOG.isEnabledFor(Level.INFO)) {
+                    LOG.info("Security is enabled, verify signature from peerName: [" + peerName + "]");
+                }
+                signatureOk = _securityUtil.verifySignature(peerName, authenticationMessage.getToken(), signature);
+            }
+
+            if (signatureOk) {
+                if (LOG.isEnabledFor(Level.INFO)) {
+                    LOG.info("Registration successfully for peerName: [" + peerName + "]");
+                }
+                _socket.setSoTimeout(0);
+                _communicationServer.register(peerName, _socket, _in, _out);
             } else {
                 if (LOG.isEnabledFor(Level.WARN)) {
-                    LOG.warn("Registration failed, peerName invalid (message too big)).");
+                    LOG.warn("Registration failed for peerName: [" + peerName + "]");
                 }
-                writeBoolean(_socket, false);
+                _out.writeBoolean(false);
                 _socket.close();
             }
         } catch (IOException e) {
-            LOG.error("client can not register to communication server", e);
-            writeBoolean(_socket, false);
+            LOG.error("Client can not register to communication server", e);
             try {
+                _out.writeBoolean(false);
                 _socket.close();
             } catch (IOException ioe) {
                 LOG.error("can not close socket.", ioe);
@@ -76,69 +98,4 @@ public class RegistrationThread extends Thread {
         }
     }
 
-    private byte[] readByteArray(Socket socket) throws IOException {
-        byte[] bytes = null;
-        InputStream inputStream = socket.getInputStream();
-        DataInput dataInput = new DataInputStream(inputStream);
-        int byteLength = dataInput.readInt();
-        if (byteLength > _maxMessageSize) {
-            if (LOG.isEnabledFor(Level.WARN)) {
-                LOG.warn("new message ignored, message size to big: [" + byteLength + "]");
-            }
-        } else {
-            bytes = new byte[byteLength];
-            dataInput.readFully(bytes, 0, bytes.length);
-        }
-        return bytes;
-    }
-
-    private String readPeerName(Socket socket) throws IOException {
-        socket.setSoTimeout(_connectTimeout);
-        String peerName = null;
-        byte[] bytes = readByteArray(socket);
-        peerName = bytes != null ? new String(bytes) : null;
-        socket.setSoTimeout(0);
-        return peerName;
-    }
-
-    private void sendByteArray(Socket socket, byte[] bytes) throws IOException {
-        OutputStream outputStream = socket.getOutputStream();
-        DataOutputStream dataOutput = new DataOutputStream(outputStream);
-        dataOutput.writeInt(bytes.length);
-        dataOutput.write(bytes);
-        dataOutput.flush();
-    }
-
-    private void writeBoolean(Socket socket, boolean status) {
-        try {
-            OutputStream outputStream = socket.getOutputStream();
-            DataOutputStream stream = new DataOutputStream(outputStream);
-            stream.writeBoolean(status);
-            stream.flush();
-        } catch (IOException e) {
-            if (LOG.isEnabledFor(Level.ERROR)) {
-                LOG.error("can not post regsiter status to client", e);
-            }
-        }
-    }
-
-    private boolean verifySignature(Socket socket, SecurityUtil securityUtil, String peerName) throws IOException {
-        byte[] bytesToSign = ("" + System.currentTimeMillis()).getBytes();
-        if (LOG.isEnabledFor(Level.INFO)) {
-            LOG.info("send bytes for signing to peerName: [" + peerName + "]");
-        }
-        sendByteArray(socket, bytesToSign);
-        byte[] signedBytes = readByteArray(socket);
-        boolean ret = securityUtil.verifySignature(peerName, bytesToSign, signedBytes);
-        if (ret) {
-            if (LOG.isEnabledFor(Level.INFO)) {
-                LOG.info("Signature OK: [" + new String(signedBytes) + "]");
-            }
-        } else {
-            if (LOG.isEnabledFor(Level.WARN)) {
-                LOG.warn("Signature invalid. [" + new String(signedBytes) + "]");
-            }
-        }
-        return ret;
-    }
 }

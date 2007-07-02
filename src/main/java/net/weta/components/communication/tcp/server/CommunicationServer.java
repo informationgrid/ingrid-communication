@@ -1,9 +1,6 @@
 package net.weta.components.communication.tcp.server;
 
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -16,8 +13,9 @@ import net.weta.components.communication.messaging.IMessageQueue;
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.MessageQueue;
 import net.weta.components.communication.security.SecurityUtil;
+import net.weta.components.communication.stream.IInput;
+import net.weta.components.communication.stream.IOutput;
 import net.weta.components.communication.tcp.MessageReaderThread;
-import net.weta.components.communication.util.MessageUtil;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -30,6 +28,8 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
 
     private Map _outputStreamMap = new HashMap();
 
+    private Map _sockets = new HashMap();
+
     private final int _port;
 
     private final MessageQueue _messageQueue;
@@ -38,18 +38,15 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
 
     private final int _maxThreadCount;
 
-    private final int _maxMessageSize;
-
     private int _connectTimeout;
 
     private final SecurityUtil _securityUtil;
 
-    public CommunicationServer(int port, MessageQueue messageQueue, int maxThreadCount, int maxMessageSize,
-            int connectTimeout, SecurityUtil securityUtil) {
+    public CommunicationServer(int port, MessageQueue messageQueue, int maxThreadCount, int connectTimeout,
+            SecurityUtil securityUtil) {
         _port = port;
         _messageQueue = messageQueue;
         _maxThreadCount = maxThreadCount;
-        _maxMessageSize = maxMessageSize;
         _connectTimeout = connectTimeout;
         _securityUtil = securityUtil;
     }
@@ -63,7 +60,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
                 Socket socket = _serverSocket.accept();
                 LOG.info("new client is connected from ip: [" + socket.getRemoteSocketAddress()
                         + "], start registration...");
-                new RegistrationThread(socket, this, _maxMessageSize, _connectTimeout, _securityUtil).start();
+                new RegistrationThread(socket, this, _connectTimeout, _securityUtil).start();
             }
         } catch (BindException e) {
             LOG.error(e.getMessage() + " " + _port);
@@ -74,7 +71,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         }
     }
 
-    public synchronized void register(String peerName, Socket socket) {
+    public synchronized void register(String peerName, Socket socket, IInput in, IOutput out) {
         if (_messageReaderMap.containsKey(peerName)) {
             if (LOG.isEnabledFor(Level.WARN)) {
                 LOG.warn("Registration of new client from ip [" + socket.getRemoteSocketAddress()
@@ -83,31 +80,23 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
             deregister(peerName);
         }
 
-        LOG.info("new client [" + peerName + "] registered from ip [" + socket.getRemoteSocketAddress() + "]");
-        writeRegisteredStatus(socket, true);
-        MessageReaderThread thread = new MessageReaderThread(peerName, socket, _messageQueue, this, _maxThreadCount,
-                _maxMessageSize);
+        LOG.info("Client [" + peerName + "] registered from ip [" + socket.getRemoteSocketAddress() + "]");
+        MessageReaderThread thread = new MessageReaderThread(peerName, in, _messageQueue, this, _maxThreadCount);
         thread.start();
         try {
-            OutputStream outputStream = socket.getOutputStream();
-            DataOutputStream dataOutput = new DataOutputStream(new BufferedOutputStream(outputStream, 65535));
             _messageReaderMap.put(peerName, thread);
-            _outputStreamMap.put(peerName, dataOutput);
+            _outputStreamMap.put(peerName, out);
+            _sockets.put(peerName, socket);
+            out.writeBoolean(true);
+            out.flush();
         } catch (IOException e) {
             LOG.error(e);
             thread.interrupt();
-        }
-    }
-
-    private void writeRegisteredStatus(Socket socket, boolean status) {
-        try {
-            OutputStream outputStream = socket.getOutputStream();
-            DataOutputStream stream = new DataOutputStream(outputStream);
-            stream.writeBoolean(status);
-            stream.flush();
-        } catch (IOException e) {
-            if (LOG.isEnabledFor(Level.ERROR)) {
-                LOG.error("can not post regsiter status to client", e);
+        } finally {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("message reader count: [" + _messageReaderMap.size() + "]");
+                LOG.debug("stream count: [" + _outputStreamMap.size() + "]");
+                LOG.debug("socket count: [" + _sockets.size() + "]");
             }
         }
     }
@@ -121,23 +110,25 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
             }
             thread.interrupt();
         }
-    }
-
-    public void sendMessage(String peerName, Message message) throws IOException {
-        DataOutputStream dataOutput = (DataOutputStream) _outputStreamMap.get(peerName);
-        if (dataOutput != null) {
-            byte[] bytes = MessageUtil.serialize(message);
-            sendBytes(dataOutput, bytes);
-        } else {
-            LOG.warn("communication partner unknown, message not sent to: " + peerName);
+        Socket socket = (Socket) _sockets.remove(peerName);
+        try {
+            if (socket != null) {
+                socket.close();
+            }
+        } catch (IOException e) {
+            LOG.error("can not close socket for client [" + peerName + "]");
         }
     }
 
-    private void sendBytes(DataOutputStream dataOutput, byte[] bytes) throws IOException {
-        synchronized (dataOutput) {
-            dataOutput.writeInt(bytes.length);
-            dataOutput.write(bytes);
-            dataOutput.flush();
+    public void sendMessage(String peerName, Message message) throws IOException {
+        IOutput out = (IOutput) _outputStreamMap.get(peerName);
+        if (out != null) {
+            synchronized (out) {
+                out.writeObject(message);
+                out.flush();
+            }
+        } else {
+            LOG.warn("communication partner unknown, message not sent to: " + peerName);
         }
     }
 
@@ -163,6 +154,10 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
     }
 
     public void connect(String url) {
+        deregister(url);
+    }
+
+    public void disconnect(String url) {
         deregister(url);
     }
 }

@@ -48,4 +48,12 @@ public class MultiCommunicationClient extends Thread implements IMessageSender {
             client.connect(url);
         }
     }
+
+    public void disconnect(String url) {
+        for (Iterator iterator = _clients.values().iterator(); iterator.hasNext();) {
+            CommunicationClient client = (CommunicationClient) iterator.next();
+            client.disconnect(url);
+        }
+
+    }
 }

@@ -18,14 +18,20 @@
 
 package net.weta.components.communication.messaging;
 
+import java.io.IOException;
 import java.io.Serializable;
 
+import net.weta.components.communication.stream.IInput;
+import net.weta.components.communication.stream.IOutput;
+import net.weta.components.communication.stream.IStreamable;
+
 /**
- * This class can be use for sending object (as byte[]) over the comnunication component.
+ * This class can be use for sending object (as byte[]) over the comnunication
+ * component.
  * 
  * @version $Revision$
  */
-public class Message implements Serializable {
+public class Message implements IStreamable, Serializable {
 
     /**
      * 
@@ -34,7 +40,10 @@ public class Message implements Serializable {
 
     private String _type = "";
 
-    private int _id;
+    private String _id = "";
+
+    public Message() {
+    }
 
     /**
      * @param type
@@ -60,15 +69,26 @@ public class Message implements Serializable {
     /**
      * @return the id of the message if it is a responsfull message
      */
-    public int getId() {
+    public String getId() {
         return _id;
     }
 
     /**
      * @param id
      */
-    public void setId(int id) {
+    public void setId(String id) {
         _id = id;
+    }
+
+    public void read(IInput input) throws IOException {
+        _id = input.readString();
+        _type = input.readString();
+    }
+
+    public void write(IOutput output) throws IOException {
+        output.writeString(_id);
+        output.writeString(_type);
+        output.flush();
     }
 
 }

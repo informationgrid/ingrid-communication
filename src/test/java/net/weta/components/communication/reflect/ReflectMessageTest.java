@@ -27,7 +27,7 @@ public class ReflectMessageTest extends TestCase {
     public void testGetArgumentClasses() {
         ReflectMessage message = new ReflectMessage("method", "class");
         Class[] argumentClasses = message.getArgumentClasses();
-        assertNull(argumentClasses);
+        assertEquals(0, argumentClasses.length);
 
         message = new ReflectMessage("method", "class", new Object[] { new Integer(0), new Object() });
         argumentClasses = message.getArgumentClasses();
@@ -35,9 +35,8 @@ public class ReflectMessageTest extends TestCase {
     }
 
     public void testGetArguments() {
-        Object[] argumentClasses;
+        Object[] argumentClasses = null;
         ReflectMessage message = new ReflectMessage("method", "class");
-        assertNull(message.getArguments());
 
         Object object1 = new Object();
         Object object2 = new Object();

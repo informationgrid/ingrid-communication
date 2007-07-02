@@ -1,24 +1,8 @@
-/*
- * Copyright 2004-2005 weta group
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * 
- *  $Source$
- */
-
 package net.weta.components.communication.messaging;
 
 import junit.framework.TestCase;
+import net.weta.components.communication.CommunicationException;
+import net.weta.components.test.DummyExternalizable;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -38,7 +22,7 @@ public class MessageQueueTest extends TestCase {
         MessageQueue messageQueue = new MessageQueue();
         messageQueue.getProcessorRegistry().addMessageHandler("type", new TestMessageProcessor());
 
-        Message msg = new PayloadMessage("testMessage", "");
+        Message msg = new PayloadMessage(new DummyExternalizable(), "");
         int timeout = 5;
         messageQueue.messageEvent(msg);
         assertEquals(1, messageQueue.size());
@@ -59,7 +43,7 @@ public class MessageQueueTest extends TestCase {
         logger.setLevel(Level.DEBUG);
         final MessageQueue messageQueue = new MessageQueue();
         messageQueue.getProcessorRegistry().addMessageHandler("type", new TestMessageProcessor());
-        Message message1 = new PayloadMessage("testWaitForMessage_1", "");
+        Message message1 = new PayloadMessage(new DummyExternalizable(), "");
         messageQueue.messageEvent(message1);
 
         assertEquals(1, messageQueue.size());
@@ -69,8 +53,8 @@ public class MessageQueueTest extends TestCase {
 
         assertNull(messageQueue.waitForMessage(message1.getId(), 2));
 
-        final Message message = new PayloadMessage("testWaitForMessage_2", "");
-        message.setId(23);
+        final Message message = new PayloadMessage(new DummyExternalizable(), "");
+        message.setId("" + 23);
         Thread thread = new Thread() {
             public void run() {
                 assertNotNull(messageQueue.waitForMessage(message.getId(), 5));
@@ -100,7 +84,7 @@ public class MessageQueueTest extends TestCase {
     public void testClear() throws Exception {
         MessageQueue messageQueue = new MessageQueue();
         messageQueue.getProcessorRegistry().addMessageHandler("type", new TestMessageProcessor());
-        Message msg = new PayloadMessage("testMessage", "");
+        Message msg = new PayloadMessage(new DummyExternalizable(), "");
         messageQueue.messageEvent(msg);
         assertEquals(1, messageQueue.size());
 
@@ -110,12 +94,12 @@ public class MessageQueueTest extends TestCase {
 
     public void testMessageEvent() throws Exception {
         MessageQueue messageQueue = new MessageQueue();
-        Message message = new PayloadMessage("testMessage", "type");
+        Message message = new PayloadMessage(new DummyExternalizable(), "type");
         PayloadMessage replyMessage = (PayloadMessage) messageQueue.messageEvent(message);
 
         assertTrue(replyMessage.getType().equals(message.getType()));
         assertTrue(replyMessage.getId() == message.getId());
-        assertTrue(replyMessage.getPayload().toString().startsWith("java.lang.IllegalStateException"));
+        assertTrue(replyMessage.getPayload().toString().startsWith(CommunicationException.class.getName()));
 
         messageQueue.getProcessorRegistry().addMessageHandler("type", new TestMessageProcessor() {
             public Message handleMessage(Message message) {

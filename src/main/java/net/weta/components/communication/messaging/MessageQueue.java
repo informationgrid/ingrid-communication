@@ -19,38 +19,52 @@
 package net.weta.components.communication.messaging;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
+
+import net.weta.components.communication.CommunicationException;
 
 import org.apache.log4j.Logger;
 
 /**
- * A Queue for messages. Handles diffeent type of messages and calls their handler.
+ * A Queue for messages. Handles diffeent type of messages and calls their
+ * handler.
  * 
  * @version $Revision$
  */
 public class MessageQueue implements IMessageQueue {
+
     private static Logger LOGGER = Logger.getLogger(MessageQueue.class);
 
+    private LinkedList _queueSize = new LinkedList();
+    
     private Map _messages = new HashMap();
 
     private Map _ids = new HashMap();
 
     private MessageProcessorRegistry _messageProcessorRegistry = new MessageProcessorRegistry();
 
+    private int _maxSize = 2000;
+
     public MessageQueue() {
         // nothing todo
     }
 
-    private synchronized void addMessage(Message message) {
-        Integer messageId = Integer.valueOf("" + message.getId());
+    private void addMessage(Message message) {
+        String messageId = message.getId();
         Object mutex = getSynchronizedMutex(messageId);
         synchronized (mutex) {
+            if (_queueSize.size() == _maxSize) {
+                String oldestMessageId = (String) _queueSize.removeFirst();
+                _messages.remove(oldestMessageId);
+            }
             _messages.put(messageId, message);
+            _queueSize.addLast(messageId);
             mutex.notify();
         }
     }
 
-    private Object getSynchronizedMutex(Integer messageId) {
+    private Object getSynchronizedMutex(String messageId) {
         Object mutex = null;
         synchronized (_ids) {
             mutex = _ids.remove(messageId);
@@ -66,12 +80,11 @@ public class MessageQueue implements IMessageQueue {
         return _messages.size();
     }
 
-    public Message waitForMessage(int id, int timeout) {
+    public Message waitForMessage(String id, int timeout) {
         Message message = null;
-        Integer messageId = Integer.valueOf("" + id);
-        Object mutex = getSynchronizedMutex(messageId);
+        Object mutex = getSynchronizedMutex(id);
         synchronized (mutex) {
-            message = (Message) _messages.remove(messageId);
+            message = (Message) _messages.remove(id);
             try {
                 if (null == message) {
                     if (LOGGER.isDebugEnabled()) {
@@ -79,7 +92,12 @@ public class MessageQueue implements IMessageQueue {
                     }
                     mutex.wait(timeout * 1000);
 
-                    message = (Message) _messages.remove(messageId);
+                    message = (Message) _messages.remove(id);
+                    if (null != message) {
+                        _queueSize.remove(id);
+                    }
+                } else {
+                    _queueSize.remove(id);
                 }
             } catch (InterruptedException e) {
                 Thread.interrupted();
@@ -114,8 +132,8 @@ public class MessageQueue implements IMessageQueue {
                 addMessage(message);
             } else {
                 LOGGER.error("no handler for message installed '" + message.getId() + "' - " + message.getType());
-                PayloadMessage reply = new PayloadMessage(
-                        new IllegalStateException("no handler for message installed"), message.getType());
+                PayloadMessage reply = new PayloadMessage(new CommunicationException(
+                        "no handler for message installed", null), message.getType());
                 return reply;
             }
         } else {
@@ -136,5 +154,19 @@ public class MessageQueue implements IMessageQueue {
                     + messageHandler.getClass().getName());
         }
         _messageProcessorRegistry.addMessageHandler(messageType, messageHandler);
+    }
+
+    /**
+     * @return the maxSize
+     */
+    public int getMaxSize() {
+        return _maxSize;
+    }
+
+    /**
+     * @param maxSize the maxSize to set
+     */
+    public void setMaxSize(int maxSize) {
+        _maxSize = maxSize;
     }
 }

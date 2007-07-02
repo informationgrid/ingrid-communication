@@ -1,19 +1,14 @@
 package net.weta.components.communication.tcp;
 
-import java.io.BufferedInputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.Socket;
 import java.net.SocketException;
 
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.MessageQueue;
 import net.weta.components.communication.server.TooManyRunningThreads;
+import net.weta.components.communication.stream.IInput;
 import net.weta.components.communication.tcp.server.IMessageSender;
-import net.weta.components.communication.util.MessageUtil;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -22,11 +17,7 @@ public class MessageReaderThread extends Thread {
 
     protected static final Logger LOG = Logger.getLogger(MessageReaderThread.class);
 
-    private final Socket _socket;
-
     protected final MessageQueue _messageQueue;
-
-    private DataInputStream _dataInput;
 
     protected final String _peerName;
 
@@ -36,16 +27,15 @@ public class MessageReaderThread extends Thread {
 
     protected final int _maxThreadCount;
 
-    private final int _maxMessageSize;
+    private final IInput _in;
 
-    public MessageReaderThread(String peerName, Socket socket, MessageQueue messageQueue, IMessageSender messageSender,
-            int maxThreadCount, int maxMessageSize) {
+    public MessageReaderThread(String peerName, IInput in, MessageQueue messageQueue, IMessageSender messageSender,
+            int maxThreadCount) {
         _peerName = peerName;
-        _socket = socket;
+        _in = in;
         _messageQueue = messageQueue;
         _messageSender = messageSender;
         _maxThreadCount = maxThreadCount;
-        _maxMessageSize = maxMessageSize;
     }
 
     public void run() {
@@ -54,22 +44,14 @@ public class MessageReaderThread extends Thread {
                 LOG.info("start to read messages for peer: [" + _peerName + "]");
             }
 
-            InputStream inputStream = _socket.getInputStream();
-            _dataInput = new DataInputStream(new BufferedInputStream(inputStream, 65535));
             while (!isInterrupted()) {
-                byte[] content = readContent(_dataInput);
-                if (content != null) {
-                    Message message = MessageUtil.deserialize(content);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("read message [" + message.getId() + "] for client [" + _peerName + "]");
-                    }
-                    waitForAnswer(message);
-                } else {
-                    if (LOG.isEnabledFor(Level.WARN)) {
-                        LOG.warn("content of new message is invalid (to big?) - new message ignored");
-                    }
+                Message message = (Message) _in.readObject();
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("read message [" + message.getId() + "] for client [" + _peerName + "]");
                 }
+                waitForAnswer(message);
             }
+
         } catch (SocketException e) {
             if (LOG.isInfoEnabled()) {
                 LOG.info("connection shutdown by peer (SocketException): " + _peerName);
@@ -86,16 +68,17 @@ public class MessageReaderThread extends Thread {
             }
         } catch (IOException e) {
             if (LOG.isEnabledFor(Level.ERROR)) {
-                LOG.error(e);
-            }
-        } catch (ClassNotFoundException e) {
-            if (LOG.isEnabledFor(Level.ERROR)) {
-                LOG.error(e);
+                LOG.error(e, e);
             }
         }
     }
 
     private void waitForAnswer(final Message message) throws IOException {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Thread with name " + this.getName() + " is waiting for answer of message [" + message.getId()
+                    + "] for client [" + _peerName + "]");
+        }
+
         if (_threadCount >= _maxThreadCount) {
             if (LOG.isEnabledFor(Level.WARN)) {
                 LOG.warn("message not handled because, max thread count reached: " + _maxThreadCount);
@@ -114,38 +97,23 @@ public class MessageReaderThread extends Thread {
                             LOG.warn("failed to handle message", e);
                         }
                     }
-                }
+                } 
                 _threadCount--;
             }
         };
 
         Thread thread = new Thread(runnable);
         _threadCount++;
-        thread.start();
-    }
-
-    private byte[] readContent(DataInput dataInput) throws IOException {
-        byte[] bytes = null;
-        int byteLength = dataInput.readInt();
-        if (byteLength > _maxMessageSize) {
-            if (LOG.isEnabledFor(Level.WARN)) {
-                LOG.warn("new message ignored, message size to big: [" + byteLength + "]");
-            }
-        } else {
-            bytes = new byte[byteLength];
-            dataInput.readFully(bytes, 0, bytes.length);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("current 'waitForMessage' thread count: [" + _threadCount + "]");
         }
-        return bytes;
+
+        thread.start();
     }
 
     public void interrupt() {
         if (LOG.isEnabledFor(Level.INFO)) {
             LOG.info("Shutdown MessageReaderThread.");
-        }
-        try {
-            _socket.close();
-        } catch (Exception e) {
-            LOG.error("Error on closing socket.");
         }
         super.interrupt();
     }

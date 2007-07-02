@@ -35,7 +35,7 @@ public class TestMessageProcessor implements IMessageHandler {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("handle message: " + message.toString());
         }
-        if (message.getId() == -1) {
+        if (message.getId().equals("-1")) {
             throw new RuntimeException();
         }
         return message;

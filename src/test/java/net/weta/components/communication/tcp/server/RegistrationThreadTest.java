@@ -22,19 +22,19 @@ public class RegistrationThreadTest extends TestCase {
     private File _keystore;
 
     private File _securityFolder;
-    
+
     protected void setUp() throws Exception {
         _isStarted = false;
         _securityFolder = new File(System.getProperty("java.io.tmpdir"), "" + System.currentTimeMillis());
         _securityFolder.mkdirs();
         _keystore = new File(_securityFolder, "keystore");
 
-        KeyTool.main(new String[] { "-genkey", "-keystore", _keystore.getAbsolutePath(), "-alias", "testAlias", "-keypass",
-                "password", "-storepass", "password", "-dname", "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
+        KeyTool.main(new String[] { "-genkey", "-keystore", _keystore.getAbsolutePath(), "-alias", "testAlias",
+                "-keypass", "password", "-storepass", "password", "-dname",
+                "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
         JavaKeystore keystore = new JavaKeystore(_keystore, "password");
         final SecurityUtil util = new SecurityUtil(keystore);
-        
-        
+
         Runnable runnable = new Runnable() {
 
             public void run() {
@@ -54,14 +54,14 @@ public class RegistrationThreadTest extends TestCase {
                 } catch (IOException e) {
                     fail();
                 }
-                RegistrationThread registrationThread = new RegistrationThread(isocket, null, 50, 3, util);
+                RegistrationThread registrationThread = new RegistrationThread(isocket, null, 50, util);
                 registrationThread.start();
             }
         };
         _thread = new Thread(runnable);
         _thread.start();
     }
-    
+
     protected void tearDown() {
         File[] files = _securityFolder.listFiles();
         for (int i = 0; i < files.length; i++) {

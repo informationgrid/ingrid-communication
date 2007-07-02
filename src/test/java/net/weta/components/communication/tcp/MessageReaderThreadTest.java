@@ -1,16 +1,26 @@
 package net.weta.components.communication.tcp;
 
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 import junit.framework.TestCase;
+import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.MessageQueue;
 import net.weta.components.communication.messaging.PayloadMessage;
-import net.weta.components.communication.util.MessageUtil;
+import net.weta.components.communication.stream.IInput;
+import net.weta.components.communication.stream.IOutput;
+import net.weta.components.communication.stream.Input;
+import net.weta.components.communication.stream.Output;
+import net.weta.components.test.DummyExternalizable;
 
 public class MessageReaderThreadTest extends TestCase {
 
@@ -36,12 +46,15 @@ public class MessageReaderThreadTest extends TestCase {
                     _isStarted = true;
                 }
                 Socket isocket = null;
+                IInput input = null;
                 try {
                     isocket = _serverSocket.accept();
+                    input = new Input(new DataInputStream(isocket.getInputStream()));
                 } catch (IOException e) {
+                    e.printStackTrace();
                     fail();
                 }
-                _mrThread = new MessageReaderThread("name", isocket, new MessageQueue(), null, 1, 1024 * 1204);
+                _mrThread = new MessageReaderThread("name", input, new MessageQueue(), null, 1024 * 1204);
                 _mrThread.start();
             }
         };
@@ -58,10 +71,8 @@ public class MessageReaderThreadTest extends TestCase {
                 }
             }
             socket = new Socket("localhost", 65535);
-            DataOutputStream os = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-            os.writeInt(1);
-            os.write(new byte[] { 1 });
-            os.flush();
+            IOutput out = new Output(new DataOutputStream(socket.getOutputStream()));
+            new Message().write(out);
         } catch (EOFException e) {
             assertTrue(true);
         } catch (IOException e) {
@@ -82,19 +93,14 @@ public class MessageReaderThreadTest extends TestCase {
                 }
             }
             Socket socket = new Socket("localhost", 65535);
-            DataOutputStream os = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-            PayloadMessage pmsg = new PayloadMessage("bla", "bla");
-            pmsg.setId(1);
-            byte[] msg = MessageUtil.serialize(pmsg);
-            os.writeInt(msg.length);
-            os.write(msg);
-            os.flush();
-            pmsg.setId(2);
-            msg = MessageUtil.serialize(pmsg);
-            os.writeInt(msg.length);
-            os.write(msg);
-            os.flush();
+            IOutput os = new Output(new DataOutputStream(new BufferedOutputStream(socket.getOutputStream())));
+            PayloadMessage pmsg = new PayloadMessage(new DummyExternalizable(), "bla");
+            pmsg.setId("1");
+            pmsg.write(os);
+            pmsg.setId("2");
+            pmsg.write(os);
         } catch (Exception e) {
+            e.printStackTrace();
             fail();
         }
         try {

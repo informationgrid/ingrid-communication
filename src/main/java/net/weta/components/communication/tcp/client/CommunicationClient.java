@@ -9,19 +9,25 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 
+import net.weta.components.communication.messaging.AuthenticationMessage;
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.MessageQueue;
+import net.weta.components.communication.messaging.RegistrationMessage;
 import net.weta.components.communication.security.SecurityUtil;
+import net.weta.components.communication.stream.IInput;
+import net.weta.components.communication.stream.IOutput;
+import net.weta.components.communication.stream.Input;
+import net.weta.components.communication.stream.Output;
 import net.weta.components.communication.tcp.MessageReaderThread;
 import net.weta.components.communication.tcp.server.IMessageSender;
-import net.weta.components.communication.util.MessageUtil;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 public class CommunicationClient implements IMessageSender {
+
+    private static final int BUFFER_SIZE = 65535;
 
     private static final Logger LOG = Logger.getLogger(CommunicationClient.class);
 
@@ -45,17 +51,13 @@ public class CommunicationClient implements IMessageSender {
 
     private final String _peerName;
 
-    private DataOutputStream _dataOutput;
-
     private MessageReaderThread _messageReaderThread;
 
     private boolean _isConnected = false;
 
-    private boolean _wasAlreadyStarted = false;
+    private boolean _isConnecting = false;
 
     private final int _maxThreadCount;
-
-    private final int _maxMessageSize;
 
     private final int _connectTimeout;
 
@@ -63,9 +65,13 @@ public class CommunicationClient implements IMessageSender {
 
     private final SecurityUtil _securityUtil;
 
+    private IOutput _out;
+
+    private IInput _in;
+
     public CommunicationClient(String peerName, String serverHost, int serverPort, String proxyServer, int proxyPort,
-            boolean useProxy, MessageQueue messageQueue, int maxThreadCount, int maxMessageSize, int connectTimeout,
-            String serverName, SecurityUtil securityUtil) {
+            boolean useProxy, MessageQueue messageQueue, int maxThreadCount, int connectTimeout, String serverName,
+            SecurityUtil securityUtil) {
         _peerName = peerName;
         _serverHost = serverHost;
         _serverPort = serverPort;
@@ -74,61 +80,53 @@ public class CommunicationClient implements IMessageSender {
         _useProxy = useProxy;
         _messageQueue = messageQueue;
         _maxThreadCount = maxThreadCount;
-        _maxMessageSize = maxMessageSize;
         _connectTimeout = connectTimeout;
         _serverName = serverName;
         _securityUtil = securityUtil;
     }
 
     public synchronized void connect(String url) {
+        _isConnecting = true;
         _isConnected = false;
+
         if (LOG.isInfoEnabled()) {
             LOG.info("Communication client is connecting...");
         }
         try {
             _socket = new Socket();
             if (_useProxy) {
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("connect to proxy: " + _proxyServer + ":" + _proxyPort);
-                }
-                _socket.connect(new InetSocketAddress(_proxyServer, _proxyPort));
+                connectThroughHttpProxy();
             } else {
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("connect to server: " + _serverHost + ":" + _serverPort);
+                connectWithoutProxy();
+            }
+
+            _socket.setSoTimeout(_connectTimeout * 1000);
+            _out = new Output(new DataOutputStream(new BufferedOutputStream(_socket.getOutputStream(), BUFFER_SIZE)));
+            _in = new Input(new DataInputStream(new BufferedInputStream(_socket.getInputStream(), BUFFER_SIZE)));
+
+            byte[] signature = new byte[0];
+            if (_securityUtil != null) {
+                if (LOG.isEnabledFor(Level.INFO)) {
+                    LOG.info("Begin to read authentication token for signing.");
                 }
-                _socket.connect(new InetSocketAddress(_serverHost, _serverPort));
-            }
-            InputStream inputStream = _socket.getInputStream();
-            OutputStream outputStream = _socket.getOutputStream();
-            _dataOutput = new DataOutputStream(new BufferedOutputStream(outputStream, 65535));
-
-            if (_useProxy) {
-                DataInputStream dataInput = new DataInputStream(new BufferedInputStream(inputStream, 65535));
-                StringBuffer builder = new StringBuffer();
-                builder.append("CONNECT " + _serverHost + ":" + _serverPort + " HTTP/1.1" + CRLF);
-                builder.append("HOST: " + _serverHost + ":" + _serverPort + CRLF);
-                builder.append(CRLF);
-
-                String string = builder.toString();
-                _dataOutput.write(string.getBytes());
-                _dataOutput.flush();
-
-                byte[] buffer = new byte[ACCEPT_MESSAGE.getBytes().length];
-                dataInput.read(buffer, 0, buffer.length);
-                assert ACCEPT_MESSAGE.equals(new String(buffer));
+                AuthenticationMessage message = new AuthenticationMessage(new byte[0]);
+                message.read(_in);
+                byte[] token = message.getToken();
+                signature = _securityUtil.computeSignature(_peerName, token);
             }
 
-            _dataOutput.writeInt(_peerName.getBytes().length);
-            _dataOutput.write(_peerName.getBytes());
-            _dataOutput.flush();
+            RegistrationMessage registrationMessage = new RegistrationMessage();
+            registrationMessage.setRegistrationName(_peerName);
+            registrationMessage.setSignature(signature);
+            registrationMessage.write(_out);
 
-            boolean isRegistered = isRegistered(_socket, _dataOutput, _securityUtil);
+            boolean isRegistered = _in.readBoolean();
             if (isRegistered) {
+                _socket.setSoTimeout(0);
                 if (LOG.isEnabledFor(Level.INFO)) {
                     LOG.info("Registration to server [" + _serverHost + ":" + _serverPort + "] successfully.");
                 }
-                _messageReaderThread = new MessageReaderThread(_peerName, _socket, _messageQueue, this,
-                        _maxThreadCount, _maxMessageSize);
+                _messageReaderThread = new MessageReaderThread(_peerName, _in, _messageQueue, this, _maxThreadCount);
                 _messageReaderThread.start();
                 synchronized (this) {
                     _isConnected = true;
@@ -144,34 +142,59 @@ public class CommunicationClient implements IMessageSender {
         } catch (IOException e) {
             LOG.warn(e.getMessage(), e);
         } finally {
-            _wasAlreadyStarted = true;
+            _isConnecting = false;
         }
+    }
+
+    private void connectWithoutProxy() throws IOException {
+        if (LOG.isInfoEnabled()) {
+            LOG.info("connect to server: " + _serverHost + ":" + _serverPort);
+        }
+        _socket.connect(new InetSocketAddress(_serverHost, _serverPort));
+    }
+
+    private void connectThroughHttpProxy() throws IOException {
+        if (LOG.isInfoEnabled()) {
+            LOG.info("connect to proxy: " + _proxyServer + ":" + _proxyPort);
+        }
+        _socket.connect(new InetSocketAddress(_proxyServer, _proxyPort));
+        InputStream inputStream = _socket.getInputStream();
+        OutputStream outputStream = _socket.getOutputStream();
+        DataOutputStream dataOutput = new DataOutputStream(new BufferedOutputStream(outputStream, 65535));
+
+        DataInputStream dataInput = new DataInputStream(new BufferedInputStream(inputStream, 65535));
+        StringBuffer builder = new StringBuffer();
+        builder.append("CONNECT " + _serverHost + ":" + _serverPort + " HTTP/1.1" + CRLF);
+        builder.append("HOST: " + _serverHost + ":" + _serverPort + CRLF);
+        builder.append(CRLF);
+
+        String string = builder.toString();
+        dataOutput.write(string.getBytes());
+        dataOutput.flush();
+
+        byte[] buffer = new byte[ACCEPT_MESSAGE.getBytes().length];
+        dataInput.read(buffer, 0, buffer.length);
+        assert ACCEPT_MESSAGE.equals(new String(buffer));
     }
 
     public void interrupt() {
-        _isConnected = false;
         if (_messageReaderThread != null) {
             _messageReaderThread.interrupt();
         }
+        disconnect(null);
     }
 
     public void sendMessage(String peerName, Message message) throws IOException {
-        waitUntilClientIsConnected();
-        byte[] bytes = MessageUtil.serialize(message);
-        sendByteArray(_dataOutput, bytes);
-    }
-
-    private void sendByteArray(DataOutputStream dataOutput, byte[] bytes) throws IOException {
-        synchronized (dataOutput) {
-            dataOutput.writeInt(bytes.length);
-            dataOutput.write(bytes);
-            dataOutput.flush();
+        synchronized (_out) {
+            waitUntilClientIsConnected();
+            _out.writeObject(message);
+            _out.flush();
         }
     }
 
     private void waitUntilClientIsConnected() throws IOException {
         if (!_isConnected) {
-            if (_wasAlreadyStarted) {
+            if (!_isConnecting) {
                 connect(null);
             } else {
                 if (LOG.isEnabledFor(Level.WARN)) {
@@ -191,47 +214,17 @@ public class CommunicationClient implements IMessageSender {
         }
     }
 
-    private boolean isRegistered(Socket socket, DataOutputStream dataOutput, SecurityUtil securityUtil)
-            throws IOException {
-        socket.setSoTimeout(_connectTimeout * 1000);
-        boolean ret = false;
-        try {
-            InputStream inputStream = socket.getInputStream();
-            DataInputStream dataInput = new DataInputStream(inputStream);
-            if (securityUtil != null) {
-                sendSignedBytes(dataInput, dataOutput, securityUtil);
-            }
-            ret = dataInput.readBoolean();
-        } catch (SocketTimeoutException e) {
-            throw new IOException("timeout while registration.");
-        }
-        socket.setSoTimeout(0);
-        return ret;
-    }
-
-    private void sendSignedBytes(DataInputStream dataInput, DataOutputStream dataOutput, SecurityUtil securityUtil)
-            throws IOException {
-        int byteLength = dataInput.readInt();
-        if (byteLength < _maxMessageSize) {
-            byte[] bytes = new byte[byteLength];
-            dataInput.readFully(bytes, 0, byteLength);
-            if (LOG.isEnabledFor(Level.INFO)) {
-                LOG.info("receive byte array for signing...");
-            }
-            byte[] signature = securityUtil.computeSignature(_peerName, bytes);
-            if (LOG.isEnabledFor(Level.INFO)) {
-                LOG.info("send signature to server...");
-            }
-            sendByteArray(dataOutput, signature);
-
-        } else {
-            if (LOG.isEnabledFor(Level.WARN)) {
-                LOG.warn("ignore byte array for signing, message size to big: [" + byteLength + "]");
-            }
-        }
-    }
-
     public String getServerName() {
         return _serverName;
+    }
+
+    public void disconnect(String url) {
+        try {
+            _socket.close();
+        } catch (IOException e) {
+            LOG.error("can not close socket", e);
+        } finally {
+            _isConnected = false;
+        }
     }
 }

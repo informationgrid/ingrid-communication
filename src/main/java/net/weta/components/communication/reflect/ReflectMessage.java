@@ -18,7 +18,11 @@
 
 package net.weta.components.communication.reflect;
 
+import java.io.IOException;
+
 import net.weta.components.communication.messaging.Message;
+import net.weta.components.communication.stream.IInput;
+import net.weta.components.communication.stream.IOutput;
 
 /**
  * TODO comment for ReflectMessage
@@ -35,18 +39,21 @@ public class ReflectMessage extends Message {
     /***/
     private static final long serialVersionUID = 1322251878305777946L;
 
-    private String _objectToCallClass;
+    private String _objectToCallClass = "";
 
-    private String _methodName;
+    private String _methodName = "";
 
-    private Object[] _arguments;
+    private Object[] _arguments = new Object[0];
+
+    public ReflectMessage() {
+    }
 
     /**
      * @param methodName
      * @param objectToCallClass
      */
     public ReflectMessage(String methodName, String objectToCallClass) {
-        this(methodName, objectToCallClass, null);
+        this(methodName, objectToCallClass, new Object[0]);
     }
 
     /**
@@ -58,7 +65,7 @@ public class ReflectMessage extends Message {
         super(ReflectMessageHandler.MESSAGE_TYPE);
         _methodName = methodName;
         _objectToCallClass = objectToCallClass;
-        _arguments = arguments;
+        _arguments = arguments != null ? arguments : new Object[0];
     }
 
     /**
@@ -99,5 +106,19 @@ public class ReflectMessage extends Message {
      */
     public Object[] getArguments() {
         return _arguments;
+    }
+
+    public void read(IInput in) throws IOException {
+        _objectToCallClass = in.readString();
+        _methodName = in.readString();
+        _arguments = (Object[]) in.readObject();
+        super.read(in);
+    }
+
+    public void write(IOutput out) throws IOException {
+        out.writeString(_objectToCallClass);
+        out.writeString(_methodName);
+        out.writeObject(_arguments);
+        super.write(out);
     }
 }
