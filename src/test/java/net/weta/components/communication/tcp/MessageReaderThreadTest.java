@@ -49,7 +49,7 @@ public class MessageReaderThreadTest extends TestCase {
                 IInput input = null;
                 try {
                     isocket = _serverSocket.accept();
-                    input = new Input(new DataInputStream(isocket.getInputStream()));
+                    input = new Input(new DataInputStream(isocket.getInputStream()), 1024);
                 } catch (IOException e) {
                     e.printStackTrace();
                     fail();

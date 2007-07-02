@@ -61,7 +61,7 @@ public class TcpCommunication implements ICommunication {
 
     public TcpCommunication() {
         _messageQueue = new MessageQueue();
-        _messageQueue.setMaxSize(_maxMessageQueueSize );
+        _messageQueue.setMaxSize(_maxMessageQueueSize);
     }
 
     public void closeConnection(String url) throws IOException {
@@ -137,7 +137,7 @@ public class TcpCommunication implements ICommunication {
             String server = (String) _servers.get(0);
             String port = server.substring(server.indexOf(":") + 1, server.length());
             _communicationServer = new CommunicationServer(Integer.parseInt(port), _messageQueue, _maxThreadCount,
-                    _connectTimeout, util);
+                    _connectTimeout, _maxMessageSize, util);
             _communicationServer.start();
         } else {
             if (_servers.size() == _serverNames.size()) {
@@ -150,7 +150,7 @@ public class TcpCommunication implements ICommunication {
                     String port = server.substring(server.indexOf(":") + 1, server.length());
                     CommunicationClient client = new CommunicationClient(_peerName, host, Integer.parseInt(port),
                             proxyHost, Integer.parseInt(proxyPort), _useProxy, _messageQueue, _maxThreadCount,
-                            _connectTimeout, (String) _serverNames.get(i), util);
+                            _connectTimeout, _maxMessageSize, (String) _serverNames.get(i), util);
                     clients.add(client);
                 }
                 CommunicationClient[] clientArray = (CommunicationClient[]) clients
@@ -255,7 +255,8 @@ public class TcpCommunication implements ICommunication {
     }
 
     /**
-     * @param maxMessageQueueSize the maxMessageQueueSize to set
+     * @param maxMessageQueueSize
+     *            the maxMessageQueueSize to set
      */
     public void setMaxMessageQueueSize(int maxMessageQueueSize) {
         _maxMessageQueueSize = maxMessageQueueSize;

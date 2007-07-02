@@ -36,11 +36,14 @@ public class RegistrationThread extends Thread {
 
     private IOutput _out;
 
-    public RegistrationThread(Socket socket, ICommunicationServer registration, int connectTimeout,
+    private final int _maxMessageSize;
+
+    public RegistrationThread(Socket socket, ICommunicationServer registration, int connectTimeout, int maxMessageSize,
             SecurityUtil securityUtil) {
         _socket = socket;
         _communicationServer = registration;
         _connectTimeout = connectTimeout;
+        _maxMessageSize = maxMessageSize;
         _securityUtil = securityUtil;
     }
 
@@ -50,7 +53,8 @@ public class RegistrationThread extends Thread {
 
             _socket.setSoTimeout(_connectTimeout * 1000);
             _out = new Output(new DataOutputStream(new BufferedOutputStream(_socket.getOutputStream(), BUFFER_SIZE)));
-            _in = new Input(new DataInputStream(new BufferedInputStream(_socket.getInputStream(), BUFFER_SIZE)));
+            _in = new Input(new DataInputStream(new BufferedInputStream(_socket.getInputStream(), BUFFER_SIZE)),
+                    _maxMessageSize);
 
             AuthenticationMessage authenticationMessage = null;
             if (_securityUtil != null) {

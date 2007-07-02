@@ -69,9 +69,11 @@ public class CommunicationClient implements IMessageSender {
 
     private IInput _in;
 
+    private final int _maxMessageSize;
+
     public CommunicationClient(String peerName, String serverHost, int serverPort, String proxyServer, int proxyPort,
-            boolean useProxy, MessageQueue messageQueue, int maxThreadCount, int connectTimeout, String serverName,
-            SecurityUtil securityUtil) {
+            boolean useProxy, MessageQueue messageQueue, int maxThreadCount, int connectTimeout, int maxMessageSize,
+            String serverName, SecurityUtil securityUtil) {
         _peerName = peerName;
         _serverHost = serverHost;
         _serverPort = serverPort;
@@ -81,6 +83,7 @@ public class CommunicationClient implements IMessageSender {
         _messageQueue = messageQueue;
         _maxThreadCount = maxThreadCount;
         _connectTimeout = connectTimeout;
+        _maxMessageSize = maxMessageSize;
         _serverName = serverName;
         _securityUtil = securityUtil;
     }
@@ -102,7 +105,8 @@ public class CommunicationClient implements IMessageSender {
 
             _socket.setSoTimeout(_connectTimeout * 1000);
             _out = new Output(new DataOutputStream(new BufferedOutputStream(_socket.getOutputStream(), BUFFER_SIZE)));
-            _in = new Input(new DataInputStream(new BufferedInputStream(_socket.getInputStream(), BUFFER_SIZE)));
+            _in = new Input(new DataInputStream(new BufferedInputStream(_socket.getInputStream(), BUFFER_SIZE)),
+                    _maxMessageSize);
 
             byte[] signature = new byte[0];
             if (_securityUtil != null) {

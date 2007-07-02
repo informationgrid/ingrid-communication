@@ -54,7 +54,7 @@ public class RegistrationThreadTest extends TestCase {
                 } catch (IOException e) {
                     fail();
                 }
-                RegistrationThread registrationThread = new RegistrationThread(isocket, null, 50, util);
+                RegistrationThread registrationThread = new RegistrationThread(isocket, null, 50, 1024, util);
                 registrationThread.start();
             }
         };

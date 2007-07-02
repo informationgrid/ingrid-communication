@@ -9,12 +9,18 @@ public class Input implements IInput {
 
     private final DataInput _dataInput;
 
-    public Input(DataInput dataInput) {
+    private final int _maxMessageSize;
+
+    public Input(DataInput dataInput, int maxMessageSize) {
         _dataInput = dataInput;
+        _maxMessageSize = maxMessageSize;
     }
 
     public byte[] readBytes() throws IOException {
         int length = readInt();
+        if (length > _maxMessageSize) {
+            throw new IOException("message size too big: [" + length + "]");
+        }
         byte[] bytes = new byte[length];
         _dataInput.readFully(bytes);
         return bytes;

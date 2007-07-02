@@ -16,6 +16,7 @@ import net.weta.components.communication.security.SecurityUtil;
 import net.weta.components.communication.stream.IInput;
 import net.weta.components.communication.stream.IOutput;
 import net.weta.components.communication.tcp.MessageReaderThread;
+import net.weta.components.communication.tcp.TcpCommunication;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -42,12 +43,15 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
 
     private final SecurityUtil _securityUtil;
 
+    private int _maxMessageSize;
+
     public CommunicationServer(int port, MessageQueue messageQueue, int maxThreadCount, int connectTimeout,
-            SecurityUtil securityUtil) {
+            int maxMessageSize, SecurityUtil securityUtil) {
         _port = port;
         _messageQueue = messageQueue;
         _maxThreadCount = maxThreadCount;
         _connectTimeout = connectTimeout;
+        _maxMessageSize = maxMessageSize;
         _securityUtil = securityUtil;
     }
 
@@ -60,7 +64,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
                 Socket socket = _serverSocket.accept();
                 LOG.info("new client is connected from ip: [" + socket.getRemoteSocketAddress()
                         + "], start registration...");
-                new RegistrationThread(socket, this, _connectTimeout, _securityUtil).start();
+                new RegistrationThread(socket, this, _connectTimeout, _maxMessageSize, _securityUtil).start();
             }
         } catch (BindException e) {
             LOG.error(e.getMessage() + " " + _port);
@@ -159,5 +163,14 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
 
     public void disconnect(String url) {
         deregister(url);
+    }
+    
+    public static void main(String[] args) throws IOException {
+        TcpCommunication communication = new TcpCommunication();
+        communication.setIsSecure(false);
+        communication.setIsCommunicationServer(true);
+        communication.addServer("127.0.0.1:55555");
+        communication.addServerName("/101tec-group:ibus");
+        communication.startup();
     }
 }
