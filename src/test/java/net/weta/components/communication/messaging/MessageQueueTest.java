@@ -69,6 +69,7 @@ public class MessageQueueTest extends TestCase {
         messageQueue.messageEvent(message1);
         messageQueue.messageEvent(message);
         Thread.sleep(5000);
+        assertEquals(1, messageQueue.size());
     }
 
     public void testGetProcessorRegistry() throws Exception {
@@ -107,5 +108,18 @@ public class MessageQueueTest extends TestCase {
             }
         });
         messageQueue.messageEvent(message);
+    }
+
+    public void testMessageOverrun() {
+        MessageQueue queue = new MessageQueue();
+        queue.setMaxSize(1);
+        
+        PayloadMessage message = new PayloadMessage("bla", "");
+
+        for (int i = 0; i < 100; i++) {
+            message.setId("" + i);
+            queue.messageEvent(message);
+            assertEquals(1, queue.size());            
+        }
     }
 }
