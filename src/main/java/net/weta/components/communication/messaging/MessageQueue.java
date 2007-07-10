@@ -18,9 +18,10 @@
 
 package net.weta.components.communication.messaging;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import net.weta.components.communication.CommunicationException;
@@ -37,7 +38,7 @@ public class MessageQueue implements IMessageQueue {
 
     private static Logger LOGGER = Logger.getLogger(MessageQueue.class);
 
-    private LinkedList _queueSize = (LinkedList) Collections.synchronizedList(new LinkedList());
+    private List _queueSize = Collections.synchronizedList(new ArrayList());
     
     private Map _messages = new HashMap();
 
@@ -56,11 +57,11 @@ public class MessageQueue implements IMessageQueue {
         Object mutex = getSynchronizedMutex(messageId);
         synchronized (mutex) {
             if (_queueSize.size() == _maxSize) {
-                String oldestMessageId = (String) _queueSize.removeFirst();
+                String oldestMessageId = (String) _queueSize.remove(0);
                 _messages.remove(oldestMessageId);
             }
             _messages.put(messageId, message);
-            _queueSize.addLast(messageId);
+            _queueSize.add(messageId);
             mutex.notify();
         }
     }
