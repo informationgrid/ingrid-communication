@@ -18,6 +18,7 @@
 
 package net.weta.components.communication.messaging;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -36,7 +37,7 @@ public class MessageQueue implements IMessageQueue {
 
     private static Logger LOGGER = Logger.getLogger(MessageQueue.class);
 
-    private LinkedList _queueSize = new LinkedList();
+    private LinkedList _queueSize = (LinkedList) Collections.synchronizedList(new LinkedList());
     
     private Map _messages = new HashMap();
 
