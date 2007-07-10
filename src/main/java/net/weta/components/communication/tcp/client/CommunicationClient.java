@@ -189,8 +189,8 @@ public class CommunicationClient implements IMessageSender {
     }
 
     public void sendMessage(String peerName, Message message) throws IOException {
-        synchronized (_out) {
             waitUntilClientIsConnected();
+        synchronized (_out) {
             _out.writeObject(message);
             _out.flush();
         }
