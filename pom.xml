@@ -83,8 +83,6 @@
 				<artifactId>maven-release-plugin</artifactId>
 				<configuration>
 					<tagBase>https://127.0.0.1:444/svn/ingrid/ingrid-communication/tags</tagBase>
-					<tag>1.1.0-SNAPSHOT</tag>
-					<version>1.1.0-SNAPSHOT</version>
 					<bootstrapGoals>package</bootstrapGoals>
 				</configuration>
 			</plugin>
