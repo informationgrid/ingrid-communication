@@ -3,7 +3,7 @@
 	<groupId>ingrid</groupId>
 	<artifactId>ingrid-communication</artifactId>
 	<packaging>jar</packaging>
-	<version>1.1.1-SNAPSHOT</version>
+	<version>1.1.0-SNAPSHOT</version>
 	<name>ingrid-communication</name>
 	<url>http://maven.apache.org</url>
 	<scm>
