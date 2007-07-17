@@ -4,7 +4,7 @@
 	<groupId>ingrid</groupId>
 	<artifactId>ingrid-communication</artifactId>
 	<packaging>jar</packaging>
-	<version>0.2.0-SNAPSHOT</version>
+	<version>1.1.0-SNAPSHOT</version>
 	<name>ingrid-communication</name>
 	<url>http://maven.apache.org</url>
 	<scm>
@@ -26,7 +26,7 @@
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
 			<version>1.3</version>
-			<scope></scope>
+			<scope/>
 		</dependency>
 	</dependencies>
 	<build>
@@ -79,6 +79,15 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-release-plugin</artifactId>
+				<configuration>
+					<tagBase>https://127.0.0.1:444/svn/ingrid/ingrid-communication/tags</tagBase>
+					<tag>1.1.0-SNAPSHOT</tag>
+					<version>1.1.0-SNAPSHOT</version>
+					<bootstrapGoals>package</bootstrapGoals>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
