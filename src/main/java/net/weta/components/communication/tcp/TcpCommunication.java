@@ -35,6 +35,10 @@ public class TcpCommunication implements ICommunication {
 
     private String _proxy = null;
 
+    private String _proxyUser = null;
+
+    private String _proxyPassword = null;
+
     private CommunicationServer _communicationServer;
 
     private int _id = 0;
@@ -149,8 +153,9 @@ public class TcpCommunication implements ICommunication {
                     String host = server.substring(0, server.indexOf(":"));
                     String port = server.substring(server.indexOf(":") + 1, server.length());
                     CommunicationClient client = new CommunicationClient(_peerName, host, Integer.parseInt(port),
-                            proxyHost, Integer.parseInt(proxyPort), _useProxy, _messageQueue, _maxThreadCount,
-                            _connectTimeout, _maxMessageSize, (String) _serverNames.get(i), util);
+                            proxyHost, Integer.parseInt(proxyPort), _useProxy, _proxyUser, _proxyPassword,
+                            _messageQueue, _maxThreadCount, _connectTimeout, _maxMessageSize, (String) _serverNames
+                                    .get(i), util);
                     clients.add(client);
                 }
                 CommunicationClient[] clientArray = (CommunicationClient[]) clients
@@ -260,6 +265,22 @@ public class TcpCommunication implements ICommunication {
      */
     public void setMaxMessageQueueSize(int maxMessageQueueSize) {
         _maxMessageQueueSize = maxMessageQueueSize;
+    }
+
+    public void setProxyUser(String proxyUser) {
+        _proxyUser = proxyUser;
+    }
+
+    public String getProxyUser() {
+        return _proxyUser;
+    }
+
+    public void setProxyPassword(String proxyPassword) {
+        _proxyPassword = proxyPassword;
+    }
+
+    public String getProxyPassword() {
+        return _proxyPassword;
     }
 
     private void printStatus() {

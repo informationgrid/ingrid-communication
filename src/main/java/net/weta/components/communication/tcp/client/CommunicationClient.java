@@ -22,6 +22,7 @@ import net.weta.components.communication.stream.Output;
 import net.weta.components.communication.tcp.MessageReaderThread;
 import net.weta.components.communication.tcp.server.IMessageSender;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -71,15 +72,21 @@ public class CommunicationClient implements IMessageSender {
 
     private final int _maxMessageSize;
 
+    private final String _proxyUser;
+
+    private final String _proxyPassword;
+
     public CommunicationClient(String peerName, String serverHost, int serverPort, String proxyServer, int proxyPort,
-            boolean useProxy, MessageQueue messageQueue, int maxThreadCount, int connectTimeout, int maxMessageSize,
-            String serverName, SecurityUtil securityUtil) {
+            boolean useProxy, String proxyUser, String proxyPassword, MessageQueue messageQueue, int maxThreadCount,
+            int connectTimeout, int maxMessageSize, String serverName, SecurityUtil securityUtil) {
         _peerName = peerName;
         _serverHost = serverHost;
         _serverPort = serverPort;
         _proxyServer = proxyServer;
         _proxyPort = proxyPort;
         _useProxy = useProxy;
+        _proxyUser = proxyUser;
+        _proxyPassword = proxyPassword;
         _messageQueue = messageQueue;
         _maxThreadCount = maxThreadCount;
         _connectTimeout = connectTimeout;
@@ -168,8 +175,11 @@ public class CommunicationClient implements IMessageSender {
 
         DataInputStream dataInput = new DataInputStream(new BufferedInputStream(inputStream, 65535));
         StringBuffer builder = new StringBuffer();
+        String authString = _proxyUser + ":" + _proxyPassword;
+        String auth = "Basic " + Base64.encodeBase64(authString.getBytes());
         builder.append("CONNECT " + _serverHost + ":" + _serverPort + " HTTP/1.1" + CRLF);
         builder.append("HOST: " + _serverHost + ":" + _serverPort + CRLF);
+        builder.append(("Proxy-Authorization: " + auth + CRLF));
         builder.append(CRLF);
 
         String string = builder.toString();
@@ -177,8 +187,17 @@ public class CommunicationClient implements IMessageSender {
         dataOutput.flush();
 
         byte[] buffer = new byte[ACCEPT_MESSAGE.getBytes().length];
-        dataInput.read(buffer, 0, buffer.length);
-        assert ACCEPT_MESSAGE.equals(new String(buffer));
+        if (LOG.isInfoEnabled()) {
+            LOG.info("read accept message from proxy starts...");
+        }
+        while ((dataInput.read(buffer, 0, buffer.length)) != -1) {
+            if (LOG.isInfoEnabled()) {
+                LOG.info(new String(buffer));
+            }
+        }
+        if (LOG.isInfoEnabled()) {
+            LOG.info("read accept message from proxy ends...");
+        }
     }
 
     public void interrupt() {
@@ -189,7 +208,7 @@ public class CommunicationClient implements IMessageSender {
     }
 
     public void sendMessage(String peerName, Message message) throws IOException {
-            waitUntilClientIsConnected();
+        waitUntilClientIsConnected();
         synchronized (_out) {
             _out.writeObject(message);
             _out.flush();
