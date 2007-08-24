@@ -176,10 +176,12 @@ public class CommunicationClient implements IMessageSender {
         DataInputStream dataInput = new DataInputStream(new BufferedInputStream(inputStream, 65535));
         StringBuffer builder = new StringBuffer();
         String authString = _proxyUser + ":" + _proxyPassword;
-        String auth = "Basic " + Base64.encodeBase64(authString.getBytes());
+        String auth = "Basic " + new String(Base64.encodeBase64(authString.getBytes()));
         builder.append("CONNECT " + _serverHost + ":" + _serverPort + " HTTP/1.1" + CRLF);
         builder.append("HOST: " + _serverHost + ":" + _serverPort + CRLF);
-        builder.append(("Proxy-Authorization: " + auth + CRLF));
+        if (!"".equals(_proxyUser) && !"".equals(_proxyPassword)) {
+            builder.append(("Proxy-Authorization: " + auth + CRLF));
+        }
         builder.append(CRLF);
 
         String string = builder.toString();
