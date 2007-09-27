@@ -18,6 +18,8 @@ public class TcpClient {
 
     private static final String ACCEPT_MESSAGE = "HTTP/1.0 200 Connection established" + CRLF + CRLF;
 
+    private static final String SIMPLE_ACCEPT_MESSAGE = "Connection established" + CRLF + CRLF;
+
     public static void main(String[] args) throws Exception {
         boolean useProxy = false;
         if ((args.length % 2) != 0) {
@@ -73,7 +75,7 @@ public class TcpClient {
             System.getProperties().put("http.auth.digest.validateProxy", "true");
             System.getProperties().put("http.auth.digest.validateServer", "true");
             // ISA PATCH
-            
+
             StringBuffer builder = new StringBuffer();
             String authString = userName + ":" + password;
             String auth = "Basic " + new BASE64Encoder().encode(authString.getBytes());
@@ -90,10 +92,17 @@ public class TcpClient {
             dataOutput.write(string.getBytes());
             dataOutput.flush();
 
-            byte[] buffer = new byte[ACCEPT_MESSAGE.getBytes().length];
             System.out.println("read accept message from proxy...");
-            while ((dataInput.read(buffer, 0, buffer.length)) != -1) {
-                System.out.println(new String(buffer));
+
+            byte[] bytes = new byte[ACCEPT_MESSAGE.length()];
+            while ((dataInput.read(bytes, 0, bytes.length)) != -1) {
+                String readedString = new String(bytes);
+                System.out.println(readedString);
+                if (readedString.toLowerCase().indexOf(SIMPLE_ACCEPT_MESSAGE.toLowerCase()) > -1) {
+                    System.out.println("accept message found: '" + SIMPLE_ACCEPT_MESSAGE + "'. Break the loop.");
+                    break;
+                }
+                bytes = new byte[ACCEPT_MESSAGE.length()];
             }
             // assert ACCEPT_MESSAGE.equals(new String(buffer));
         }

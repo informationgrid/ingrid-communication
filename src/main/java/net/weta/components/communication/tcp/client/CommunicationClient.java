@@ -36,6 +36,8 @@ public class CommunicationClient implements IMessageSender {
 
     private static final String ACCEPT_MESSAGE = "HTTP/1.0 200 Connection established" + CRLF + CRLF;
 
+    private static final String SIMPLE_ACCEPT_MESSAGE = "Connection established" + CRLF + CRLF;
+
     private Socket _socket;
 
     private final String _serverHost;
@@ -193,9 +195,18 @@ public class CommunicationClient implements IMessageSender {
             LOG.info("read accept message from proxy starts...");
         }
         while ((dataInput.read(buffer, 0, buffer.length)) != -1) {
+            String readedString = new String(buffer);
             if (LOG.isInfoEnabled()) {
-                LOG.info(new String(buffer));
+                LOG.info(readedString);
             }
+            // dirty hack to break the by using an http proxy, and the proxy
+            // does not send '-1' ??
+            // this problem occurs by "markus klein"
+            if (readedString.toLowerCase().indexOf(SIMPLE_ACCEPT_MESSAGE.toLowerCase()) > -1) {
+                System.out.println("accept message found: '" + SIMPLE_ACCEPT_MESSAGE + "'. Break the loop.");
+                break;
+            }
+            buffer = new byte[ACCEPT_MESSAGE.length()];
         }
         if (LOG.isInfoEnabled()) {
             LOG.info("read accept message from proxy ends...");
