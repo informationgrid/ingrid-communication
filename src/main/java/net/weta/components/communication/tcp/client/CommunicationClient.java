@@ -203,7 +203,9 @@ public class CommunicationClient implements IMessageSender {
             // does not send '-1' ??
             // this problem occurs by "markus klein"
             if (readedString.toLowerCase().indexOf(SIMPLE_ACCEPT_MESSAGE.toLowerCase()) > -1) {
-                System.out.println("accept message found: '" + SIMPLE_ACCEPT_MESSAGE + "'. Break the loop.");
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("accept message found: '" + SIMPLE_ACCEPT_MESSAGE + "'. Break the loop.");
+                }
                 break;
             }
             buffer = new byte[ACCEPT_MESSAGE.length()];
