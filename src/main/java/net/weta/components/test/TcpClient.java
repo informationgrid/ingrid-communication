@@ -18,7 +18,7 @@ public class TcpClient {
 
     private static final String ACCEPT_MESSAGE = "HTTP/1.0 200 Connection established" + CRLF + CRLF;
 
-    private static final String SIMPLE_ACCEPT_MESSAGE = "Connection established" + CRLF + CRLF;
+    private static final String SIMPLE_ACCEPT_MESSAGE = "200 Connection established" + CRLF + CRLF;
 
     public static void main(String[] args) throws Exception {
         boolean useProxy = false;
