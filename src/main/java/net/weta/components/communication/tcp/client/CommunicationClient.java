@@ -78,6 +78,8 @@ public class CommunicationClient implements IMessageSender {
 
     private final String _proxyPassword;
 
+    private boolean _disconnect = false;
+
     public CommunicationClient(String peerName, String serverHost, int serverPort, String proxyServer, int proxyPort,
             boolean useProxy, String proxyUser, String proxyPassword, MessageQueue messageQueue, int maxThreadCount,
             int connectTimeout, int maxMessageSize, String serverName, SecurityUtil securityUtil) {
@@ -101,6 +103,9 @@ public class CommunicationClient implements IMessageSender {
         _isConnecting = true;
         _isConnected = false;
 
+        if (_disconnect) {
+            return;
+        }
         if (LOG.isInfoEnabled()) {
             LOG.info("Communication client is connecting...");
         }
@@ -257,6 +262,7 @@ public class CommunicationClient implements IMessageSender {
     }
 
     public void disconnect(String url) {
+        _disconnect  = true;
         try {
             _socket.close();
         } catch (IOException e) {
