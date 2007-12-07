@@ -242,12 +242,12 @@ public class CommunicationClient implements IMessageSender {
 
     private void waitUntilClientIsConnected() throws IOException {
         if (!_isConnected) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("client is not connected");
+            if (LOG.isInfoEnabled()) {
+                LOG.info("client is not connected");
             }
             if (!_isConnecting) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("client is not connecting, starts the connect");
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("client is not connecting, starts the connect");
                 }
                 connect(null);
             } else {
