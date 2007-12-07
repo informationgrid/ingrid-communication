@@ -110,6 +110,7 @@ public class CommunicationClient implements IMessageSender {
             if (LOG.isInfoEnabled()) {
                 LOG.info("client was explicit disconnected. break the connect");
             }
+            _isConnecting = false;
             return;
         }
 
@@ -241,11 +242,17 @@ public class CommunicationClient implements IMessageSender {
 
     private void waitUntilClientIsConnected() throws IOException {
         if (!_isConnected) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("client is not connected");
+            }
             if (!_isConnecting) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("client is not connecting, starts the connect");
+                }
                 connect(null);
             } else {
                 if (LOG.isEnabledFor(Level.WARN)) {
-                    LOG.warn("client not yet connected, waiting...");
+                    LOG.warn("client not yet connected but is in connecting process, waiting...");
                 }
                 try {
                     synchronized (this) {
