@@ -100,15 +100,19 @@ public class CommunicationClient implements IMessageSender {
     }
 
     public synchronized void connect(String url) {
+        if (LOG.isInfoEnabled()) {
+            LOG.info("Communication client try to connect...");
+        }
         _isConnecting = true;
         _isConnected = false;
 
         if (_disconnect) {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("client was explicit disconnected. break the connect");
+            }
             return;
         }
-        if (LOG.isInfoEnabled()) {
-            LOG.info("Communication client is connecting...");
-        }
+
         try {
             _socket = new Socket();
             if (_useProxy) {
@@ -262,7 +266,10 @@ public class CommunicationClient implements IMessageSender {
     }
 
     public void disconnect(String url) {
-        _disconnect  = true;
+        if (LOG.isInfoEnabled()) {
+            LOG.info("Disconnect client from server, close the socket.");
+        }
+        _disconnect = true;
         try {
             _socket.close();
         } catch (IOException e) {
