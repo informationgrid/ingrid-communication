@@ -26,7 +26,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-public class CommunicationClient implements IMessageSender {
+public class CommunicationClient implements IMessageSender, ICommunicationClient {
 
     private static final int BUFFER_SIZE = 65535;
 
@@ -78,7 +78,7 @@ public class CommunicationClient implements IMessageSender {
 
     private final String _proxyPassword;
 
-    private boolean _disconnect = false;
+    private boolean _shutdown = false;
 
     public CommunicationClient(String peerName, String serverHost, int serverPort, String proxyServer, int proxyPort,
             boolean useProxy, String proxyUser, String proxyPassword, MessageQueue messageQueue, int maxThreadCount,
@@ -106,9 +106,9 @@ public class CommunicationClient implements IMessageSender {
         _isConnecting = true;
         _isConnected = false;
 
-        if (_disconnect) {
+        if (_shutdown) {
             if (LOG.isInfoEnabled()) {
-                LOG.info("client was explicit disconnected. break the connect");
+                LOG.info("client was explicit disconnected. do not make a connect.");
             }
             _isConnecting = false;
             return;
@@ -276,7 +276,6 @@ public class CommunicationClient implements IMessageSender {
         if (LOG.isInfoEnabled()) {
             LOG.info("Disconnect client from server, close the socket.");
         }
-        _disconnect = true;
         try {
             _socket.close();
         } catch (IOException e) {
@@ -284,5 +283,10 @@ public class CommunicationClient implements IMessageSender {
         } finally {
             _isConnected = false;
         }
+    }
+
+    public void shutdown() {
+        _shutdown = true;
+        interrupt();
     }
 }

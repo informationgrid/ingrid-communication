@@ -9,7 +9,7 @@ import net.weta.components.communication.tcp.server.IMessageSender;
 
 import org.apache.log4j.Logger;
 
-public class MultiCommunicationClient extends Thread implements IMessageSender {
+public class MultiCommunicationClient extends Thread implements IMessageSender, ICommunicationClient {
 
     private static final Logger LOG = Logger.getLogger(MultiCommunicationClient.class);
 
@@ -55,5 +55,12 @@ public class MultiCommunicationClient extends Thread implements IMessageSender {
             client.disconnect(url);
         }
 
+    }
+
+    public void shutdown() {
+        for (Iterator iterator = _clients.values().iterator(); iterator.hasNext();) {
+            CommunicationClient client = (CommunicationClient) iterator.next();
+            client.shutdown();
+        }
     }
 }
