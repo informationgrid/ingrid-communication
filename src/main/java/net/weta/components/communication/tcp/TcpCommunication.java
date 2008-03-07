@@ -293,4 +293,14 @@ public class TcpCommunication implements ICommunication {
         LOG.info("Memory Usage: [" + (used / (1024 * 1024)) + " MB used of " + (maxMemory / (1024 * 1024))
                 + " MB total (" + percent + " %)" + "]");
     }
+    
+    public List getRegisteredClients() {
+        List result = new ArrayList();
+        if (_isCommunicationServer) {
+            result = _communicationServer.getRegisteredClients();
+        } else {
+            result = getServerNames();
+        }
+        return result;
+    }
 }

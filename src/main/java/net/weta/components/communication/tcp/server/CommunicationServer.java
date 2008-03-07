@@ -5,7 +5,9 @@ import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -172,5 +174,9 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         communication.addServer("127.0.0.1:55555");
         communication.addServerName("/101tec-group:ibus");
         communication.startup();
+    }
+
+    public List getRegisteredClients() {
+        return new ArrayList(_messageReaderMap.keySet());
     }
 }
