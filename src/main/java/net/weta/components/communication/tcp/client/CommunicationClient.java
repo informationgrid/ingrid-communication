@@ -289,4 +289,8 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
         _shutdown = true;
         interrupt();
     }
+
+    public boolean isConnected(String serverName) {
+        return _isConnected;
+    }
 }

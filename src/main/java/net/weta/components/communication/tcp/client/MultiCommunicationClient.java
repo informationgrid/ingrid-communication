@@ -54,7 +54,6 @@ public class MultiCommunicationClient extends Thread implements IMessageSender, 
             CommunicationClient client = (CommunicationClient) iterator.next();
             client.disconnect(url);
         }
-
     }
 
     public void shutdown() {
@@ -62,5 +61,14 @@ public class MultiCommunicationClient extends Thread implements IMessageSender, 
             CommunicationClient client = (CommunicationClient) iterator.next();
             client.shutdown();
         }
+    }
+
+    public boolean isConnected(String serverName) {
+        Object object = _clients.get(serverName);
+        if ((null != object) && (object instanceof CommunicationClient)) {
+            CommunicationClient client = (CommunicationClient) object;
+            return client.isConnected(serverName);
+        }
+        return false;
     }
 }

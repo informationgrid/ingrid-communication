@@ -303,4 +303,14 @@ public class TcpCommunication implements ICommunication {
         }
         return result;
     }
+    
+    public boolean isConnected(String serverName) {
+        boolean result= false;
+        if (_isCommunicationServer) {
+            result = true;
+        } else {
+            result = _communicationClient.isConnected(serverName);
+        }
+        return result;
+    }
 }
