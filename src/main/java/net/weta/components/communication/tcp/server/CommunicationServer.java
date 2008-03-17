@@ -64,8 +64,8 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
             LOG.info("Communication server is startet...");
             while (!isInterrupted()) {
                 Socket socket = _serverSocket.accept();
-                LOG.info("new client is connected from ip: [" + socket.getRemoteSocketAddress()
-                        + "], start registration...");
+                LOG.info("new client is connected from ip: [" + socket.getRemoteSocketAddress() +
+                        "], start registration...");
                 new RegistrationThread(socket, this, _connectTimeout, _maxMessageSize, _securityUtil).start();
             }
         } catch (BindException e) {
@@ -80,14 +80,15 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
     public synchronized void register(String peerName, Socket socket, IInput in, IOutput out) {
         if (_messageReaderMap.containsKey(peerName)) {
             if (LOG.isEnabledFor(Level.WARN)) {
-                LOG.warn("Registration of new client from ip [" + socket.getRemoteSocketAddress()
-                        + "], client with the same name already registered: [" + peerName + "]");
+                LOG.warn("Registration of new client from ip [" + socket.getRemoteSocketAddress() +
+                        "], client with the same name already registered: [" + peerName + "]");
             }
             deregister(peerName);
         }
 
         LOG.info("Client [" + peerName + "] registered from ip [" + socket.getRemoteSocketAddress() + "]");
         MessageReaderThread thread = new MessageReaderThread(peerName, in, _messageQueue, this, _maxThreadCount);
+        thread.setDaemon(true);
         thread.start();
         try {
             _messageReaderMap.put(peerName, thread);
@@ -166,7 +167,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
     public void disconnect(String url) {
         deregister(url);
     }
-    
+
     public static void main(String[] args) throws IOException {
         TcpCommunication communication = new TcpCommunication();
         communication.setIsSecure(false);
