@@ -5,8 +5,6 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
@@ -22,21 +20,17 @@ import net.weta.components.communication.stream.Output;
 import net.weta.components.communication.tcp.MessageReaderThread;
 import net.weta.components.communication.tcp.server.IMessageSender;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+
+import de.ingrid.communication.authentication.BasicSchemeConnector;
+import de.ingrid.communication.authentication.IHttpProxyConnector;
 
 public class CommunicationClient implements IMessageSender, ICommunicationClient {
 
     private static final int BUFFER_SIZE = 65535;
 
     private static final Logger LOG = Logger.getLogger(CommunicationClient.class);
-
-    private static final String CRLF = "\r\n";
-
-    private static final String ACCEPT_MESSAGE = "HTTP/1.0 200 Connection established" + CRLF + CRLF;
-
-    private static final String SIMPLE_ACCEPT_MESSAGE = "200 Connection established" + CRLF + CRLF;
 
     private Socket _socket;
 
@@ -80,9 +74,11 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
 
     private boolean _shutdown = false;
 
+	private final IHttpProxyConnector _httpProxyConnector;
+
     public CommunicationClient(String peerName, String serverHost, int serverPort, String proxyServer, int proxyPort,
             boolean useProxy, String proxyUser, String proxyPassword, MessageQueue messageQueue, int maxThreadCount,
-            int connectTimeout, int maxMessageSize, String serverName, SecurityUtil securityUtil) {
+            int connectTimeout, int maxMessageSize, String serverName, SecurityUtil securityUtil, IHttpProxyConnector httpProxyConnector) {
         _peerName = peerName;
         _serverHost = serverHost;
         _serverPort = serverPort;
@@ -97,6 +93,7 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
         _maxMessageSize = maxMessageSize;
         _serverName = serverName;
         _securityUtil = securityUtil;
+		_httpProxyConnector = httpProxyConnector;
     }
 
     public synchronized void connect(String url) {
@@ -189,47 +186,14 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
             LOG.info("connect to proxy: " + _proxyServer + ":" + _proxyPort);
         }
         _socket.connect(new InetSocketAddress(_proxyServer, _proxyPort));
-        InputStream inputStream = _socket.getInputStream();
-        OutputStream outputStream = _socket.getOutputStream();
-        DataOutputStream dataOutput = new DataOutputStream(new BufferedOutputStream(outputStream, 65535));
-
-        DataInputStream dataInput = new DataInputStream(new BufferedInputStream(inputStream, 65535));
-        StringBuffer builder = new StringBuffer();
-        String authString = _proxyUser + ":" + _proxyPassword;
-        String auth = "Basic " + new String(Base64.encodeBase64(authString.getBytes()));
-        builder.append("CONNECT " + _serverHost + ":" + _serverPort + " HTTP/1.1" + CRLF);
-        builder.append("HOST: " + _serverHost + ":" + _serverPort + CRLF);
+        boolean connect = false;
         if (!"".equals(_proxyUser) && !"".equals(_proxyPassword)) {
-            builder.append(("Proxy-Authorization: " + auth + CRLF));
+        	connect = _httpProxyConnector.connect(_socket, _serverHost, _serverPort, _proxyUser, _proxyPassword);
+        } else {
+        	connect = _httpProxyConnector.connect(_socket, _serverHost, _serverPort);
         }
-        builder.append(CRLF);
-
-        String string = builder.toString();
-        dataOutput.write(string.getBytes());
-        dataOutput.flush();
-
-        byte[] buffer = new byte[ACCEPT_MESSAGE.getBytes().length];
-        if (LOG.isInfoEnabled()) {
-            LOG.info("read accept message from proxy starts...");
-        }
-        while ((dataInput.read(buffer, 0, buffer.length)) != -1) {
-            String readedString = new String(buffer);
-            if (LOG.isInfoEnabled()) {
-                LOG.info(readedString);
-            }
-            // dirty hack to break the by using an http proxy, and the proxy
-            // does not send '-1' ??
-            // this problem occurs by "markus klein"
-            if (readedString.toLowerCase().indexOf(SIMPLE_ACCEPT_MESSAGE.toLowerCase()) > -1) {
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("accept message found: '" + SIMPLE_ACCEPT_MESSAGE + "'. Break the loop.");
-                }
-                break;
-            }
-            buffer = new byte[ACCEPT_MESSAGE.length()];
-        }
-        if (LOG.isInfoEnabled()) {
-            LOG.info("read accept message from proxy ends...");
+        if(!connect) {
+        	throw new IOException("Can not connect through http proxy.");
         }
     }
 

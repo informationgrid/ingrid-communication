@@ -19,6 +19,9 @@ import net.weta.components.communication.tcp.server.CommunicationServer;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import de.ingrid.communication.authentication.BasicSchemeConnector;
+import de.ingrid.communication.authentication.IHttpProxyConnector;
+
 public class TcpCommunication implements ICommunication {
 
     private static final Logger LOG = Logger.getLogger(TcpCommunication.class);
@@ -152,10 +155,12 @@ public class TcpCommunication implements ICommunication {
                     String server = (String) _servers.get(i);
                     String host = server.substring(0, server.indexOf(":"));
                     String port = server.substring(server.indexOf(":") + 1, server.length());
+                    //we support only basic authentication through http proxy
+                    IHttpProxyConnector httpProxyConnector = new BasicSchemeConnector(); 
                     CommunicationClient client = new CommunicationClient(_peerName, host, Integer.parseInt(port),
                             proxyHost, Integer.parseInt(proxyPort), _useProxy, _proxyUser, _proxyPassword,
                             _messageQueue, _maxThreadCount, _connectTimeout, _maxMessageSize, (String) _serverNames
-                                    .get(i), util);
+                                    .get(i), util, httpProxyConnector);
                     clients.add(client);
                 }
                 CommunicationClient[] clientArray = (CommunicationClient[]) clients
