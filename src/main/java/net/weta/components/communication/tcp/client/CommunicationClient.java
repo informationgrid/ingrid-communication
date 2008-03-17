@@ -163,6 +163,14 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
                 _socket.close();
             }
         } catch (IOException e) {
+            try {
+                if (!_socket.isClosed()) {
+                    _socket.close();
+                }
+                _socket = null;
+            } catch (Exception e1) {
+                // ignore
+            }
             LOG.warn(e.getMessage(), e);
         } finally {
             _isConnecting = false;
@@ -277,7 +285,9 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
             LOG.info("Disconnect client from server, close the socket.");
         }
         try {
-            _socket.close();
+            if ((_socket != null) && !_socket.isClosed()) {
+                _socket.close();
+            }
         } catch (IOException e) {
             LOG.error("can not close socket", e);
         } finally {
