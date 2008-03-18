@@ -23,7 +23,6 @@ import net.weta.components.communication.tcp.server.IMessageSender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import de.ingrid.communication.authentication.BasicSchemeConnector;
 import de.ingrid.communication.authentication.IHttpProxyConnector;
 
 public class CommunicationClient implements IMessageSender, ICommunicationClient {
