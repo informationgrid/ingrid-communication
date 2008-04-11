@@ -4,13 +4,13 @@ import java.io.IOException;
 
 public interface IInput {
 
-    int readInt() throws IOException;
+    int readInt() throws IOException, MessageSizeTooBigException;
 
-    String readString() throws IOException;
+    String readString() throws IOException, MessageSizeTooBigException;
 
-    Object readObject() throws IOException;
+    Object readObject() throws IOException, MessageSizeTooBigException;
 
-    byte[] readBytes() throws IOException;
+    byte[] readBytes() throws IOException, MessageSizeTooBigException;
 
     boolean readBoolean() throws IOException;
 }

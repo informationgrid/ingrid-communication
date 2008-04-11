@@ -8,6 +8,7 @@ import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.MessageQueue;
 import net.weta.components.communication.server.TooManyRunningThreads;
 import net.weta.components.communication.stream.IInput;
+import net.weta.components.communication.stream.MessageSizeTooBigException;
 import net.weta.components.communication.tcp.server.IMessageSender;
 
 import org.apache.log4j.Level;
@@ -66,11 +67,18 @@ public class MessageReaderThread extends Thread {
             if (_messageSender != null) {
                 _messageSender.connect(_peerName);
             }
-        } catch (IOException e) {
+        } catch (MessageSizeTooBigException e) {
+            if (LOG.isEnabledFor(Level.WARN)) {
+                LOG.warn(e.getMessage() + " for peer: " + _peerName);
+            }
+            if (_messageSender != null) {
+                _messageSender.connect(_peerName);
+            }
+        }catch (IOException e) {
             if (LOG.isEnabledFor(Level.ERROR)) {
                 LOG.error(e, e);
             }
-        }
+        } 
     }
 
     private void waitForAnswer(final Message message) throws IOException {

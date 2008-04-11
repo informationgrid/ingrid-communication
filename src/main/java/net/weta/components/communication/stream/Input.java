@@ -16,10 +16,10 @@ public class Input implements IInput {
         _maxMessageSize = maxMessageSize;
     }
 
-    public byte[] readBytes() throws IOException {
+    public byte[] readBytes() throws MessageSizeTooBigException, IOException {
         int length = readInt();
         if (length > _maxMessageSize) {
-            throw new IOException("message size too big: [" + length + "]");
+            throw new MessageSizeTooBigException("message size too big: [" + length + "]");
         }
         byte[] bytes = new byte[length];
         _dataInput.readFully(bytes);
@@ -30,7 +30,7 @@ public class Input implements IInput {
         return _dataInput.readInt();
     }
 
-    public Object readObject() throws IOException {
+    public Object readObject() throws MessageSizeTooBigException, IOException {
         byte[] bytes = readBytes();
         ObjectInputStream stream = new ObjectInputStream(new ByteArrayInputStream(bytes));
         Object object;
@@ -44,7 +44,7 @@ public class Input implements IInput {
         return object;
     }
 
-    public String readString() throws IOException {
+    public String readString() throws MessageSizeTooBigException, IOException {
         byte[] bytes = readBytes();
         return new String(bytes);
     }
