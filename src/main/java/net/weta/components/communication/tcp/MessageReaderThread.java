@@ -72,9 +72,9 @@ public class MessageReaderThread extends Thread {
                 LOG.warn(e.getMessage() + " for peer: " + _peerName);
             }
             if (_messageSender != null) {
-                //disconnect in case of client
+                // disconnect in case of client
                 _messageSender.disconnect(_peerName);
-              //connect in case of client and server
+                // connect in case of client and server 
                 _messageSender.connect(_peerName);
             }
         }catch (IOException e) {
