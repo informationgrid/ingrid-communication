@@ -9,34 +9,38 @@ import net.weta.components.communication.reflect.ProxyService;
 import net.weta.components.communication.reflect.ReflectMessageHandler;
 import net.weta.components.communication.tcp.StartCommunication;
 
-public class TestClient {
+public class SubtractServer {
+
+  public static final String CLIENT_PEER_NAME = "/test-group:sum-client";
 
   private static final Object _mutex = new Object();
 
   public static void main(String[] args) throws Exception {
 
-    System.out.println("start communication client...");
-    InputStream asStream = TestServer.class.getResourceAsStream("/communication-test-client.properties");
+    System.out.println("start communication server...");
+    InputStream asStream = SubtractServer.class.getResourceAsStream("/communication-test-server.properties");
     ICommunication communication = StartCommunication.create(asStream);
     communication.startup();
 
-    System.out.println("create sumService proxy to communicate with the server...");
-    ISumService serverSumService = (ISumService) ProxyService.createProxy(communication, ISumService.class, "/test-group:test-server");
+    System.out.println("create sumService proxy to communicate with the client...");
+    ISumService clientSumService = (ISumService) ProxyService.createProxy(communication, ISumService.class, CLIENT_PEER_NAME);
 
-
-    System.out.println("add sumService to answer the server...");
+    System.out.println("add subtractService to answer the client...");
     ReflectMessageHandler messageHandler = new ReflectMessageHandler();
-    ISumService clientSumService = new SumService();
-    messageHandler.addObjectToCall(ISumService.class, clientSumService);
+    ISubtractService subtractService = new SubtractService();
+    messageHandler.addObjectToCall(ISubtractService.class, subtractService);
     communication.getMessageQueue().getProcessorRegistry().addMessageHandler(ReflectMessageHandler.MESSAGE_TYPE,
       messageHandler);
 
+
     System.out.println("start sceduler to send sum calls...");
-    Timer timer = new Timer("SumCall", true);
-    timer.schedule(new SumCaller(serverSumService), new Date(), 30 * 1000);
+    Timer timer = new Timer(true);
+    timer.schedule(new ComputeCaller(clientSumService, CLIENT_PEER_NAME), new Date(), 30 * 1000);
 
     synchronized (_mutex) {
       _mutex.wait();
     }
   }
+
+
 }

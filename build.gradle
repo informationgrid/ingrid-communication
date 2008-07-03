@@ -1,0 +1,74 @@
+import java.text.SimpleDateFormat
+import java.text.DateFormat
+String pattern = "yyyyMMdd.hhmmss";
+DateFormat dateFormat = new SimpleDateFormat(pattern);
+
+
+archivesBaseName = 'communication'
+group = 'de.ingrid.communication'
+version = '1.2.' + dateFormat.format(new Date())
+
+usePlugin('java')
+
+sourceCompatibility = 1.4
+targetCompatibility = 1.4
+
+
+
+org.apache.ivy.util.url.CredentialsStore.INSTANCE.addCredentials("Password Required", "harrison.its-technidata.de", "$INGRID_REPO_USER", "$INGRID_REPO_PASSWORD");
+def urlResolver = new org.apache.ivy.plugins.resolver.URLResolver()
+urlResolver.addArtifactPattern("http://harrison.its-technidata.de/ingrid/maven/[organisation]/[ext]s/[artifact]-[revision].[ext]")
+urlResolver.name = "ingrid repo"
+
+
+dependencies {
+
+  addMavenRepo()
+  classpathResolvers.add(urlResolver)
+
+
+  testCompile "junit:junit:3.8.1"
+  compile "log4j:log4j:1.2.9"
+  compile "de.ingrid.communication:ingrid-communication-authentication:1.1.0-SNAPSHOT"
+
+}
+
+test {
+  include '**/*Test.class'
+  exclude '**/*ITest*'
+}
+
+
+File runtimeLibsDir = new File(buildDir, 'runtimeLibs')
+
+createTask('collectRuntimeLibs') {
+  runtimeLibsDir.mkdirs()
+  dependencies.resolve('runtime').each {File file ->
+    ant.copy(file: file, todir: runtimeLibsDir)
+  }
+  //ant.copy(file: communication_jar.archivePath, toDir: runtimeLibsDir)
+}
+
+
+dists {
+  String zipRoot = "$archivesBaseName-$version"
+
+  zip() {
+    zipFileSet(dir: file('src/main/scripts'), prefix: "$zipRoot/bin", fileMode: '775') {
+      include('startTestServer.sh')
+      include('startTestClient.sh')
+    }
+    zipFileSet(dir: file('src/main/resources'), prefix: "$zipRoot/conf") {
+      exclude('communication.properties')
+    }
+    zipFileSet(dir: runtimeLibsDir, prefix: "$zipRoot/lib")
+    zipFileSet(dir: buildDir, prefix: "$zipRoot/lib") {
+      include('*.jar')
+    }
+  }
+  communication_zip.dependsOn('collectRuntimeLibs')
+}
+
+communication_zip.doFirst {
+  distsDir.mkdirs()
+}
