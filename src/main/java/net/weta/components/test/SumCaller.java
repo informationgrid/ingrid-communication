@@ -11,7 +11,6 @@ public class SumCaller extends TimerTask {
     _sumService = sumService;
   }
 
-  @Override
   public void run() {
 
     if (shouldRun) {
