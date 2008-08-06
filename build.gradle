@@ -1,18 +1,49 @@
 import java.text.SimpleDateFormat
 import java.text.DateFormat
-String pattern = "yyyyMMdd.hhmmss";
-DateFormat dateFormat = new SimpleDateFormat(pattern);
+import org.gradle.execution.Dag
+import org.gradle.api.Task
+import org.gradle.api.tasks.StopExecutionException
+import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.tigris.subversion.javahl.SVNClientInterface
+import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory
+import org.tmatesoft.svn.core.javahl.SVNClientImpl
 
-
-archivesBaseName = 'communication'
+archivesBaseName = 'ingrid-communication-test'
 group = 'de.ingrid.communication'
-version = '1.2.' + dateFormat.format(new Date())
+version = ''
 
 usePlugin('java')
 
 sourceCompatibility = 1.4
 targetCompatibility = 1.4
 
+createTask('wrapper', type: Wrapper).configure {
+  urlRoot = 'http://snapshots.dist.codehaus.org/gradle/'
+  gradleVersion = '0.3-080716153750+0200'
+  jarPath = 'src/build/resources'
+}
+
+
+
+init.doFirst {Task task, Dag dag ->
+  if (dag.hasTask(':release')) {
+    BufferedReader reader = new BufferedReader(new FileReader(new File("version.txt")));
+    String line = reader.readLine();
+    reader.close();
+    String[] splits = line.split("\\.");
+    int major = Integer.parseInt(splits[0]);
+    int minor = Integer.parseInt(splits[1]);
+    int buidNumber = Integer.parseInt(splits[2]);
+    buidNumber++;
+    version = major + "." + minor + "." + buidNumber;
+  } else if (dag.hasTask(':snapshot')) {
+    String pattern = "yyyyMMdd.hhmmss";
+    DateFormat dateFormat = new SimpleDateFormat(pattern);
+    version = dateFormat.format(new Date());
+  } else {
+    version = ''
+  }
+}
 
 
 org.apache.ivy.util.url.CredentialsStore.INSTANCE.addCredentials("Password Required", "harrison.its-technidata.de", "$INGRID_REPO_USER", "$INGRID_REPO_PASSWORD");
@@ -39,6 +70,12 @@ test {
 }
 
 
+Map requiredProperties = [
+  ingridDistributionUri: hasProperty('ingridDistributionUri'),
+  ingridSvnUser: hasProperty('ingridSvnUser'),
+  ingridSvnPassword: hasProperty('ingridSvnPassword')
+]
+
 File runtimeLibsDir = new File(buildDir, 'runtimeLibs')
 
 createTask('collectRuntimeLibs') {
@@ -46,13 +83,13 @@ createTask('collectRuntimeLibs') {
   dependencies.resolve('runtime').each {File file ->
     ant.copy(file: file, todir: runtimeLibsDir)
   }
-  //ant.copy(file: communication_jar.archivePath, toDir: runtimeLibsDir)
 }
 
 
 dists {
-  String zipRoot = "$archivesBaseName-$version"
 
+  //TODO use version
+  String zipRoot = "$archivesBaseName"
   zip() {
     zipFileSet(dir: file('src/main/scripts'), prefix: "$zipRoot/bin", fileMode: '775') {
       include('startTestServer.sh')
@@ -66,9 +103,54 @@ dists {
       include('*.jar')
     }
   }
-  communication_zip.dependsOn('collectRuntimeLibs')
+  archive_zip.dependsOn('collectRuntimeLibs')
 }
 
-communication_zip.doFirst {
+archive_zip.doFirst {
   distsDir.mkdirs()
+}
+
+uploadDists.doFirst {
+  if (!requiredProperties.ingridDistributionUri) {
+    throw new StopExecutionException("Please define a 'ingridDistributionUri' in $gradleUserHome/gradle.properties");
+  }
+}
+
+uploadDists {
+  if (requiredProperties.ingridDistributionUri) {
+    uploadResolvers.add(new FileSystemResolver()) {
+      addArtifactPattern("$ingridDistributionUri/[revision]/[artifact]-[revision].[ext]")
+    }
+  }
+}
+
+createTask('release', dependsOn: ['uploadDists']) {
+  //write release number to file
+  BufferedWriter writer = new BufferedWriter(new FileWriter(new File("version.txt")))
+  writer.writeLine("" + version);
+  writer.close();
+
+  //commit version file
+  DAVRepositoryFactory.setup();
+  SVNClientInterface client = SVNClientImpl.newInstance();
+  client.username(ingridSvnUser);
+  client.password(ingridSvnPassword)
+  String[] commitFiles = new String[1]
+  commitFiles[0] = "version.txt";
+  client.commit(commitFiles, "increment release version", false);
+
+  println("we create a release with version: " + version);
+}
+
+release.doFirst() {
+  if (!requiredProperties.ingridSvnUser) {
+    throw new StopExecutionException("Please define a 'ingridSvnUser' in $gradleUserHome/gradle.properties");
+  }
+  if (!requiredProperties.ingridSvnPassword) {
+    throw new StopExecutionException("Please define a 'ingridSvnPassword' in $gradleUserHome/gradle.properties");
+  }
+}
+
+createTask('snapshot', dependsOn: ['uploadDists']) {
+  println("we have created a release with version: " + version);
 }
