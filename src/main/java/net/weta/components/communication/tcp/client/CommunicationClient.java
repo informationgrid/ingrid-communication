@@ -55,7 +55,7 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
 
     private final int _maxThreadCount;
 
-    private final int _connectTimeout;
+    private final int _socketTimeout;
 
     private final String _serverName;
 
@@ -77,7 +77,7 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
 
     public CommunicationClient(String peerName, String serverHost, int serverPort, String proxyServer, int proxyPort,
             boolean useProxy, String proxyUser, String proxyPassword, MessageQueue messageQueue, int maxThreadCount,
-            int connectTimeout, int maxMessageSize, String serverName, SecurityUtil securityUtil, IHttpProxyConnector httpProxyConnector) {
+            int socketTimeout, int maxMessageSize, String serverName, SecurityUtil securityUtil, IHttpProxyConnector httpProxyConnector) {
         _peerName = peerName;
         _serverHost = serverHost;
         _serverPort = serverPort;
@@ -88,7 +88,7 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
         _proxyPassword = proxyPassword;
         _messageQueue = messageQueue;
         _maxThreadCount = maxThreadCount;
-        _connectTimeout = connectTimeout;
+        _socketTimeout = socketTimeout;
         _maxMessageSize = maxMessageSize;
         _serverName = serverName;
         _securityUtil = securityUtil;
@@ -118,7 +118,7 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
                 connectWithoutProxy();
             }
 
-            _socket.setSoTimeout(_connectTimeout * 1000);
+            _socket.setSoTimeout(_socketTimeout * 1000);
             _out = new Output(new DataOutputStream(new BufferedOutputStream(_socket.getOutputStream(), BUFFER_SIZE)));
             _in = new Input(new DataInputStream(new BufferedInputStream(_socket.getInputStream(), BUFFER_SIZE)),
                     _maxMessageSize);
@@ -227,7 +227,7 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
                 }
                 try {
                     synchronized (this) {
-                        this.wait(_connectTimeout * 1000);
+                        this.wait(_socketTimeout * 1000);
                     }
                 } catch (InterruptedException e) {
                     if (LOG.isEnabledFor(Level.ERROR)) {

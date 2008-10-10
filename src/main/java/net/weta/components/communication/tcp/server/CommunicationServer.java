@@ -41,18 +41,18 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
 
     private final int _maxThreadCount;
 
-    private int _connectTimeout;
+    private int _socketTimeout;
 
     private final SecurityUtil _securityUtil;
 
     private int _maxMessageSize;
 
-    public CommunicationServer(int port, MessageQueue messageQueue, int maxThreadCount, int connectTimeout,
+    public CommunicationServer(int port, MessageQueue messageQueue, int maxThreadCount, int socketTimeout,
             int maxMessageSize, SecurityUtil securityUtil) {
         _port = port;
         _messageQueue = messageQueue;
         _maxThreadCount = maxThreadCount;
-        _connectTimeout = connectTimeout;
+        _socketTimeout = socketTimeout;
         _maxMessageSize = maxMessageSize;
         _securityUtil = securityUtil;
     }
@@ -66,7 +66,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
                 Socket socket = _serverSocket.accept();
                 LOG.info("new client is connected from ip: [" + socket.getRemoteSocketAddress() +
                         "], start registration...");
-                new RegistrationThread(socket, this, _connectTimeout, _maxMessageSize, _securityUtil).start();
+                new RegistrationThread(socket, this, _socketTimeout, _maxMessageSize, _securityUtil).start();
             }
         } catch (BindException e) {
             LOG.error(e.getMessage() + " " + _port);

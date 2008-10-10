@@ -28,7 +28,7 @@ public class RegistrationThread extends Thread {
 
     private final ICommunicationServer _communicationServer;
 
-    private int _connectTimeout;
+    private int _socketTimeout;
 
     private final SecurityUtil _securityUtil;
 
@@ -38,11 +38,11 @@ public class RegistrationThread extends Thread {
 
     private final int _maxMessageSize;
 
-    public RegistrationThread(Socket socket, ICommunicationServer registration, int connectTimeout, int maxMessageSize,
+    public RegistrationThread(Socket socket, ICommunicationServer registration, int socketTimeout, int maxMessageSize,
             SecurityUtil securityUtil) {
         _socket = socket;
         _communicationServer = registration;
-        _connectTimeout = connectTimeout;
+        _socketTimeout = socketTimeout;
         _maxMessageSize = maxMessageSize;
         _securityUtil = securityUtil;
     }
@@ -51,7 +51,7 @@ public class RegistrationThread extends Thread {
         String peerName;
         try {
 
-            _socket.setSoTimeout(_connectTimeout * 1000);
+            _socket.setSoTimeout(_socketTimeout * 1000);
             _out = new Output(new DataOutputStream(new BufferedOutputStream(_socket.getOutputStream(), BUFFER_SIZE)));
             _in = new Input(new DataInputStream(new BufferedInputStream(_socket.getInputStream(), BUFFER_SIZE)),
                     _maxMessageSize);

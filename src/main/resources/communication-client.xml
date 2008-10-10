@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<communication xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="communication.xsd">
+	<client name="peerName">
+		<connections>
+			<server name="peerName">
+				<socket port="80" timeout="10" ip="127.0.0.1">
+					<proxy port="80" name="proxyName" ip="127.0.0.1">
+						<authentication userPassword="password" userName="userName" />
+					</proxy>
+				</socket>
+				<security password="password" keystore="/tmp/keystore.jks" />
+				<messages maximumSize="1048576" threadCount="100" />
+			</server>
+			<server name="peerName2">
+				<socket port="81" timeout="10" ip="127.0.0.2" />
+				<messages maximumSize="1048576" threadCount="100" />
+			</server>
+		</connections>
+	</client>
+	<messages queueSize="10" handleTimeout="10"/>
+</communication>

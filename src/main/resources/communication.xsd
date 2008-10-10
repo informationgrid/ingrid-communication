@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified"
+	elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	
+	<xs:element name="communication" type="communicationType" >
+		<xs:annotation>
+			<xs:documentation>configuration for to act as server</xs:documentation>
+		</xs:annotation></xs:element>
+	<xs:complexType name="communicationType">
+		<xs:sequence>
+			<xs:choice>
+				<xs:element name="server" type="serverType" minOccurs="1"
+					maxOccurs="1" />
+				<xs:element name="client" type="clientType" minOccurs="1"
+					maxOccurs="1">
+					<xs:annotation>
+						<xs:documentation>
+							configuration to act as client
+						</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:choice>
+			<xs:element name="messages" type="globaleMessagesType" minOccurs="1" maxOccurs="1" />
+			
+		</xs:sequence>
+	</xs:complexType>
+	
+
+	<xs:complexType name="serverType">
+		<xs:sequence>
+			<xs:element name="socket" type="serverSocketType" minOccurs="1" maxOccurs="1"></xs:element>
+			<xs:element name="security" type="securityType" minOccurs="0" maxOccurs="1"></xs:element>
+			<xs:element name="messages" type="messagesType" minOccurs="1" maxOccurs="1"></xs:element>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+	</xs:complexType>
+
+
+
+	<xs:complexType name="messagesType">
+		<xs:attribute name="maximumSize" type="xs:int" use="required">
+			<xs:annotation>
+				<xs:documentation>maximum message size in bytes</xs:documentation>
+			</xs:annotation></xs:attribute>
+		<xs:attribute name="threadCount" type="xs:int" use="required">
+			<xs:annotation>
+				<xs:documentation>threads that wait for answer of a message</xs:documentation>
+			</xs:annotation></xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="securityType">
+		<xs:annotation>
+			<xs:documentation>Optional. Use this only if security at the registration should  be use</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="keystore" type="xs:string" use="required"></xs:attribute>
+        		
+                        
+        <xs:attribute name="password" type="xs:string" use="required"></xs:attribute>
+                        
+        	
+                    
+    </xs:complexType>
+
+	<xs:complexType name="clientType">
+		<xs:sequence>
+			<xs:element name="connections" type="connectionsType"
+				minOccurs="1" maxOccurs="1">
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="connectionsType">
+		<xs:sequence minOccurs="1" maxOccurs="unbounded">
+			<xs:element name="server" type="connectionType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="connectionType">
+		<xs:sequence>
+			<xs:element name="socket" type="clientSocketType" minOccurs="1" maxOccurs="1"></xs:element>
+			<xs:element name="security" type="securityType" minOccurs="0" maxOccurs="1"></xs:element>
+			<xs:element name="messages" type="messagesType" minOccurs="1" maxOccurs="1"></xs:element>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="clientSocketType">
+		<xs:sequence>
+			<xs:element name="proxy" type="proxyType" minOccurs="0" maxOccurs="1"></xs:element>
+		</xs:sequence>
+        <xs:attribute name="ip" type="xs:string" use="required"></xs:attribute>
+        <xs:attribute name="port" type="xs:int" use="required"></xs:attribute>
+        <xs:attribute name="timeout" type="xs:int" use="required"></xs:attribute>
+    </xs:complexType>
+
+	<xs:complexType name="proxyType">
+		<xs:sequence>
+			<xs:element name="authentication" type="authenticationType" minOccurs="0" maxOccurs="1"></xs:element>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+        <xs:attribute name="ip" type="xs:string" use="required"></xs:attribute>
+        <xs:attribute name="port" type="xs:int" use="required"></xs:attribute>
+    </xs:complexType>
+
+	<xs:complexType name="authenticationType">
+		<xs:attribute name="userName" type="xs:string" use="required"></xs:attribute>
+		<xs:attribute name="userPassword" type="xs:string" use="required"></xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="serverSocketType">
+		<xs:attribute name="port" type="xs:int" use="required"></xs:attribute>
+		<xs:attribute name="timeout" type="xs:int" use="required">
+			<xs:annotation>
+				<xs:documentation>socket timeout in seconds</xs:documentation>
+			</xs:annotation></xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="globaleMessagesType">
+		<xs:attribute name="handleTimeout" type="xs:int" use="required"></xs:attribute>
+		<xs:attribute name="queueSize" type="xs:int" use="required"></xs:attribute>
+	</xs:complexType>
+</xs:schema>
