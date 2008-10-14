@@ -1,6 +1,9 @@
 package net.weta.components.communication.configuration;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
 
 import net.weta.components.communication.configuration.ClientConfiguration.ClientConnection;
 
@@ -14,6 +17,37 @@ public class ConfigurationService implements IConfigurationService {
         _xpathService = pathService;
     }
 
+    public int getConfigurationType() {
+        int configType = IConfigurationService.CLIENT;
+        boolean exsistsNode = _xpathService.exsistsNode("/communication/server");
+        if (exsistsNode) {
+            configType = IConfigurationService.SERVER;
+        }
+        return configType;
+    }
+
+    public void registerConfigurationFile(InputStream streamToConfigurationFile) throws Exception {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int read = -1;
+        while ((read = streamToConfigurationFile.read(buffer, 0, buffer.length)) > -1) {
+            byteArrayOutputStream.write(buffer, 0, read);
+        }
+        streamToConfigurationFile.close();
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
+        
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
+        _configurationValidator.validateConfiguration(byteArrayInputStream);
+
+        byteArrayInputStream = new ByteArrayInputStream(byteArray);
+        _xpathService.registerDocument(byteArrayInputStream);
+    }
+    
+    public void registerConfigurationFile(File file) throws Exception {
+        _configurationValidator.validateConfiguration(file);
+        _xpathService.registerDocument(file);
+    }
+    
     public Configuration parseConfiguration() throws Exception {
         int configurationType = getConfigurationType();
         Configuration communicationConfiguration = null;
@@ -118,18 +152,6 @@ public class ConfigurationService implements IConfigurationService {
         return clientConfiguration;
     }
 
-    public int getConfigurationType() {
-        int configType = IConfigurationService.CLIENT;
-        boolean exsistsNode = _xpathService.exsistsNode("/communication/server");
-        if (exsistsNode) {
-            configType = IConfigurationService.SERVER;
-        }
-        return configType;
-    }
-
-    public void registerConfigurationFile(File file) throws Exception {
-        _configurationValidator.validateConfiguration(file);
-        _xpathService.registerDocument(file);
-    }
+  
 
 }

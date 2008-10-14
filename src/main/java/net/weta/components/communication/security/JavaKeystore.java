@@ -15,6 +15,8 @@ import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 public class JavaKeystore {
 
     private static final String PROVIDER = "JKS";
@@ -23,6 +25,8 @@ public class JavaKeystore {
 
     private String fPassw;
 
+    private static final Logger LOG = Logger.getLogger(JavaKeystore.class);
+    
     /**
      * Load an keystore by the given parameter.
      * 
@@ -95,6 +99,7 @@ public class JavaKeystore {
     public PrivateKey getPrivateKey(String alias) throws SecurityException {
         Key key = null;
         try {
+            LOG.debug("try to load key from keystore with alias: " + alias);
             key = this.fKeyStore.getKey(alias, this.fPassw.toCharArray());
         } catch (KeyStoreException e) {
             throw new SecurityException("can not read the keystore", e);

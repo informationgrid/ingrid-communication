@@ -3,6 +3,7 @@ package net.weta.components.test;
 import java.io.IOException;
 import java.util.Map;
 
+import net.weta.components.communication.configuration.ServerConfiguration;
 import net.weta.components.communication.reflect.ProxyService;
 import net.weta.components.communication.tcp.TcpCommunication;
 
@@ -12,9 +13,10 @@ public class RevServer {
         System.out.println("Do get real results turn assertions on.");
         TcpCommunication tc = new TcpCommunication();
         tc.setPeerName("/101tec-group:server");
-        tc.setIsCommunicationServer(true);
-        tc.addServer("localhost:55555");
-        tc.setUseProxy(false);
+        
+        ServerConfiguration serverConfiguration = new ServerConfiguration();
+        serverConfiguration.setPort(55555);
+        tc.setConfiguration(serverConfiguration);
 
         try {
             tc.startup();

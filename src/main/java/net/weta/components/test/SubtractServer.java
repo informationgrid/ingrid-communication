@@ -18,7 +18,7 @@ public class SubtractServer {
   public static void main(String[] args) throws Exception {
 
     System.out.println("start communication server...");
-    InputStream asStream = SubtractServer.class.getResourceAsStream("/communication-test-server.properties");
+    InputStream asStream = SubtractServer.class.getResourceAsStream("/communication-test-server.xml");
     ICommunication communication = StartCommunication.create(asStream);
     communication.startup();
 

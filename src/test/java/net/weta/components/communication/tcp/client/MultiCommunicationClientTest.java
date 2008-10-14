@@ -7,6 +7,9 @@ import java.io.File;
 import java.io.IOException;
 
 import junit.framework.TestCase;
+import net.weta.components.communication.configuration.ClientConfiguration;
+import net.weta.components.communication.configuration.ServerConfiguration;
+import net.weta.components.communication.configuration.ClientConfiguration.ClientConnection;
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.TestMessageProcessor;
 import net.weta.components.communication.tcp.TcpCommunication;
@@ -62,11 +65,12 @@ public class MultiCommunicationClientTest extends TestCase {
         _serverRunnable = new Runnable() {
             public void run() {
                 _tcpCommunicationServer = new TcpCommunication();
-                _tcpCommunicationServer.setIsCommunicationServer(true);
-                _tcpCommunicationServer.addServer("127.0.0.1:9193");
-                _tcpCommunicationServer.setPeerName(SERVER);
-                _tcpCommunicationServer.setKeystore(keystoreServer.getAbsolutePath());
-                _tcpCommunicationServer.setKeystorePassword("password");
+                ServerConfiguration serverConfiguration = new ServerConfiguration();
+                serverConfiguration.setName(SERVER);
+                serverConfiguration.setPort(9193);
+                serverConfiguration.setKeystorePath(keystoreServer.getAbsolutePath());
+                serverConfiguration.setKeystorePassword("password");
+                _tcpCommunicationServer.setConfiguration(serverConfiguration);
                 try {
                     _tcpCommunicationServer.startup();
                 } catch (IOException e) {
@@ -79,11 +83,12 @@ public class MultiCommunicationClientTest extends TestCase {
         _serverRunnable2 = new Runnable() {
             public void run() {
                 _tcpCommunicationServer2 = new TcpCommunication();
-                _tcpCommunicationServer2.setIsCommunicationServer(true);
-                _tcpCommunicationServer2.addServer("127.0.0.1:9194");
-                _tcpCommunicationServer2.setPeerName(SERVER2);
-                _tcpCommunicationServer2.setKeystore(keystoreServer2.getAbsolutePath());
-                _tcpCommunicationServer2.setKeystorePassword("password");
+                ServerConfiguration serverConfiguration = new ServerConfiguration();
+                serverConfiguration.setName(SERVER2);
+                serverConfiguration.setPort(9194);
+                serverConfiguration.setKeystorePath(keystoreServer2.getAbsolutePath());
+                serverConfiguration.setKeystorePassword("password");
+                _tcpCommunicationServer2.setConfiguration(serverConfiguration);
 
                 try {
                     _tcpCommunicationServer2.startup();
@@ -97,14 +102,27 @@ public class MultiCommunicationClientTest extends TestCase {
         _clientRunnable = new Runnable() {
             public void run() {
                 _tcpCommunicationClient = new TcpCommunication();
-                _tcpCommunicationClient.setIsCommunicationServer(false);
-                _tcpCommunicationClient.setPeerName(CLIENT);
-                _tcpCommunicationClient.addServer("127.0.0.1:9193");
-                _tcpCommunicationClient.addServerName(SERVER);
-                _tcpCommunicationClient.addServer("127.0.0.1:9194");
-                _tcpCommunicationClient.addServerName(SERVER2);
-                _tcpCommunicationClient.setKeystore(keystoreClient.getAbsolutePath());
-                _tcpCommunicationClient.setKeystorePassword("password");
+                ClientConfiguration clientConfiguration = new ClientConfiguration();
+                clientConfiguration.setName(CLIENT);
+
+                ClientConnection clientConnection = clientConfiguration.new ClientConnection();
+                clientConnection.setServerIp("127.0.0.1");
+                clientConnection.setServerPort(9193);
+                clientConnection.setServerName(SERVER);
+                clientConnection.setKeystorePath(keystoreClient.getAbsolutePath());
+                clientConnection.setKeystorePassword("password");
+
+                ClientConnection clientConnection2 = clientConfiguration.new ClientConnection();
+                clientConnection2.setServerIp("127.0.0.1");
+                clientConnection2.setServerPort(9194);
+                clientConnection2.setServerName(SERVER2);
+                clientConnection2.setKeystorePath(keystoreClient.getAbsolutePath());
+                clientConnection2.setKeystorePassword("password");
+
+                clientConfiguration.addClientConnection(clientConnection);
+                clientConfiguration.addClientConnection(clientConnection2);
+                
+                _tcpCommunicationClient.setConfiguration(clientConfiguration);
 
                 try {
                     _tcpCommunicationClient.startup();

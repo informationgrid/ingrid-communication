@@ -11,7 +11,7 @@ public class ClientConfiguration extends Configuration {
 
 		private int _serverPort;
 
-		private int _socketTimeout;
+		private int _socketTimeout = 10;
 
 		private String _serverIp;
 
@@ -27,9 +27,9 @@ public class ClientConfiguration extends Configuration {
 
 		private String _keystorePath;
 
-		private int _maxMessageSize;
+		private int _maxMessageSize = 1048576;
 
-		private int _messageThreadCount;
+		private int _messageThreadCount = 100;
 
 		public String getServerName() {
 			return _serverName;
@@ -134,6 +134,10 @@ public class ClientConfiguration extends Configuration {
 	public List getClientConnections() {
 		return _clientConnections;
 	}
+	
+	public ClientConnection getClientConnection(int index) {
+        return (ClientConnection) _clientConnections.get(index);
+    }
 
 	public void setClientConnections(List clientConnections) {
 		_clientConnections = clientConnections;

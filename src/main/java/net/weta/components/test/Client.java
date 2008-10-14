@@ -3,6 +3,8 @@ package net.weta.components.test;
 import java.io.IOException;
 import java.util.Map;
 
+import net.weta.components.communication.configuration.ClientConfiguration;
+import net.weta.components.communication.configuration.ClientConfiguration.ClientConnection;
 import net.weta.components.communication.reflect.ProxyService;
 import net.weta.components.communication.tcp.TcpCommunication;
 
@@ -12,13 +14,14 @@ public class Client {
         System.out.println("Do get real results turn assertions on.");
         TcpCommunication tc = new TcpCommunication();
         tc.setPeerName("/101tec-group:client-ms");
-        tc.setIsCommunicationServer(false);
-        //tc.addServer("192.168.200.52:55555");
-        tc.addServer("127.0.0.1:55555");
-        tc.addServerName("/101tec-group:server");
-        tc.setUseProxy(false);
-        tc.setIsSecure(false);
-
+        
+        ClientConfiguration configuration = new ClientConfiguration();
+        ClientConnection clientConnection = configuration.new ClientConnection();
+        clientConnection.setServerIp("127.0.0.1");
+        clientConnection.setServerPort(55555);
+        clientConnection.setServerName("101tec-group:server");
+        configuration.addClientConnection(clientConnection);
+        tc.setConfiguration(configuration);
         try {
             tc.startup();
         } catch (IOException e) {

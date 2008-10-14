@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.weta.components.communication.configuration.ClientConfiguration;
+import net.weta.components.communication.configuration.ClientConfiguration.ClientConnection;
 import net.weta.components.communication.reflect.ProxyService;
 import net.weta.components.communication.tcp.TcpCommunication;
 
@@ -12,9 +14,15 @@ public class RevClient {
     public static void main(String[] args) {
         TcpCommunication tc = new TcpCommunication();
         tc.setPeerName("/101tec-group:client");
-        tc.setIsCommunicationServer(false);
-        tc.addServer("192.168.200.39:55555");
-        tc.setUseProxy(false);
+
+        ClientConfiguration configuration = new ClientConfiguration();
+        ClientConnection clientConnection = configuration.new ClientConnection();
+        clientConnection.setServerIp("192.168.200.39");
+        clientConnection.setServerPort(55555);
+        clientConnection.setServerName("101tec-group:server");
+        configuration.addClientConnection(clientConnection);
+        tc.setConfiguration(configuration);
+        
 
         try {
             tc.startup();

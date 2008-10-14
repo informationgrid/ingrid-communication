@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<communication xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="communication.xsd">
+	<client name="/test-group:sum-client">
+		<connections>
+			<server name="/test-group:subtract-server">
+				<socket port="8080" timeout="10" ip="127.0.0.1" />
+				<messages maximumSize="1048576" threadCount="100" />
+			</server>
+		</connections>
+	</client>
+	<messages handleTimeout="10" queueSize="2000" />
+</communication>

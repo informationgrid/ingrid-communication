@@ -1,6 +1,7 @@
 package net.weta.components.communication.configuration;
 
 import java.io.File;
+import java.io.InputStream;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -32,6 +33,10 @@ public class XPathService implements IXPathService {
 		_document = _documentBuilder.parse(xmlFile);
 	}
 
+	public void registerDocument(InputStream xmlFile) throws Exception {
+        _document = _documentBuilder.parse(xmlFile);
+    }
+	
 	public String parseAttribute(String nodePath, String attributeName)
 			throws Exception {
 		Node node = parseNode(_document, nodePath);

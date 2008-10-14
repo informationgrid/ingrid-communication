@@ -3,8 +3,8 @@ package net.weta.components.communication.configuration;
 public abstract class Configuration {
 
     private String _name;
-    private int _queueSize;
-    private int _handleTimeout;
+    private int _queueSize = 2000;
+    private int _handleTimeout = 10;
 
     public String getName() {
         return _name;

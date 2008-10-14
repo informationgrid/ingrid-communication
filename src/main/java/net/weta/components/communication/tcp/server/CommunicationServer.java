@@ -18,7 +18,6 @@ import net.weta.components.communication.security.SecurityUtil;
 import net.weta.components.communication.stream.IInput;
 import net.weta.components.communication.stream.IOutput;
 import net.weta.components.communication.tcp.MessageReaderThread;
-import net.weta.components.communication.tcp.TcpCommunication;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -166,15 +165,6 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
 
     public void disconnect(String url) {
         deregister(url);
-    }
-
-    public static void main(String[] args) throws IOException {
-        TcpCommunication communication = new TcpCommunication();
-        communication.setIsSecure(false);
-        communication.setIsCommunicationServer(true);
-        communication.addServer("127.0.0.1:55555");
-        communication.addServerName("/101tec-group:ibus");
-        communication.startup();
     }
 
     public List getRegisteredClients() {

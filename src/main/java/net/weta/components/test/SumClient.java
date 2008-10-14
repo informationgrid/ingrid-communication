@@ -18,7 +18,7 @@ public class SumClient {
   public static void main(String[] args) throws Exception {
 
     System.out.println("start communication client...");
-    InputStream asStream = SubtractServer.class.getResourceAsStream("/communication-test-client.properties");
+    InputStream asStream = SubtractServer.class.getResourceAsStream("/communication-test-client.xml");
     ICommunication communication = StartCommunication.create(asStream);
     communication.startup();
 

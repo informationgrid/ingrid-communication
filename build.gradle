@@ -14,8 +14,8 @@ version = ''
 
 usePlugin('java')
 
-sourceCompatibility = 1.4
-targetCompatibility = 1.4
+sourceCompatibility = 1.5
+targetCompatibility = 1.5
 
 createTask('wrapper', type: Wrapper).configure {
   urlRoot = 'http://snapshots.dist.codehaus.org/gradle/'

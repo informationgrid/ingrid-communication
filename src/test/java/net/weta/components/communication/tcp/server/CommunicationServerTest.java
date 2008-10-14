@@ -3,12 +3,14 @@ package net.weta.components.communication.tcp.server;
 import java.io.File;
 import java.net.SocketException;
 
-import sun.security.tools.KeyTool;
-
 import junit.framework.TestCase;
+import net.weta.components.communication.configuration.ClientConfiguration;
+import net.weta.components.communication.configuration.ServerConfiguration;
+import net.weta.components.communication.configuration.ClientConfiguration.ClientConnection;
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.TestMessageProcessor;
 import net.weta.components.communication.tcp.TcpCommunication;
+import sun.security.tools.KeyTool;
 
 public class CommunicationServerTest extends TestCase {
 
@@ -68,40 +70,42 @@ public class CommunicationServerTest extends TestCase {
 
     public void testRegsiterWithoutSecurity() throws Exception {
         TcpCommunication server = new TcpCommunication();
-        server.setIsCommunicationServer(true);
-        server.addServer("127.0.0.1:55556");
-        server.setPeerName(SERVER);
-        server.setKeystore(_keystoreServer.getAbsolutePath());
-        server.setKeystorePassword("password");
-        server.setIsSecure(false);
+        ServerConfiguration serverConfiguration = new ServerConfiguration();
+        serverConfiguration.setName(SERVER);
+        serverConfiguration.setPort(55556);
+        server.setConfiguration(serverConfiguration);
         server.startup();
         server.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
-
+        
         Thread.sleep(1000);
 
         TcpCommunication client1 = new TcpCommunication();
-        client1.setIsCommunicationServer(false);
-        client1.setPeerName(CLIENT);
-        client1.addServer("127.0.0.1:55556");
-        client1.addServerName(SERVER);
-        client1.setKeystore(_keystoreClient.getAbsolutePath());
-        client1.setKeystorePassword("password");
-        client1.setIsSecure(false);
+        ClientConfiguration clientConfiguration = new ClientConfiguration();
+        clientConfiguration.setName(CLIENT);
+        ClientConnection clientConnection = clientConfiguration.new ClientConnection();
+        clientConnection.setServerIp("127.0.0.1");
+        clientConnection.setServerPort(55556);
+        clientConnection.setServerName(SERVER);
+        clientConfiguration.addClientConnection(clientConnection);
+        client1.setConfiguration(clientConfiguration);
         client1.startup();
         client1.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
+
+
 
         Thread.sleep(1000);
         Message message = client1.sendSyncMessage(new Message("type"), "server");
         assertNotNull(message);
 
         TcpCommunication client2 = new TcpCommunication();
-        client2.setIsCommunicationServer(false);
-        client2.setPeerName(CLIENT2);
-        client2.addServer("127.0.0.1:55556");
-        client2.addServerName(SERVER);
-        client2.setKeystore(_keystoreClient2.getAbsolutePath());
-        client2.setKeystorePassword("password");
-        client2.setIsSecure(false);
+        ClientConfiguration clientConfiguration2 = new ClientConfiguration();
+        clientConfiguration2.setName(CLIENT2);
+        ClientConnection clientConnection2 = clientConfiguration2.new ClientConnection();
+        clientConnection2.setServerIp("127.0.0.1");
+        clientConnection2.setServerPort(55556);
+        clientConnection2.setServerName(SERVER);
+        clientConfiguration2.addClientConnection(clientConnection2);
+        client2.setConfiguration(clientConfiguration2);
         client2.startup();
         client2.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
 
@@ -115,25 +119,30 @@ public class CommunicationServerTest extends TestCase {
 
     public void testWithSecurity() throws Exception {
         TcpCommunication server = new TcpCommunication();
-        server.setIsCommunicationServer(true);
-        server.addServer("127.0.0.1:55557");
-        server.setPeerName(SERVER);
-        server.setKeystore(_keystoreServer.getAbsolutePath());
-        server.setKeystorePassword("password");
-        server.setIsSecure(true);
+        ServerConfiguration serverConfiguration = new ServerConfiguration();
+        serverConfiguration.setName(SERVER);
+        serverConfiguration.setPort(55557);
+        serverConfiguration.setKeystorePath(_keystoreServer.getAbsolutePath());
+        serverConfiguration.setKeystorePassword("password");
+
+        server.setConfiguration(serverConfiguration);
         server.startup();
         server.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
+        
 
         Thread.sleep(1000);
 
         TcpCommunication client1 = new TcpCommunication();
-        client1.setIsCommunicationServer(false);
-        client1.setPeerName(CLIENT);
-        client1.addServer("127.0.0.1:55557");
-        client1.addServerName(SERVER);
-        client1.setKeystore(_keystoreClient.getAbsolutePath());
-        client1.setKeystorePassword("password");
-        client1.setIsSecure(true);
+        ClientConfiguration clientConfiguration = new ClientConfiguration();
+        clientConfiguration.setName(CLIENT);
+        ClientConnection clientConnection = clientConfiguration.new ClientConnection();
+        clientConnection.setServerIp("127.0.0.1");
+        clientConnection.setServerPort(55557);
+        clientConnection.setServerName(SERVER);
+        clientConnection.setKeystorePath(_keystoreClient.getAbsolutePath());
+        clientConnection.setKeystorePassword("password");
+        clientConfiguration.addClientConnection(clientConnection);
+        client1.setConfiguration(clientConfiguration);
         client1.startup();
         client1.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
 
@@ -142,15 +151,20 @@ public class CommunicationServerTest extends TestCase {
         assertNotNull(message);
 
         TcpCommunication client2 = new TcpCommunication();
-        client2.setIsCommunicationServer(false);
-        client2.setPeerName(CLIENT2);
-        client2.addServer("127.0.0.1:55557");
-        client2.addServerName(SERVER);
-        client2.setKeystore(_keystoreClient2.getAbsolutePath());
-        client2.setKeystorePassword("password");
-        client2.setIsSecure(true);
+
+        ClientConfiguration clientConfiguration2 = new ClientConfiguration();
+        clientConfiguration2.setName(CLIENT2);
+        ClientConnection clientConnection2 = clientConfiguration2.new ClientConnection();
+        clientConnection2.setServerIp("127.0.0.1");
+        clientConnection2.setServerPort(55557);
+        clientConnection2.setServerName(SERVER);
+        clientConnection2.setKeystorePath(_keystoreClient2.getAbsolutePath());
+        clientConnection2.setKeystorePassword("password");
+        clientConfiguration2.addClientConnection(clientConnection2);
+        client2.setConfiguration(clientConfiguration2);
         client2.startup();
         client2.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
+        
 
         Thread.sleep(1000);
         try {

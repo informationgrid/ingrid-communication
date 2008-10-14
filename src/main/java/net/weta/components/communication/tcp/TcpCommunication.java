@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.weta.components.communication.ICommunication;
+import net.weta.components.communication.configuration.ClientConfiguration;
+import net.weta.components.communication.configuration.Configuration;
+import net.weta.components.communication.configuration.ServerConfiguration;
+import net.weta.components.communication.configuration.ClientConfiguration.ClientConnection;
 import net.weta.components.communication.messaging.IMessageQueue;
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.MessageQueue;
@@ -30,45 +34,21 @@ public class TcpCommunication implements ICommunication {
 
     private MessageQueue _messageQueue;
 
-    private boolean _isCommunicationServer;
-
-    private List _servers = new ArrayList();
-
-    private List _serverNames = new ArrayList();
-
-    private String _proxy = null;
-
-    private String _proxyUser = null;
-
-    private String _proxyPassword = null;
-
     private CommunicationServer _communicationServer;
 
     private int _id = 0;
 
     private MultiCommunicationClient _communicationClient;
 
-    private boolean _useProxy = false;
+    private Configuration _configuration;
 
-    private int _messageHandleTimeout = 10;
+    private boolean _isCommunicationServer;
 
-    private int _maxThreadCount = 50;
+    private int _messageHandleTimeout;
 
-    private int _maxMessageSize = 1024 * 1024; // 1mb
-
-    private int _connectTimeout = 10;
-
-    private String _keystorePassword;
-
-    private String _keystore;
-
-    private boolean _isSecure;
-
-    private int _maxMessageQueueSize = 2000;
 
     public TcpCommunication() {
         _messageQueue = new MessageQueue();
-        _messageQueue.setMaxSize(_maxMessageQueueSize);
     }
 
     public void closeConnection(String url) throws IOException {
@@ -84,7 +64,7 @@ public class TcpCommunication implements ICommunication {
     }
 
     public String getPeerName() {
-        return _peerName;
+        return _configuration.getName();
     }
 
     public boolean isSubscribed(String url) throws IllegalArgumentException {
@@ -138,46 +118,42 @@ public class TcpCommunication implements ICommunication {
 
     public void startup() throws IOException {
 
-        SecurityUtil util = createSecurityUtil();
-
+        _isCommunicationServer = _configuration instanceof ServerConfiguration ? true : false;
+        _messageQueue.setMaxSize(_configuration.getQueueSize());
+        _peerName = _configuration.getName();
+        _messageHandleTimeout = _configuration.getHandleTimeout();
+        
         if (_isCommunicationServer) {
-            String server = (String) _servers.get(0);
-            String port = server.substring(server.indexOf(":") + 1, server.length());
-            _communicationServer = new CommunicationServer(Integer.parseInt(port), _messageQueue, _maxThreadCount,
-                    _connectTimeout, _maxMessageSize, util);
+            ServerConfiguration serverConfiguration = (ServerConfiguration) _configuration;
+            SecurityUtil util = createSecurityUtil(serverConfiguration.getKeystorePath(), serverConfiguration.getKeystorePassword());
+            _communicationServer = new CommunicationServer(serverConfiguration.getPort(), _messageQueue, serverConfiguration.getMessageThreadCount(), serverConfiguration.getSocketTimeout(),
+                    serverConfiguration.getMaxMessageSize(), util);
             _communicationServer.start();
         } else {
-            if (_servers.size() == _serverNames.size()) {
-                String proxyHost = _proxy != null ? _proxy.substring(0, _proxy.indexOf(":")) : "";
-                String proxyPort = _proxy != null ? _proxy.substring(_proxy.indexOf(":") + 1, _proxy.length()) : "0";
+            ClientConfiguration clientConfiguration = (ClientConfiguration) _configuration;
                 List clients = new ArrayList();
-                for (int i = 0; i < _servers.size(); i++) {
-                    String server = (String) _servers.get(i);
-                    String host = server.substring(0, server.indexOf(":"));
-                    String port = server.substring(server.indexOf(":") + 1, server.length());
-                    //we support only basic authentication through http proxy
+                for (int i = 0; i < clientConfiguration.getClientConnections().size(); i++) {
+                ClientConnection clientConnection = clientConfiguration.getClientConnection(i);
+                SecurityUtil util = createSecurityUtil(clientConnection.getKeystorePath(), clientConnection.getKeystorePassword());
+                // we support only basic authentication through http proxy
                     IHttpProxyConnector httpProxyConnector = new BasicSchemeConnector(); 
-                    CommunicationClient client = new CommunicationClient(_peerName, host, Integer.parseInt(port),
-                            proxyHost, Integer.parseInt(proxyPort), _useProxy, _proxyUser, _proxyPassword,
-                            _messageQueue, _maxThreadCount, _connectTimeout, _maxMessageSize, (String) _serverNames
-                                    .get(i), util, httpProxyConnector);
+                    CommunicationClient client = new CommunicationClient(_peerName, clientConnection.getServerIp(), clientConnection.getServerPort(), clientConnection.getProxyIp(), clientConnection
+                        .getProxyPort(), clientConnection.getProxyUser(), clientConnection.getProxyPassword(), _messageQueue, clientConnection.getMessageThreadCount(), clientConnection
+                        .getSocketTimeout(), clientConnection.getMaxMessageSize(), clientConnection.getServerName(), util, httpProxyConnector);
                     clients.add(client);
                 }
                 CommunicationClient[] clientArray = (CommunicationClient[]) clients
                         .toArray(new CommunicationClient[clients.size()]);
                 _communicationClient = new MultiCommunicationClient(clientArray);
                 _communicationClient.start();
-            } else {
-                throw new IOException("Start failed! Please set for every server the name.");
-            }
         }
     }
 
-    private SecurityUtil createSecurityUtil() throws IOException {
+    private SecurityUtil createSecurityUtil(String keystore, String password) throws IOException {
         SecurityUtil util = null;
-        if (_isSecure) {
-            JavaKeystore keystore = new JavaKeystore(new File(_keystore), _keystorePassword);
-            util = new SecurityUtil(keystore);
+        if (keystore != null && password != null) {
+            JavaKeystore javaKeystore = new JavaKeystore(new File(keystore), password);
+            util = new SecurityUtil(javaKeystore);
         }
         return util;
     }
@@ -190,103 +166,7 @@ public class TcpCommunication implements ICommunication {
         // nothing to do
     }
 
-    public void setIsCommunicationServer(boolean isCommunicationServer) {
-        _isCommunicationServer = isCommunicationServer;
-    }
-
-    public void addServer(String server) {
-        _servers.add(server);
-    }
-
-    public void addServerName(String server) {
-        _serverNames.add(server);
-    }
-
-    public List getServers() {
-        return _servers;
-    }
-
-    public List getServerNames() {
-        return _serverNames;
-    }
-
-    public void setProxy(String proxy) {
-        _proxy = proxy;
-    }
-
-    public void setUseProxy(boolean useProxy) {
-        _useProxy = useProxy;
-    }
-
-    public void setMessageHandleTimeout(int timeout) {
-        _messageHandleTimeout = timeout;
-    }
-
-    public void setMaxThreadCount(int maxThreadCount) {
-        _maxThreadCount = maxThreadCount;
-    }
-
-    public void setMaxMessageSize(int maxMessageSize) {
-        _maxMessageSize = maxMessageSize;
-    }
-
-    /**
-     * @return the connectTimeout
-     */
-    public int getConnectTimeout() {
-        return _connectTimeout;
-    }
-
-    /**
-     * @param connectTimeout
-     *            the connectTimeout to set
-     */
-    public void setConnectTimeout(int connectTimeout) {
-        _connectTimeout = connectTimeout;
-    }
-
-    public void setKeystorePassword(String keystorePassword) {
-        _keystorePassword = keystorePassword;
-    }
-
-    public void setKeystore(String keystore) {
-        _keystore = keystore;
-    }
-
-    public void setIsSecure(boolean isSecure) {
-        _isSecure = isSecure;
-    }
-
-    /**
-     * @return the maxMessageQueueSize
-     */
-    public int getMaxMessageQueueSize() {
-        return _maxMessageQueueSize;
-    }
-
-    /**
-     * @param maxMessageQueueSize
-     *            the maxMessageQueueSize to set
-     */
-    public void setMaxMessageQueueSize(int maxMessageQueueSize) {
-        _maxMessageQueueSize = maxMessageQueueSize;
-    }
-
-    public void setProxyUser(String proxyUser) {
-        _proxyUser = proxyUser;
-    }
-
-    public String getProxyUser() {
-        return _proxyUser;
-    }
-
-    public void setProxyPassword(String proxyPassword) {
-        _proxyPassword = proxyPassword;
-    }
-
-    public String getProxyPassword() {
-        return _proxyPassword;
-    }
+    
 
     private void printStatus() {
         Runtime runtime = Runtime.getRuntime();
@@ -304,7 +184,13 @@ public class TcpCommunication implements ICommunication {
         if (_isCommunicationServer) {
             result = _communicationServer.getRegisteredClients();
         } else {
-            result = getServerNames();
+            ClientConfiguration clientConfiguration = (ClientConfiguration) _configuration;
+            List clientConnections = clientConfiguration.getClientConnections();
+            for (int i = 0; i < clientConnections.size(); i++) {
+                ClientConnection clientConnection = (ClientConnection) clientConnections.get(i);
+                String serverName = clientConnection.getServerName();
+                result.add(serverName);
+            }
         }
         return result;
     }
@@ -317,5 +203,13 @@ public class TcpCommunication implements ICommunication {
             result = _communicationClient.isConnected(serverName);
         }
         return result;
+    }
+
+    public void setConfiguration(Configuration configuration) {
+        _configuration = configuration;
+    }
+
+    public Configuration getConfiguration() {
+        return _configuration;
     }
 }

@@ -4,15 +4,15 @@ public class ServerConfiguration extends Configuration {
 
 	private int _port;
 
-	private int _socketTimeout;
+    private int _socketTimeout = 10;
 	
 	private String _keystorePassword;
 
 	private String _keystorePath;
 
-	private int _maxMessageSize;
+	private int _maxMessageSize = 1048576;
 
-	private int _messageThreadCount;
+	private int _messageThreadCount = 10;
 
 	
 

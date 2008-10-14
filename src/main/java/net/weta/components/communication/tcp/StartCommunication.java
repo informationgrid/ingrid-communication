@@ -2,12 +2,16 @@ package net.weta.components.communication.tcp;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Method;
-import java.util.Iterator;
-import java.util.Properties;
-import java.util.Set;
+import java.net.URL;
 
 import net.weta.components.communication.ICommunication;
+import net.weta.components.communication.configuration.Configuration;
+import net.weta.components.communication.configuration.ConfigurationService;
+import net.weta.components.communication.configuration.ConfigurationValidator;
+import net.weta.components.communication.configuration.IConfigurationService;
+import net.weta.components.communication.configuration.IConfigurationValidator;
+import net.weta.components.communication.configuration.IXPathService;
+import net.weta.components.communication.configuration.XPathService;
 
 import org.apache.log4j.Logger;
 
@@ -17,61 +21,25 @@ public class StartCommunication {
 
     public static ICommunication create(InputStream inputStream) throws IOException {
         TcpCommunication communication = new TcpCommunication();
-        configureFromProperties(inputStream, communication);
+        configureFromXmlFile(inputStream, communication);
         return communication;
     }
 
-    private static void configureFromProperties(InputStream inputStream, TcpCommunication peerService)
-            throws IOException {
-        Properties properties = new Properties();
-        properties.load(inputStream);
-        Set set = properties.keySet();
-        for (Iterator iter = set.iterator(); iter.hasNext();) {
-            String key = (String) iter.next();
-            int indexOfSeperator = key.lastIndexOf('-');
-            if (indexOfSeperator < 0) {
-                indexOfSeperator = key.length();
-            }
-            Method method = getMethod(key.substring(0, indexOfSeperator), peerService.getClass());
-            Object argValue = getArgumentValue(method, properties.getProperty(key));
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("call '" + method.getName() + "' with '" + argValue + "'");
-            }
-            try {
-                method.invoke(peerService, new Object[] { argValue });
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+    private static TcpCommunication configureFromXmlFile(InputStream inputStream, TcpCommunication communication) throws IOException {
+        try {
+            URL xsdFileUrl = StartCommunication.class.getResource("/communication.xsd");
+            IConfigurationValidator configurationValidator = new ConfigurationValidator(xsdFileUrl);
+            IXPathService xpathService = new XPathService();
+            IConfigurationService configurationService = new ConfigurationService(configurationValidator, xpathService);
+            configurationService.registerConfigurationFile(inputStream);
+            Configuration configuration = configurationService.parseConfiguration();
+            communication.setPeerName(configuration.getName());
+            communication.setConfiguration(configuration);
+        } catch (Exception e) {
+            LOG.error("can not create communication", e);
+            throw new IOException(e.getMessage());
         }
+        return communication;
     }
-
-    private static Object getArgumentValue(Method method, String property) {
-        if (method.getParameterTypes()[0].equals(String.class)) {
-            return property;
-        } else if (method.getParameterTypes()[0].equals(boolean.class)) {
-            return new Boolean(property);
-        } else if (method.getParameterTypes()[0].equals(int.class)) {
-            return new Integer(property);
-        } else if (method.getParameterTypes()[0].equals(long.class)) {
-            return new Long(property);
-        } else {
-            throw new IllegalArgumentException("Unknown argument type: " + method.getParameterTypes()[0]);
-        }
-    }
-
-    private static Method getMethod(String configKey, Class class1) {
-        int index = configKey.indexOf(".");
-        configKey = index > -1 ? configKey.substring(0, index) : configKey;
-        String methodPrefix = index > -1 ? "add" : "set";
-        Method[] methods = class1.getMethods();
-        String methodName = methodPrefix + configKey;
-        for (int i = 0; i < methods.length; i++) {
-            if (methodName.equals(methods[i].getName())) {
-                return methods[i];
-            }
-        }
-        throw new IllegalStateException("configuration key '" + configKey + "' has no belonging method '" + methodName
-                + "' in " + class1.getName());
-    }
-
+    
 }

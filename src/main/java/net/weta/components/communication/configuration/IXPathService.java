@@ -1,10 +1,13 @@
 package net.weta.components.communication.configuration;
 
 import java.io.File;
+import java.io.InputStream;
 
 public interface IXPathService {
 
 	void registerDocument(File xmlFile) throws Exception;
+	
+	void registerDocument(InputStream xmlFile) throws Exception;
 
 	String parseAttribute(String nodePath, String attributeName)
 			throws Exception;

@@ -3,11 +3,13 @@ package net.weta.components.communication.reflect;
 import java.io.File;
 import java.lang.reflect.Proxy;
 
-import sun.security.tools.KeyTool;
-
 import junit.framework.TestCase;
+import net.weta.components.communication.configuration.ClientConfiguration;
+import net.weta.components.communication.configuration.ServerConfiguration;
+import net.weta.components.communication.configuration.ClientConfiguration.ClientConnection;
 import net.weta.components.communication.tcp.TcpCommunication;
 import net.weta.components.communication.tcp.TimeoutException;
+import sun.security.tools.KeyTool;
 
 public class ReflectInvocationHandlerTest extends TestCase {
 
@@ -44,21 +46,31 @@ public class ReflectInvocationHandlerTest extends TestCase {
                 "-storepass", "password", "-alias", CLIENT, "-file", clientCertificate.getAbsolutePath() });
 
         _tcpCommunicationServer = new TcpCommunication();
-        _tcpCommunicationServer.setIsCommunicationServer(true);
-        _tcpCommunicationServer.addServer("127.0.0.1:55556");
-        _tcpCommunicationServer.setPeerName(SERVER);
-        _tcpCommunicationServer.setKeystore(keystoreServer.getAbsolutePath());
-        _tcpCommunicationServer.setKeystorePassword("password");
+        
+        ServerConfiguration serverConfiguration = new ServerConfiguration();
+        serverConfiguration.setPort(55556);
+        serverConfiguration.setKeystorePath(keystoreServer.getAbsolutePath());
+        serverConfiguration.setKeystorePassword("password");
+        serverConfiguration.setName(SERVER);
+        
+        _tcpCommunicationServer.setConfiguration(serverConfiguration);
         _tcpCommunicationServer.startup();
 
         _tcpCommunicationClient = new TcpCommunication();
-        _tcpCommunicationClient.setIsCommunicationServer(false);
-        _tcpCommunicationClient.setPeerName(CLIENT);
-        _tcpCommunicationClient.addServer("127.0.0.1:55556");
-        _tcpCommunicationClient.addServerName(SERVER);
-        _tcpCommunicationClient.setKeystore(keystoreClient.getAbsolutePath());
-        _tcpCommunicationClient.setKeystorePassword("password");
-        _tcpCommunicationClient.setMessageHandleTimeout(2);
+        
+        ClientConfiguration clientConfiguration = new ClientConfiguration();
+        clientConfiguration.setName(CLIENT);
+        ClientConnection clientConnection = clientConfiguration.new ClientConnection();
+        clientConnection.setServerIp("127.0.0.1");
+        clientConnection.setServerPort(55556);
+        clientConnection.setServerName(SERVER);
+        clientConnection.setKeystorePath(keystoreClient.getAbsolutePath());
+        clientConnection.setKeystorePassword("password");
+        clientConfiguration.setHandleTimeout(2);
+        clientConfiguration.addClientConnection(clientConnection);
+        _tcpCommunicationClient.setConfiguration(clientConfiguration);
+        
+        
         _tcpCommunicationClient.startup();
 
     }

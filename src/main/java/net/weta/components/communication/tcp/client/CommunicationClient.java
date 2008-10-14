@@ -39,11 +39,9 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
 
     private final String _proxyServer;
 
-    private final int _proxyPort;
+    private final Integer _proxyPort;
 
     private final MessageQueue _messageQueue;
-
-    private final boolean _useProxy;
 
     private final String _peerName;
 
@@ -76,14 +74,14 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
 	private final IHttpProxyConnector _httpProxyConnector;
 
     public CommunicationClient(String peerName, String serverHost, int serverPort, String proxyServer, int proxyPort,
-            boolean useProxy, String proxyUser, String proxyPassword, MessageQueue messageQueue, int maxThreadCount,
+            String proxyUser, String proxyPassword, MessageQueue messageQueue,
+            int maxThreadCount,
             int socketTimeout, int maxMessageSize, String serverName, SecurityUtil securityUtil, IHttpProxyConnector httpProxyConnector) {
         _peerName = peerName;
         _serverHost = serverHost;
         _serverPort = serverPort;
         _proxyServer = proxyServer;
-        _proxyPort = proxyPort;
-        _useProxy = useProxy;
+        _proxyPort = new Integer(proxyPort);
         _proxyUser = proxyUser;
         _proxyPassword = proxyPassword;
         _messageQueue = messageQueue;
@@ -112,7 +110,7 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
 
         try {
             _socket = new Socket();
-            if (_useProxy) {
+            if (_proxyServer != null && _proxyPort != null) {
                 connectThroughHttpProxy();
             } else {
                 connectWithoutProxy();
@@ -184,9 +182,9 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
         if (LOG.isInfoEnabled()) {
             LOG.info("connect to proxy: " + _proxyServer + ":" + _proxyPort);
         }
-        _socket.connect(new InetSocketAddress(_proxyServer, _proxyPort));
+        _socket.connect(new InetSocketAddress(_proxyServer, _proxyPort.intValue()));
         boolean connect = false;
-        if (!"".equals(_proxyUser) && !"".equals(_proxyPassword)) {
+        if (_proxyUser != null && _proxyPassword != null) {
         	connect = _httpProxyConnector.connect(_socket, _serverHost, _serverPort, _proxyUser, _proxyPassword);
         } else {
         	connect = _httpProxyConnector.connect(_socket, _serverHost, _serverPort);
