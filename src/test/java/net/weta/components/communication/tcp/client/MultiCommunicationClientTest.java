@@ -70,7 +70,7 @@ public class MultiCommunicationClientTest extends TestCase {
                 serverConfiguration.setPort(9193);
                 serverConfiguration.setKeystorePath(keystoreServer.getAbsolutePath());
                 serverConfiguration.setKeystorePassword("password");
-                _tcpCommunicationServer.setConfiguration(serverConfiguration);
+                _tcpCommunicationServer.configure(serverConfiguration);
                 try {
                     _tcpCommunicationServer.startup();
                 } catch (IOException e) {
@@ -88,7 +88,7 @@ public class MultiCommunicationClientTest extends TestCase {
                 serverConfiguration.setPort(9194);
                 serverConfiguration.setKeystorePath(keystoreServer2.getAbsolutePath());
                 serverConfiguration.setKeystorePassword("password");
-                _tcpCommunicationServer2.setConfiguration(serverConfiguration);
+                _tcpCommunicationServer2.configure(serverConfiguration);
 
                 try {
                     _tcpCommunicationServer2.startup();
@@ -122,7 +122,7 @@ public class MultiCommunicationClientTest extends TestCase {
                 clientConfiguration.addClientConnection(clientConnection);
                 clientConfiguration.addClientConnection(clientConnection2);
                 
-                _tcpCommunicationClient.setConfiguration(clientConfiguration);
+                _tcpCommunicationClient.configure(clientConfiguration);
 
                 try {
                     _tcpCommunicationClient.startup();

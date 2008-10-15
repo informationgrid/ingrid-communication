@@ -21,7 +21,7 @@ public class Client {
         clientConnection.setServerPort(55555);
         clientConnection.setServerName("101tec-group:server");
         configuration.addClientConnection(clientConnection);
-        tc.setConfiguration(configuration);
+        tc.configure(configuration);
         try {
             tc.startup();
         } catch (IOException e) {

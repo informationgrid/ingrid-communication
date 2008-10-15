@@ -57,7 +57,7 @@ public class TcpCommunicationTest extends TestCase {
                 serverConfiguration.setPort(10091);
                 serverConfiguration.setKeystorePath(keystoreServer.getAbsolutePath());
                 serverConfiguration.setKeystorePassword("password");
-                _tcpCommunicationServer.setConfiguration(serverConfiguration);
+                _tcpCommunicationServer.configure(serverConfiguration);
                 try {
                     _tcpCommunicationServer.startup();
                 } catch (IOException e) {
@@ -80,7 +80,7 @@ public class TcpCommunicationTest extends TestCase {
                 clientConnection.setKeystorePassword("password");
                 
                 clientConfiguration.addClientConnection(clientConnection);
-                _tcpCommunicationClient.setConfiguration(clientConfiguration);
+                _tcpCommunicationClient.configure(clientConfiguration);
 
                 try {
                     _tcpCommunicationClient.startup();

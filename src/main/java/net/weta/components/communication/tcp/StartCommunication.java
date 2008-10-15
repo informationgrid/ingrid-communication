@@ -34,7 +34,7 @@ public class StartCommunication {
             configurationService.registerConfigurationFile(inputStream);
             Configuration configuration = configurationService.parseConfiguration();
             communication.setPeerName(configuration.getName());
-            communication.setConfiguration(configuration);
+            communication.configure(configuration);
         } catch (Exception e) {
             LOG.error("can not create communication", e);
             throw new IOException(e.getMessage());

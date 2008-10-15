@@ -73,7 +73,7 @@ public class CommunicationServerTest extends TestCase {
         ServerConfiguration serverConfiguration = new ServerConfiguration();
         serverConfiguration.setName(SERVER);
         serverConfiguration.setPort(55556);
-        server.setConfiguration(serverConfiguration);
+        server.configure(serverConfiguration);
         server.startup();
         server.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
         
@@ -87,7 +87,7 @@ public class CommunicationServerTest extends TestCase {
         clientConnection.setServerPort(55556);
         clientConnection.setServerName(SERVER);
         clientConfiguration.addClientConnection(clientConnection);
-        client1.setConfiguration(clientConfiguration);
+        client1.configure(clientConfiguration);
         client1.startup();
         client1.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
 
@@ -105,7 +105,7 @@ public class CommunicationServerTest extends TestCase {
         clientConnection2.setServerPort(55556);
         clientConnection2.setServerName(SERVER);
         clientConfiguration2.addClientConnection(clientConnection2);
-        client2.setConfiguration(clientConfiguration2);
+        client2.configure(clientConfiguration2);
         client2.startup();
         client2.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
 
@@ -125,7 +125,7 @@ public class CommunicationServerTest extends TestCase {
         serverConfiguration.setKeystorePath(_keystoreServer.getAbsolutePath());
         serverConfiguration.setKeystorePassword("password");
 
-        server.setConfiguration(serverConfiguration);
+        server.configure(serverConfiguration);
         server.startup();
         server.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
         
@@ -142,7 +142,7 @@ public class CommunicationServerTest extends TestCase {
         clientConnection.setKeystorePath(_keystoreClient.getAbsolutePath());
         clientConnection.setKeystorePassword("password");
         clientConfiguration.addClientConnection(clientConnection);
-        client1.setConfiguration(clientConfiguration);
+        client1.configure(clientConfiguration);
         client1.startup();
         client1.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
 
@@ -161,7 +161,7 @@ public class CommunicationServerTest extends TestCase {
         clientConnection2.setKeystorePath(_keystoreClient2.getAbsolutePath());
         clientConnection2.setKeystorePassword("password");
         clientConfiguration2.addClientConnection(clientConnection2);
-        client2.setConfiguration(clientConfiguration2);
+        client2.configure(clientConfiguration2);
         client2.startup();
         client2.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
         

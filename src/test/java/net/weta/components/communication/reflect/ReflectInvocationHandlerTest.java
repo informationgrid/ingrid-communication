@@ -53,7 +53,7 @@ public class ReflectInvocationHandlerTest extends TestCase {
         serverConfiguration.setKeystorePassword("password");
         serverConfiguration.setName(SERVER);
         
-        _tcpCommunicationServer.setConfiguration(serverConfiguration);
+        _tcpCommunicationServer.configure(serverConfiguration);
         _tcpCommunicationServer.startup();
 
         _tcpCommunicationClient = new TcpCommunication();
@@ -68,7 +68,7 @@ public class ReflectInvocationHandlerTest extends TestCase {
         clientConnection.setKeystorePassword("password");
         clientConfiguration.setHandleTimeout(2);
         clientConfiguration.addClientConnection(clientConnection);
-        _tcpCommunicationClient.setConfiguration(clientConfiguration);
+        _tcpCommunicationClient.configure(clientConfiguration);
         
         
         _tcpCommunicationClient.startup();

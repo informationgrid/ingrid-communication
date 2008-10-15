@@ -16,7 +16,7 @@ public class RevServer {
         
         ServerConfiguration serverConfiguration = new ServerConfiguration();
         serverConfiguration.setPort(55555);
-        tc.setConfiguration(serverConfiguration);
+        tc.configure(serverConfiguration);
 
         try {
             tc.startup();

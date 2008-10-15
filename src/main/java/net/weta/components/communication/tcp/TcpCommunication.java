@@ -119,11 +119,6 @@ public class TcpCommunication implements ICommunication {
 
     public void startup() throws IOException {
 
-        _isCommunicationServer = _configuration instanceof ServerConfiguration ? true : false;
-        _messageQueue.setMaxSize(_configuration.getQueueSize());
-        _peerName = _configuration.getName();
-        _messageHandleTimeout = _configuration.getHandleTimeout();
-        
         if (_isCommunicationServer) {
             ServerConfiguration serverConfiguration = (ServerConfiguration) _configuration;
             SecurityUtil util = createSecurityUtil(serverConfiguration.getKeystorePath(), serverConfiguration.getKeystorePassword());
@@ -206,8 +201,12 @@ public class TcpCommunication implements ICommunication {
         return result;
     }
 
-    public void setConfiguration(Configuration configuration) {
+    public void configure(Configuration configuration) {
         _configuration = configuration;
+        _isCommunicationServer = _configuration instanceof ServerConfiguration ? true : false;
+        _messageQueue.setMaxSize(_configuration.getQueueSize());
+        _peerName = _configuration.getName();
+        _messageHandleTimeout = _configuration.getHandleTimeout();
     }
 
     public Configuration getConfiguration() {
