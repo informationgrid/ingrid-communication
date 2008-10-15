@@ -3,6 +3,7 @@ package net.weta.components.communication.tcp;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import net.weta.components.communication.ICommunication;
@@ -211,5 +212,25 @@ public class TcpCommunication implements ICommunication {
 
     public Configuration getConfiguration() {
         return _configuration;
+    }
+    
+    public List getServerNames() {
+        List list = new ArrayList();
+        if (_configuration instanceof ServerConfiguration) {
+            ServerConfiguration configuration = (ServerConfiguration) _configuration;
+            // a server has no server names, we take the name own name
+            String name = configuration.getName();
+            list.add(name);
+        } else if (_configuration instanceof ClientConfiguration) {
+            ClientConfiguration configuration = (ClientConfiguration) _configuration;
+            // collect all server names
+            List clientConnections = configuration.getClientConnections();
+            for (Iterator iterator = clientConnections.iterator(); iterator.hasNext();) {
+                ClientConnection connection = (ClientConnection) iterator.next();
+                String name = connection.getServerName();
+                list.add(name);
+            }
+        }
+        return list;
     }
 }
