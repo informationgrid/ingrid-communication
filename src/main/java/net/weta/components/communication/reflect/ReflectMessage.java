@@ -121,4 +121,14 @@ public class ReflectMessage extends Message {
         out.writeObject(_arguments);
         super.write(out);
     }
+    
+    @Override
+    public String toString() {
+        String ret = _objectToCallClass + "_" + _methodName;
+        for (Object argument : _arguments) {
+            ret += "_" + argument.toString();
+        }
+        return ret;
+    }
+    
 }

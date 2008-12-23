@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.TestCase;
-
 import sun.security.tools.KeyTool;
 
 /**
@@ -84,8 +83,9 @@ public class JavaKeystoreTest extends TestCase {
     /**
      * @param keystore
      * @param alias
+     * @throws Exception
      */
-    public static void generateKeyInKeyStore(File keystore, String alias) {
+    public static void generateKeyInKeyStore(File keystore, String alias) throws Exception {
         KeyTool.main(new String[] { "-genkey", "-keystore", keystore.getAbsolutePath(), "-alias", alias, "-keypass",
                 "password", "-storepass", "password", "-dname", "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
     }
