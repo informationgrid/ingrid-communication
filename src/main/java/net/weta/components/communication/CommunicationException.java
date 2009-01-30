@@ -27,4 +27,9 @@ public class CommunicationException extends Exception implements Externalizable 
         out.writeObject(_message);
     }
 
+     @Override
+    public String toString() {
+        return _message;
+    }
+
 }
