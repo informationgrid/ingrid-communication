@@ -5,12 +5,17 @@ import java.io.DataInput;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 public class Input implements IInput {
 
     private final DataInput _dataInput;
 
     private final int _maxMessageSize;
 
+    private static final Logger LOG = Logger.getLogger(Input.class);
+    
     public Input(DataInput dataInput, int maxMessageSize) {
         _dataInput = dataInput;
         _maxMessageSize = maxMessageSize;
@@ -37,7 +42,8 @@ public class Input implements IInput {
         try {
             object = stream.readObject();
         } catch (ClassNotFoundException e) {
-            throw new IOException(e.getMessage());
+            LOG.log(Level.ERROR, "class not found: " + e.getMessage(), e);
+            throw new IOException("class not found: " + e.getMessage());
         } finally {
             stream.close();
         }
