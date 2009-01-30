@@ -135,7 +135,7 @@ public class MessageQueue implements IMessageQueue {
             } else {
                 LOGGER.error("no handler for message installed '" + message.getId() + "' - " + message.getType());
                 PayloadMessage reply = new PayloadMessage(new CommunicationException(
-                        "no handler for message installed", null), message.getType());
+                        "no handler for message installed"), message.getType());
                 return reply;
             }
         } else {

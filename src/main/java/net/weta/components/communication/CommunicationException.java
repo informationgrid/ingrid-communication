@@ -11,25 +11,20 @@ public class CommunicationException extends Exception implements Externalizable 
 
     private String _message;
 
-    private Throwable _throwable;
-
     public CommunicationException() {
         // nothing todo
     }
 
-    public CommunicationException(String message, Throwable cause) {
+    public CommunicationException(String message) {
         _message = message;
-        _throwable = cause;
     }
 
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         _message = (String) in.readObject();
-        _throwable = (Throwable) in.readObject();
     }
 
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeObject(_message);
-        out.writeObject(_throwable);
     }
 
 }

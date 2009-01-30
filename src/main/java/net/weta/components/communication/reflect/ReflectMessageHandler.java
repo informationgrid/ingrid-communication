@@ -18,7 +18,8 @@
 
 package net.weta.components.communication.reflect;
 
-import java.io.Externalizable;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -82,7 +83,7 @@ public class ReflectMessageHandler implements IMessageHandler {
                 _LOGGER.error("local exception on proxy-method-call '" + reflectMessage.getMethodName()
                         + "' on object '" + reflectMessage.getObjectToCallClass() + "'", e);
             }
-            reply = new CommunicationException(e.getMessage(), e);
+            reply = new CommunicationException(getStackTraceAsString(e));
         }
         PayloadMessage payloadMessage = new PayloadMessage(reply, message.getType());
         payloadMessage.setId(message.getId());
@@ -125,6 +126,12 @@ public class ReflectMessageHandler implements IMessageHandler {
                     + "' not installed");
         }
         return object;
+    }
+    
+    private String getStackTraceAsString(final Throwable exception) {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        exception.printStackTrace(new PrintStream(baos));
+        return new String(baos.toByteArray());
     }
 
 }
