@@ -9,20 +9,27 @@ public class CommunicationException extends Exception implements Externalizable 
 
     private static final long serialVersionUID = 7814850482745259583L;
 
+    private String _message;
+
+    private Throwable _throwable;
+
     public CommunicationException() {
         // nothing todo
     }
 
     public CommunicationException(String message, Throwable cause) {
-        super(message, cause);
+        _message = message;
+        _throwable = cause;
     }
 
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        // nothing todo
+        _message = (String) in.readObject();
+        _throwable = (Throwable) in.readObject();
     }
 
     public void writeExternal(ObjectOutput out) throws IOException {
-        // nothing todo
+        out.writeObject(_message);
+        out.writeObject(_throwable);
     }
 
 }

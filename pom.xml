@@ -3,7 +3,7 @@
 	<groupId>ingrid</groupId>
 	<artifactId>ingrid-communication</artifactId>
 	<packaging>jar</packaging>
-	<version>1.2.0-SNAPSHOT</version>
+	<version>1.3-SNAPSHOT</version>
 	<name>ingrid-communication</name>
 	<url>http://maven.apache.org</url>
 	<scm>
@@ -39,20 +39,11 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<jvm>${java.home}/bin/java</jvm>
-				</configuration>
 				<version>2.3</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<fork>true</fork>
-					<executable>${java.home}/bin/javac</executable>
-					<source>1.5</source>
-					<target>1.5</target>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
