@@ -19,6 +19,7 @@
 package net.weta.components.communication.reflect;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.stream.IInput;
@@ -125,9 +126,7 @@ public class ReflectMessage extends Message {
     @Override
     public String toString() {
         String ret = _objectToCallClass + "_" + _methodName;
-        for (Object argument : _arguments) {
-            ret += "_" + argument.toString();
-        }
+        ret += "_" + Arrays.deepToString(_arguments);
         return ret;
     }
     
