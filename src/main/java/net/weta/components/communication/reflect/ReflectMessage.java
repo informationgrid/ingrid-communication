@@ -127,7 +127,7 @@ public class ReflectMessage extends Message {
     @Override
     public String toString() {
         String ret = _objectToCallClass + "_" + _methodName;
-        ret += "_" + deepString(_arguments, 1);
+        ret += deepString(_arguments, 1);
         return ret;
     }
 
@@ -137,13 +137,18 @@ public class ReflectMessage extends Message {
             if (object instanceof Object[]) {
                 Object[] objects = (Object[]) object;
                 for (Object object2 : objects) {
-                    ret += ret + "_" + deepString(object2, deep + 1);
+                    ret += deepString(object2, deep + 1);
                 }
             } else {
                 ret += "_" + ((object == null) ? "" : object.toString());
             }
         }
         return ret;
+    }
+
+    public static void main(String[] args) {
+        ReflectMessage reflectMessage = new ReflectMessage("foo", "bar", new String[] { "1", "2", "3" });
+        System.out.println(reflectMessage.toString());
     }
 
 }
