@@ -19,7 +19,6 @@
 package net.weta.components.communication.reflect;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.stream.IInput;
@@ -39,6 +38,8 @@ public class ReflectMessage extends Message {
 
     /***/
     private static final long serialVersionUID = 1322251878305777946L;
+
+    private static final int MAX_DEEP = 50;
 
     private String _objectToCallClass = "";
 
@@ -122,12 +123,25 @@ public class ReflectMessage extends Message {
         out.writeObject(_arguments);
         super.write(out);
     }
-    
+
     @Override
     public String toString() {
         String ret = _objectToCallClass + "_" + _methodName;
-        ret += "_" + Arrays.deepToString(_arguments);
+        ret += "_" + deepString(_arguments, 1);
         return ret;
     }
-    
+
+    private String deepString(Object object, int deep) {
+        String ret = "";
+        if ((object instanceof Object[]) && deep < MAX_DEEP) {
+            Object[] objects = (Object[]) object;
+            for (Object object2 : objects) {
+                ret = "_" + deepString(object2, deep + 1);
+            }
+        } else {
+            ret = "_" + ((object == null) ? "" : object.toString());
+        }
+        return ret;
+    }
+
 }
