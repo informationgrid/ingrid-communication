@@ -1,7 +1,7 @@
 package net.weta.components.communication.configuration;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.InputStream;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -18,6 +18,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 
 public class XPathService implements IXPathService {
@@ -93,10 +94,10 @@ public class XPathService implements IXPathService {
         DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
         DOMImplementationLS impl = (DOMImplementationLS) registry.getDOMImplementation("LS");
         LSSerializer writer = impl.createLSSerializer();
-        String str = writer.writeToString(_document);
-        FileOutputStream outputStream = new FileOutputStream(xmlFile);
-        outputStream.write(str.getBytes());
-        outputStream.close();
+        LSOutput output = impl.createLSOutput();
+        output.setEncoding("UTF-8");
+        output.setCharacterStream(new FileWriter(xmlFile));
+        writer.write(_document, output);
     }
 
 
