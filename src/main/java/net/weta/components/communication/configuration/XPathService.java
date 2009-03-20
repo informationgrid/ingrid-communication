@@ -1,6 +1,7 @@
 package net.weta.components.communication.configuration;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -15,6 +16,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.bootstrap.DOMImplementationRegistry;
+import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSSerializer;
 
 public class XPathService implements IXPathService {
 
@@ -52,6 +56,13 @@ public class XPathService implements IXPathService {
 		Node attribute = getAttributeValue(attributeName, node);
 		return attribute.getTextContent();
 	}
+	
+    public void setAttribute(String nodePath, String attributeName, String value, int item) throws Exception {
+        NodeList nodeList = parseNodes(_document, nodePath);
+        Node node = nodeList.item(item);
+        Node attribute = getAttributeValue(attributeName, node);
+        attribute.setTextContent(value);
+    }
 
 	public int countNodes(String nodePath) throws Exception {
 		return parseNodes(_document, nodePath).getLength();
@@ -77,6 +88,17 @@ public class XPathService implements IXPathService {
 		}
 		return ret;
 	}
+	
+    public void store(File xmlFile) throws Exception {
+        DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
+        DOMImplementationLS impl = (DOMImplementationLS) registry.getDOMImplementation("LS");
+        LSSerializer writer = impl.createLSSerializer();
+        String str = writer.writeToString(_document);
+        FileOutputStream outputStream = new FileOutputStream(xmlFile);
+        outputStream.write(str.getBytes());
+        outputStream.close();
+    }
+
 
 	private Node getAttributeValue(String attribute, Node element) {
 		NamedNodeMap attributes = element.getAttributes();
@@ -98,5 +120,6 @@ public class XPathService implements IXPathService {
 				XPathConstants.NODESET);
 		return list;
 	}
+
 
 }
