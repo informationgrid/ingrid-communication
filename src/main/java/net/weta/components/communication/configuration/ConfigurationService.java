@@ -35,19 +35,19 @@ public class ConfigurationService implements IConfigurationService {
         }
         streamToConfigurationFile.close();
         byte[] byteArray = byteArrayOutputStream.toByteArray();
-        
+
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
         _configurationValidator.validateConfiguration(byteArrayInputStream);
 
         byteArrayInputStream = new ByteArrayInputStream(byteArray);
         _xpathService.registerDocument(byteArrayInputStream);
     }
-    
+
     public void registerConfigurationFile(File file) throws Exception {
         _configurationValidator.validateConfiguration(file);
         _xpathService.registerDocument(file);
     }
-    
+
     public Configuration parseConfiguration() throws Exception {
         int configurationType = getConfigurationType();
         Configuration communicationConfiguration = null;
@@ -61,12 +61,12 @@ public class ConfigurationService implements IConfigurationService {
         default:
             break;
         }
-        
+
         String queueSize = _xpathService.parseAttribute("/communication/messages", "queueSize");
         String handleTimeout = _xpathService.parseAttribute("/communication/messages", "handleTimeout");
         communicationConfiguration.setQueueSize(Integer.parseInt(queueSize));
         communicationConfiguration.setHandleTimeout(Integer.parseInt(handleTimeout));
-        
+
         return communicationConfiguration;
     }
 
@@ -104,46 +104,46 @@ public class ConfigurationService implements IConfigurationService {
         clientConfiguration.setName(name);
 
         int count = _xpathService.countNodes("/communication/client/connections/server");
-        for (int i = 0; i < count; i++) {
+        for (int i = 1; i < count + 1; i++) {
             ClientConnection clientConnection = clientConfiguration.new ClientConnection();
-            String serverName = _xpathService.parseAttribute("/communication/client/connections/server", "name", i);
+            String serverName = _xpathService.parseAttribute("/communication/client/connections/server[" + i + "]", "name");
             clientConnection.setServerName(serverName);
 
-            String port = _xpathService.parseAttribute("/communication/client/connections/server/socket", "port", i);
+            String port = _xpathService.parseAttribute("/communication/client/connections/server[" + i + "]/socket", "port");
             clientConnection.setServerPort(Integer.parseInt(port));
 
-            String timeout = _xpathService.parseAttribute("/communication/client/connections/server/socket", "timeout", i);
+            String timeout = _xpathService.parseAttribute("/communication/client/connections/server[" + i + "]/socket", "timeout");
             clientConnection.setSocketTimeout(Integer.parseInt(timeout));
 
-            String ip = _xpathService.parseAttribute("/communication/client/connections/server/socket", "ip", i);
+            String ip = _xpathService.parseAttribute("/communication/client/connections/server[" + i + "]/socket", "ip");
             clientConnection.setServerIp(ip);
 
-            if (_xpathService.exsistsNode("/communication/client/connections/server/socket/proxy", i)) {
-                String proxyPort = _xpathService.parseAttribute("/communication/client/connections/server/socket/proxy", "port", i);
+            if (_xpathService.exsistsNode("/communication/client/connections/server[" + i + "]/socket/proxy")) {
+                String proxyPort = _xpathService.parseAttribute("/communication/client/connections/server[" + i + "]/socket/proxy", "port");
                 clientConnection.setProxyPort(Integer.parseInt(proxyPort));
 
-                String proxyIp = _xpathService.parseAttribute("/communication/client/connections/server/socket/proxy", "ip", i);
+                String proxyIp = _xpathService.parseAttribute("/communication/client/connections/server[" + i + "]/socket/proxy", "ip");
                 clientConnection.setProxyIp(proxyIp);
 
-                if (_xpathService.exsistsNode("/communication/client/connections/server/socket/proxy/authentication", i)) {
-                    String proxyPassword = _xpathService.parseAttribute("/communication/client/connections/server/socket/proxy/authentication", "userPassword", i);
-                    String proxyUser = _xpathService.parseAttribute("/communication/client/connections/server/socket/proxy/authentication", "userName", i);
+                if (_xpathService.exsistsNode("/communication/client/connections/server[" + i + "]/socket/proxy/authentication")) {
+                    String proxyPassword = _xpathService.parseAttribute("/communication/client/connections/server[" + i + "]/socket/proxy/authentication", "userPassword");
+                    String proxyUser = _xpathService.parseAttribute("/communication/client/connections/server[" + i + "]/socket/proxy/authentication", "userName");
                     clientConnection.setProxyPassword(proxyPassword);
                     clientConnection.setProxyUser(proxyUser);
                 }
             }
-            
-            if (_xpathService.exsistsNode("/communication/client/connections/server/security", i)) {
-                String keyStorePath = _xpathService.parseAttribute("/communication/client/connections/server/security", "keystore", i);
-                String password = _xpathService.parseAttribute("/communication/client/connections/server/security", "password", i);
+
+            if (_xpathService.exsistsNode("/communication/client/connections/server[" + i + "]/security", i)) {
+                String keyStorePath = _xpathService.parseAttribute("/communication/client/connections/server[" + i + "]/security", "keystore");
+                String password = _xpathService.parseAttribute("/communication/client/connections/server[" + i + "]/security", "password");
                 clientConnection.setKeystorePath(keyStorePath);
                 clientConnection.setKeystorePassword(password);
             }
 
-            String maxSize = _xpathService.parseAttribute("/communication/client/connections/server/messages", "maximumSize", i);
+            String maxSize = _xpathService.parseAttribute("/communication/client/connections/server[" + i + "]/messages", "maximumSize");
             clientConnection.setMaxMessageSize(Integer.parseInt(maxSize));
 
-            String threadCount = _xpathService.parseAttribute("/communication/client/connections/server/messages", "threadCount", i);
+            String threadCount = _xpathService.parseAttribute("/communication/client/connections/server[" + i + "]/messages", "threadCount");
             clientConnection.setMessageThreadCount(Integer.parseInt(threadCount));
 
             clientConfiguration.addClientConnection(clientConnection);
@@ -151,7 +151,5 @@ public class ConfigurationService implements IConfigurationService {
 
         return clientConfiguration;
     }
-
-  
 
 }
