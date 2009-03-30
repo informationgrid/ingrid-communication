@@ -133,7 +133,7 @@ public class ConfigurationService implements IConfigurationService {
                 }
             }
 
-            if (_xpathService.exsistsNode("/communication/client/connections/server[" + i + "]/security", i)) {
+            if (_xpathService.exsistsNode("/communication/client/connections/server[" + i + "]/security")) {
                 String keyStorePath = _xpathService.parseAttribute("/communication/client/connections/server[" + i + "]/security", "keystore");
                 String password = _xpathService.parseAttribute("/communication/client/connections/server[" + i + "]/security", "password");
                 clientConnection.setKeystorePath(keyStorePath);
