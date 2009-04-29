@@ -79,7 +79,7 @@ public class MessageReaderThread extends Thread {
             }
         }catch (IOException e) {
             if (LOG.isEnabledFor(Level.ERROR)) {
-                LOG.error(e, e);
+                LOG.error("error while consuming messages for peer: " + _peerName, e);
             }
         } 
     }
