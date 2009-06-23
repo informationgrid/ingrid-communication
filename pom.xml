@@ -30,7 +30,7 @@
 		<dependency>
 			<groupId>de.ingrid.communication</groupId>
 			<artifactId>ingrid-communication-authentication</artifactId>
-			<version>1.1-SNAPSHOT</version>
+			<version>1.2.0</version>
 			<scope />
 		</dependency>
 	</dependencies>
@@ -56,8 +56,7 @@
 			<snapshots />
 			<id>ingrid-repository</id>
 			<name>ingrid-repository</name>
-			<url>http://harrison.its-technidata.de/ingrid/maven</url>
-			<layout>legacy</layout>
+			<url>http://harrison.its-technidata.de/ingrid/maven2</url>
 		</repository>
 	</repositories>
 	<reporting>
@@ -102,17 +101,15 @@
 	<distributionManagement>
 		<repository>
 			<uniqueVersion>false</uniqueVersion>
-			<id>ingrid-repository</id>
-			<name>ingrid-repository</name>
-			<url>file:///srv/www/htdocs/ingrid/maven</url>
-			<layout>legacy</layout>
+			<id>ingrid-repository-2</id>
+			<name>ingrid-repository-2</name>
+			<url>file:///srv/www/htdocs/ingrid/maven2</url>
 		</repository>
 		<snapshotRepository>
 			<uniqueVersion>false</uniqueVersion>
 			<id>ingrid-repository</id>
 			<name>ingrid-repository</name>
-			<url>file:///srv/www/htdocs/ingrid/maven</url>
-			<layout>legacy</layout>
+			<url>file:///srv/www/htdocs/ingrid/maven2</url>
 		</snapshotRepository>
 	</distributionManagement>
 </project>
