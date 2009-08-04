@@ -2,6 +2,7 @@ package net.weta.components.communication.tcp;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.OptionalDataException;
 import java.net.SocketException;
 
 import net.weta.components.communication.messaging.Message;
@@ -77,7 +78,14 @@ public class MessageReaderThread extends Thread {
                 // connect in case of client and server 
                 _messageSender.connect(_peerName);
             }
-        }catch (IOException e) {
+        } catch (OptionalDataException e) {
+            if (LOG.isEnabledFor(Level.ERROR)) {
+                LOG.error("Optional Data Exception: " + _peerName, e);
+                LOG.error("There is no more data in the buffered part of the stream: " + e.eof);
+                LOG.error("The number of bytes of primitive data available to be read in the current buffer: " + e.length);
+            }
+            // TODO what is here todo? mailSender disconnect and connect?
+        } catch (IOException e) {
             if (LOG.isEnabledFor(Level.ERROR)) {
                 LOG.error("error while consuming messages for peer: " + _peerName, e);
             }
