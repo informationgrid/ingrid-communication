@@ -116,4 +116,6 @@ public interface ICommunication {
      */
     public void shutdown();
 
+    boolean isConnected(String url);
+
 }

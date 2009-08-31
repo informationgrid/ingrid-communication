@@ -194,7 +194,7 @@ public class TcpCommunication implements ICommunication {
     public boolean isConnected(String serverName) {
         boolean result= false;
         if (_isCommunicationServer) {
-            result = true;
+            result = _communicationServer.isConnected(serverName);
         } else {
             result = _communicationClient.isConnected(serverName);
         }

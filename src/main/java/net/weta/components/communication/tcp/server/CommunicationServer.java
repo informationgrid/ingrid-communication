@@ -170,4 +170,8 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
     public List getRegisteredClients() {
         return new ArrayList(_messageReaderMap.keySet());
     }
+
+    public boolean isConnected(String url) {
+        return _sockets.containsKey(url) && _messageReaderMap.containsKey(url) && _outputStreamMap.containsKey(url);
+    }
 }
