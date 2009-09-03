@@ -171,7 +171,6 @@ public class XPathService implements IXPathService {
 	
 	public void addNode(String parentPath, String elementName, int item) throws Exception {
         Node parent = parseNodes(_document, parentPath).item(item);
-        System.out.println(parseNodes(_document, parentPath).getLength());
         Node node = _document.createElement(elementName);
         parent.appendChild(node);
     }
