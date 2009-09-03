@@ -88,11 +88,11 @@ public class XPathServiceTest extends TestCase {
 	}
 	
 	public void testAddNode() throws Exception {
-	    _service.addNode(SERVER_NODE_PATH);
+	    _service.addNode("/communication/client/connections", "server");
 	    int count = _service.countNodes(SERVER_NODE_PATH);
         assertEquals(3, count);
         
-        _service.addNode(SERVER_NODE_PATH, "test");
+        _service.addNode(SERVER_NODE_PATH, "test", 2);
         count = _service.countNodes(SERVER_NODE_PATH + "/test");
         assertEquals(1, count);
 	}

@@ -163,19 +163,15 @@ public class XPathService implements IXPathService {
         }
     }
 	
-	public void addNode(String nodePath) throws Exception {
-	    String[] split = nodePath.split("/");
-	    String parentPath = "";
-	    for (int i = 0; i < (split.length - 1); i++) {
-	        parentPath += "/" + split[i];
-	    }
-	    Node parent = parseNode(_document, parentPath);
-	    Node node = _document.createElement(split[split.length - 1]);
-	    parent.appendChild(node);
-	}
-	
 	public void addNode(String parentPath, String elementName) throws Exception {
         Node parent = parseNode(_document, parentPath);
+        Node node = _document.createElement(elementName);
+        parent.appendChild(node);
+    }
+	
+	public void addNode(String parentPath, String elementName, int item) throws Exception {
+        Node parent = parseNodes(_document, parentPath).item(item);
+        System.out.println(parseNodes(_document, parentPath).getLength());
         Node node = _document.createElement(elementName);
         parent.appendChild(node);
     }
