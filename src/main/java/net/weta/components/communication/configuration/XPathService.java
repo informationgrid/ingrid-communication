@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStream;
 
+import javax.smartcardio.ATR;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
@@ -12,7 +13,9 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -20,6 +23,9 @@ import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
+
+import com.sun.org.apache.xerces.internal.impl.xs.opti.DefaultElement;
+import com.sun.org.apache.xerces.internal.impl.xs.opti.DefaultNode;
 
 public class XPathService implements IXPathService {
 
@@ -58,6 +64,12 @@ public class XPathService implements IXPathService {
 		return attribute.getTextContent();
 	}
 	
+	public void setAttribute(String nodePath, String attributeName, String value) throws Exception {
+        Node node = parseNode(_document, nodePath);
+        Node attribute = getAttributeValue(attributeName, node);
+        attribute.setTextContent(value);
+    }
+	
     public void setAttribute(String nodePath, String attributeName, String value, int item) throws Exception {
         NodeList nodeList = parseNodes(_document, nodePath);
         Node node = nodeList.item(item);
@@ -90,6 +102,102 @@ public class XPathService implements IXPathService {
 		return ret;
 	}
 	
+	public void addAttribute(String nodePath, String attributeName, String value) throws Exception {
+	    Node node = parseNode(_document, nodePath);
+	    Attr attribute = _document.createAttribute(attributeName);
+	    attribute.setTextContent(value);
+	    NamedNodeMap attributes = node.getAttributes();
+	    attributes.setNamedItem(attribute);
+	}
+	
+	public void addAttribute(String nodePath, String attributeName, String value, int item) throws Exception {
+	    Node node = parseNodes(_document, nodePath).item(item);
+        Attr attribute = _document.createAttribute(attributeName);
+        attribute.setTextContent(value);
+        NamedNodeMap attributes = node.getAttributes();
+        attributes.setNamedItem(attribute);
+    }
+	
+	public boolean existsAttribute(String nodePath, String attributeName) {
+	    boolean result = false;
+	    try {
+            Node node = parseNode(_document, nodePath);
+            NamedNodeMap attributes = node.getAttributes();
+            result = attributes.getNamedItem(attributeName) != null ? true : false;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+	}
+	
+	public boolean existsAttribute(String nodePath, String attributeName, int item) {
+        boolean result = false;
+        try {
+            Node node = parseNodes(_document, nodePath).item(item);
+            NamedNodeMap attributes = node.getAttributes();
+            result = attributes.getNamedItem(attributeName) != null ? true : false;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+	
+	public void removeAttribute(String nodePath, String attributeName) throws Exception {
+	    Node node = parseNode(_document, nodePath);
+	    NamedNodeMap attributes = node.getAttributes();
+	    attributes.removeNamedItem(attributeName);
+	}
+	
+	public void removeAttribute(String nodePath, String attributeName, int item) throws Exception {
+	    Node node = parseNodes(_document, nodePath).item(item);
+        NamedNodeMap attributes = node.getAttributes();
+        attributes.removeNamedItem(attributeName);
+	}
+	
+	public void removeAttributes(String nodePath, String attributeName) throws Exception {
+        NodeList nodes = parseNodes(_document, nodePath);
+        for(int i = 0; i < nodes.getLength(); i++) {
+            Node node = nodes.item(i);
+            NamedNodeMap attributes = node.getAttributes();
+            attributes.removeNamedItem(attributeName);
+        }
+    }
+	
+	public void addNode(String nodePath) throws Exception {
+	    String[] split = nodePath.split("/");
+	    String parentPath = "";
+	    for (int i = 0; i < (split.length - 1); i++) {
+	        parentPath += "/" + split[i];
+	    }
+	    Node parent = parseNode(_document, parentPath);
+	    Node node = _document.createElement(split[split.length - 1]);
+	    parent.appendChild(node);
+	}
+	
+	public void addNode(String parentPath, String elementName) throws Exception {
+        Node parent = parseNode(_document, parentPath);
+        Node node = _document.createElement(elementName);
+        parent.appendChild(node);
+    }
+	
+	public void removeNode(String nodePath) throws Exception {
+	    Node node = parseNode(_document, nodePath);
+	    node.getParentNode().removeChild(node);
+	}
+	
+	public void removeNode(String nodePath, int index) throws Exception {
+	    Node node = parseNodes(_document, nodePath).item(index);
+	    node.getParentNode().removeChild(node);
+	}
+	
+	public void removeNodes(String nodePath) throws Exception {
+        NodeList nodes = parseNodes(_document, nodePath);
+        for(int i = 0; i < nodes.getLength(); i++) {
+            Node node = nodes.item(i);
+            node.getParentNode().removeChild(node);
+        }
+    }
+
     public void store(File xmlFile) throws Exception {
         DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
         DOMImplementationLS impl = (DOMImplementationLS) registry.getDOMImplementation("LS");
@@ -121,6 +229,4 @@ public class XPathService implements IXPathService {
 				XPathConstants.NODESET);
 		return list;
 	}
-
-
 }
