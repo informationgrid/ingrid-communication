@@ -107,7 +107,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         }
     }
 
-    public void deregister(String peerName) {
+    public synchronized void deregister(String peerName) {
         _outputStreamMap.remove(peerName);
         MessageReaderThread thread = (MessageReaderThread) _messageReaderMap.remove(peerName);
         if (thread != null) {

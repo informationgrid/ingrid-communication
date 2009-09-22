@@ -56,14 +56,14 @@ public class MessageReaderThread extends Thread {
 
         } catch (SocketException e) {
             if (LOG.isInfoEnabled()) {
-                LOG.info("connection shutdown by peer (SocketException): " + _peerName);
+                LOG.info("connection shutdown by peer (SocketException, " + e.getMessage() + "): " + _peerName);
             }
             if (_messageSender != null) {
                 _messageSender.connect(_peerName);
             }
         } catch (EOFException e) {
             if (LOG.isInfoEnabled()) {
-                LOG.info("connection shutdown by peer (EOFException): " + _peerName);
+                LOG.info("connection shutdown by peer (EOFException, " + e.getMessage() + "): " + _peerName);
             }
             if (_messageSender != null) {
                 _messageSender.connect(_peerName);
@@ -113,7 +113,10 @@ public class MessageReaderThread extends Thread {
                         _messageSender.sendMessage(_peerName, answer);
                     } catch (IOException e) {
                         if (LOG.isEnabledFor(Level.WARN)) {
-                            LOG.warn("failed to handle message", e);
+                            LOG.warn("can not send answer message to [" + _peerName + "]: " + e.getMessage());
+                        }
+                        if (LOG.isEnabledFor(Level.DEBUG)) {
+                            LOG.debug("Stacktrace:", e);
                         }
                     }
                 } 
