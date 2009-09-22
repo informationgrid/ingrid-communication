@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStream;
 
-import javax.smartcardio.ATR;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
@@ -15,7 +14,6 @@ import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
-import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -23,9 +21,6 @@ import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
-
-import com.sun.org.apache.xerces.internal.impl.xs.opti.DefaultElement;
-import com.sun.org.apache.xerces.internal.impl.xs.opti.DefaultNode;
 
 public class XPathService implements IXPathService {
 
