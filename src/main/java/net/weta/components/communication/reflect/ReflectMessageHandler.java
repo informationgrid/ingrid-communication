@@ -80,8 +80,8 @@ public class ReflectMessageHandler implements IMessageHandler {
             reply = (Serializable) method.invoke(object, reflectMessage.getArguments());
         } catch (Throwable e) {
             if (_LOGGER.isEnabledFor(Level.ERROR)) {
-                _LOGGER.error("local exception on proxy-method-call '" + reflectMessage.getMethodName()
-                        + "' on object '" + reflectMessage.getObjectToCallClass() + "'", e);
+                _LOGGER.error("local exception on proxy-method-call '" + reflectMessage.getMethodName() + "' on object '" + reflectMessage.getObjectToCallClass() + "' for message-id " + "["
+                        + message.getId() + "]", e);
             }
             reply = new CommunicationException(getStackTraceAsString(e));
         }

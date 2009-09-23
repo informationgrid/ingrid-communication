@@ -24,13 +24,49 @@ import org.apache.log4j.Logger;
 
 public class CommunicationServer extends Thread implements ICommunicationServer, IMessageSender {
 
+    static class CommunicationClientInfo {
+        private final MessageReaderThread _messageReaderThread;
+        private final Socket _socket;
+        private final IOutput _out;
+        private final String _peerName;
+
+        public CommunicationClientInfo(String peerName, MessageReaderThread messageReaderThread, Socket socket, IOutput out) {
+            _peerName = peerName;
+            _messageReaderThread = messageReaderThread;
+            _socket = socket;
+            _out = out;
+        }
+
+        public String getPeerName() {
+            return _peerName;
+        }
+
+        public MessageReaderThread getMessageReaderThread() {
+            return _messageReaderThread;
+        }
+
+        public Socket getSocket() {
+            return _socket;
+        }
+
+        public IOutput getOut() {
+            return _out;
+        }
+
+        @Override
+        public int hashCode() {
+            return _peerName.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return ((CommunicationClientInfo) obj)._peerName.equals(_peerName);
+        }
+
+    }
     private static final Logger LOG = Logger.getLogger(CommunicationServer.class);
 
-    private Map _messageReaderMap = new HashMap();
-
-    private Map _outputStreamMap = new HashMap();
-
-    private Map _sockets = new HashMap();
+    private Map<String, CommunicationClientInfo> _clientInfos = new HashMap<String, CommunicationClientInfo>();
 
     private final int _port;
 
@@ -77,7 +113,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
     }
 
     public synchronized void register(String peerName, Socket socket, IInput in, IOutput out) {
-        if (_messageReaderMap.containsKey(peerName)) {
+        if (_clientInfos.containsKey(peerName)) {
             if (LOG.isEnabledFor(Level.WARN)) {
                 LOG.warn("Registration of new client from ip [" + socket.getRemoteSocketAddress() +
                         "], client with the same name already registered: [" + peerName + "]");
@@ -90,9 +126,8 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         thread.setDaemon(true);
         thread.start();
         try {
-            _messageReaderMap.put(peerName, thread);
-            _outputStreamMap.put(peerName, out);
-            _sockets.put(peerName, socket);
+            CommunicationClientInfo communicationClientInfo = new CommunicationClientInfo(peerName, thread, socket, out);
+            _clientInfos.put(peerName, communicationClientInfo);
             out.writeBoolean(true);
             out.flush();
         } catch (IOException e) {
@@ -100,35 +135,35 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
             thread.interrupt();
         } finally {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("message reader count: [" + _messageReaderMap.size() + "]");
-                LOG.debug("stream count: [" + _outputStreamMap.size() + "]");
-                LOG.debug("socket count: [" + _sockets.size() + "]");
+                LOG.debug("client info count: [" + _clientInfos.size() + "]");
             }
         }
     }
 
     public synchronized void deregister(String peerName) {
-        _outputStreamMap.remove(peerName);
-        MessageReaderThread thread = (MessageReaderThread) _messageReaderMap.remove(peerName);
-        if (thread != null) {
+        CommunicationClientInfo info = _clientInfos.remove(peerName);
+        if (info != null) {
+            MessageReaderThread thread = info.getMessageReaderThread();
             if (LOG.isInfoEnabled()) {
-                LOG.info("shutdown peer connection: [" + peerName + "]");
+                LOG.info("interuppt message reader thread for peer: [" + peerName + "]");
             }
             thread.interrupt();
-        }
-        Socket socket = (Socket) _sockets.remove(peerName);
-        try {
-            if (socket != null) {
+            Socket socket = info.getSocket();
+            try {
+                LOG.info("close socket for peer: [" + peerName + "]");
                 socket.close();
+            } catch (IOException e) {
+                LOG.error("can not close socket for client [" + peerName + "]");
             }
-        } catch (IOException e) {
-            LOG.error("can not close socket for client [" + peerName + "]");
+        } else {
+            LOG.warn("peername does not exists, skip deregister: " + peerName);
         }
     }
 
     public void sendMessage(String peerName, Message message) throws IOException {
-        IOutput out = (IOutput) _outputStreamMap.get(peerName);
-        if (out != null) {
+        CommunicationClientInfo info = _clientInfos.get(peerName);
+        if (info != null) {
+            IOutput out = info.getOut();
             synchronized (out) {
                 out.writeObject(message);
                 out.flush();
@@ -144,7 +179,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
 
     public void interrupt() {
         super.interrupt();
-        Set peerNames = _messageReaderMap.keySet();
+        Set peerNames = _clientInfos.keySet();
         String[] peerNameArray = (String[]) peerNames.toArray(new String[peerNames.size()]);
         for (int i = 0; i < peerNameArray.length; i++) {
             String peerName = peerNameArray[i];
@@ -168,10 +203,10 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
     }
 
     public List getRegisteredClients() {
-        return new ArrayList(_messageReaderMap.keySet());
+        return new ArrayList(_clientInfos.keySet());
     }
 
     public boolean isConnected(String url) {
-        return _sockets.containsKey(url) && _messageReaderMap.containsKey(url) && _outputStreamMap.containsKey(url);
+        return _clientInfos.containsKey(url);
     }
 }
