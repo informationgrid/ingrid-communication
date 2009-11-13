@@ -148,7 +148,27 @@ public class ReflectMessage extends Message {
 
     public static void main(String[] args) {
         ReflectMessage reflectMessage = new ReflectMessage("foo", "bar", new String[] { "1", "2", "3" });
-        System.out.println(reflectMessage.toString());
+        System.out.println(reflectMessage.toString() + " " + reflectMessage.hashCode());
     }
 
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int hash = computeHash(_methodName, prime, 1, 50);
+        hash = prime * hash + (_objectToCallClass == null ? 0 : _objectToCallClass.hashCode());
+        return prime * _methodName.hashCode() + computeHash(_arguments, prime, 1, 50);
+    }
+    
+    private int computeHash(final Object obj, final int prime, final int deep, final int maxDeep) {
+        int hash = 0;
+        if (obj instanceof Object[] && deep < maxDeep) {
+            Object[] objs = (Object[]) obj;
+            for (Object obj2 : objs) {
+                hash = prime * hash + computeHash(obj2, prime, deep + 1, maxDeep);
+            }
+        } else {
+            hash = prime * hash + (obj == null ? 0 : obj.hashCode());
+        }
+        return hash;
+    }
 }
