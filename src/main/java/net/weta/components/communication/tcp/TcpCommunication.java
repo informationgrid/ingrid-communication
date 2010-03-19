@@ -113,7 +113,7 @@ public class TcpCommunication implements ICommunication {
             if (LOG.isEnabledFor(Level.INFO)) {
                 LOG.info("Shutdown the client.");
             }
-            _communicationClient.shutdown();
+            _communicationClient.interrupt();
         }
     }
 
