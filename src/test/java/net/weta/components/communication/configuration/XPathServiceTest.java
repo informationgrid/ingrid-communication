@@ -116,7 +116,7 @@ public class XPathServiceTest extends TestCase {
     }
 	
 	public void testStore() throws Exception {
-	    File file = new File("/tmp/temp.xml");
+	    File file = new File(System.getProperty("java.io.tmpdir"), "temp.xml"); 
 	    _service.setAttribute(SERVER_NODE_PATH, "name", "changed", 1);
 	    _service.store(file);
 	    
@@ -125,5 +125,6 @@ public class XPathServiceTest extends TestCase {
         
         assertEquals(_service.parseAttribute(SERVER_NODE_PATH, "name"), path.parseAttribute(SERVER_NODE_PATH, "name"));
         assertEquals("changed", path.parseAttribute(SERVER_NODE_PATH, "name", 1));
+        file.delete();
 	}
 }

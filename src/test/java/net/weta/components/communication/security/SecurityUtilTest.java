@@ -24,9 +24,9 @@ public class SecurityUtilTest extends TestCase {
     protected void tearDown() {
         File[] files = _securityFolder.listFiles();
         for (int i = 0; i < files.length; i++) {
-            assertTrue(files[i].delete());
+            files[i].delete();
         }
-        assertTrue(_securityFolder.delete());
+        _securityFolder.delete();
     }
 
     /**
