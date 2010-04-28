@@ -150,10 +150,10 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
             thread.interrupt();
             Socket socket = info.getSocket();
             try {
-                LOG.info("close socket for peer: [" + peerName + "]");
+                LOG.info("close socket for peer: [" + peerName + "] from ip: [" + socket.getRemoteSocketAddress() + "]" );
                 socket.close();
             } catch (IOException e) {
-                LOG.error("can not close socket for client [" + peerName + "]");
+                LOG.error("can not close socket for client [" + peerName + "] from ip: [" + socket.getRemoteSocketAddress() + "]");
             }
         } else {
             LOG.warn("peername does not exists, skip deregister: " + peerName);

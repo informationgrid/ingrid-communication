@@ -73,20 +73,20 @@ public class RegistrationThread extends Thread {
             if (_securityUtil != null) {
                 byte[] signature = registrationMessage.getSignature();
                 if (LOG.isEnabledFor(Level.INFO)) {
-                    LOG.info("Security is enabled, verify signature from peerName: [" + peerName + "] from IP: " + _socket.getRemoteSocketAddress());
+                    LOG.info("Security is enabled, verify signature from peerName: [" + peerName + "] from ip: [" + _socket.getRemoteSocketAddress() + "]");
                 }
                 signatureOk = _securityUtil.verifySignature(peerName, authenticationMessage.getToken(), signature);
             }
 
             if (signatureOk) {
                 if (LOG.isEnabledFor(Level.INFO)) {
-                    LOG.info("Registration successfully for peerName: [" + peerName + "] from IP: " + _socket.getRemoteSocketAddress());
+                    LOG.info("Registration successfully for peerName: [" + peerName + "] from ip: [" + _socket.getRemoteSocketAddress() + "]");
                 }
                 _socket.setSoTimeout(0);
                 _communicationServer.register(peerName, _socket, _in, _out);
             } else {
                 if (LOG.isEnabledFor(Level.WARN)) {
-                    LOG.warn("Registration failed for peerName: [" + peerName + "]  from IP: " + _socket.getRemoteSocketAddress());
+                    LOG.warn("Registration failed for peerName: [" + peerName + "] from ip: [" + _socket.getRemoteSocketAddress() + "]");
                 }
                 _out.writeBoolean(false);
                 _socket.close();
