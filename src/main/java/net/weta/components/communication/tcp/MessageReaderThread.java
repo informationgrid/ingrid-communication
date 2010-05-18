@@ -4,6 +4,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.OptionalDataException;
 import java.net.SocketException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.MessageQueue;
@@ -30,6 +32,8 @@ public class MessageReaderThread extends Thread {
     protected final int _maxThreadCount;
 
     private final IInput _in;
+    
+    private ExecutorService _threadExecutor = null;
 
     public MessageReaderThread(String peerName, IInput in, MessageQueue messageQueue, IMessageSender messageSender,
             int maxThreadCount) {
@@ -42,6 +46,7 @@ public class MessageReaderThread extends Thread {
 
     public void run() {
         try {
+        	_threadExecutor = Executors.newFixedThreadPool(_maxThreadCount);
             if (LOG.isInfoEnabled()) {
                 LOG.info("start to read messages for peer: [" + _peerName + "]");
             }
@@ -124,18 +129,23 @@ public class MessageReaderThread extends Thread {
             }
         };
 
-        Thread thread = new Thread(runnable);
+        // use thread pool here
+        _threadExecutor.execute(runnable);
+//        Thread thread = new Thread(runnable);
         _threadCount++;
         if (LOG.isDebugEnabled()) {
             LOG.debug("current 'waitForMessage' thread count: [" + _threadCount + "]");
         }
 
-        thread.start();
+//        thread.start();
     }
 
     public void interrupt() {
         if (LOG.isEnabledFor(Level.INFO)) {
             LOG.info("Shutdown MessageReaderThread.");
+        }
+        if (_threadExecutor != null) {
+        	_threadExecutor.shutdown();
         }
         super.interrupt();
     }
