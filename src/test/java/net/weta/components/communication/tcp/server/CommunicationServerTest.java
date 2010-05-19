@@ -61,10 +61,13 @@ public class CommunicationServerTest extends TestCase {
     protected void tearDown() throws Exception {
 
         File[] files = _securityFolder.listFiles();
-        for (int i = 0; i < files.length; i++) {
-            assertTrue(files[i].delete());
+        // unable to delete files under windows, because they are locked
+        if (System.getProperty("os.name").toLowerCase().indexOf("windows") == -1) {
+	        for (int i = 0; i < files.length; i++) {
+	            assertTrue(files[i].delete());
+	        }
+	        assertTrue(_securityFolder.delete());
         }
-        assertTrue(_securityFolder.delete());
 
     }
 
@@ -94,8 +97,12 @@ public class CommunicationServerTest extends TestCase {
 
 
         Thread.sleep(1000);
-        Message message = client1.sendSyncMessage(new Message("type"), SERVER);
-        assertNotNull(message);
+        Message message = new Message("type");
+        Message result = client1.sendSyncMessage(message, SERVER);
+        assertNotNull(result);
+        assertEquals("", result.getType());
+        assertEquals(message.getId(), result.getId());
+        
 
         TcpCommunication client2 = new TcpCommunication();
         ClientConfiguration clientConfiguration2 = new ClientConfiguration();
@@ -111,7 +118,11 @@ public class CommunicationServerTest extends TestCase {
 
         Thread.sleep(1000);
         try {
-            message = client2.sendSyncMessage(new Message("type"), SERVER);
+        	message = new Message("type");
+        	result = client2.sendSyncMessage(message, SERVER);
+            assertNotNull(result);
+            assertEquals("", result.getType());
+            assertEquals(message.getId(), result.getId());
         } catch (SocketException e) {
             fail();
         }
@@ -147,8 +158,11 @@ public class CommunicationServerTest extends TestCase {
         client1.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
 
         Thread.sleep(1000);
-        Message message = client1.sendSyncMessage(new Message("type"), SERVER);
-        assertNotNull(message);
+        Message message = new Message("type");
+        Message result = client1.sendSyncMessage(message, SERVER);
+        assertNotNull(result);
+        assertEquals("", result.getType());
+        assertEquals(message.getId(), result.getId());
 
         TcpCommunication client2 = new TcpCommunication();
 
@@ -168,7 +182,11 @@ public class CommunicationServerTest extends TestCase {
 
         Thread.sleep(1000);
         try {
-            message = client2.sendSyncMessage(new Message("type"), SERVER);
+        	message = new Message("type");
+        	result = client2.sendSyncMessage(message, SERVER);
+            assertNotNull(result);
+            assertEquals("", result.getType());
+            assertEquals(message.getId(), result.getId());
         } catch (SocketException e) {
             fail();
         }
