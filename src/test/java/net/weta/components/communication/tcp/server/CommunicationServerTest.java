@@ -94,7 +94,7 @@ public class CommunicationServerTest extends TestCase {
 
 
         Thread.sleep(1000);
-        Message message = client1.sendSyncMessage(new Message("type"), "server");
+        Message message = client1.sendSyncMessage(new Message("type"), SERVER);
         assertNotNull(message);
 
         TcpCommunication client2 = new TcpCommunication();
@@ -111,7 +111,7 @@ public class CommunicationServerTest extends TestCase {
 
         Thread.sleep(1000);
         try {
-            message = client2.sendSyncMessage(new Message("type"), "server");
+            message = client2.sendSyncMessage(new Message("type"), SERVER);
         } catch (SocketException e) {
             fail();
         }
@@ -147,7 +147,7 @@ public class CommunicationServerTest extends TestCase {
         client1.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
 
         Thread.sleep(1000);
-        Message message = client1.sendSyncMessage(new Message("type"), "server");
+        Message message = client1.sendSyncMessage(new Message("type"), SERVER);
         assertNotNull(message);
 
         TcpCommunication client2 = new TcpCommunication();
@@ -168,7 +168,7 @@ public class CommunicationServerTest extends TestCase {
 
         Thread.sleep(1000);
         try {
-            message = client2.sendSyncMessage(new Message("type"), "server");
+            message = client2.sendSyncMessage(new Message("type"), SERVER);
         } catch (SocketException e) {
             fail();
         }
