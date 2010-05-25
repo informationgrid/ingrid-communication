@@ -70,6 +70,80 @@ public class CommunicationServerTest extends TestCase {
         }
 
     }
+    
+    public void testDuplicateRegistration() throws Exception {
+        TcpCommunication server = new TcpCommunication();
+        ServerConfiguration serverConfiguration = new ServerConfiguration();
+        serverConfiguration.setName(SERVER);
+        serverConfiguration.setPort(55558);
+        server.configure(serverConfiguration);
+        server.startup();
+        server.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
+        
+        Thread.sleep(1000);
+
+        TcpCommunication client1 = new TcpCommunication();
+        ClientConfiguration clientConfiguration = new ClientConfiguration();
+        clientConfiguration.setName(CLIENT);
+        ClientConnection clientConnection = clientConfiguration.new ClientConnection();
+        clientConnection.setServerIp("127.0.0.1");
+        clientConnection.setServerPort(55558);
+        clientConnection.setServerName(SERVER);
+        clientConfiguration.addClientConnection(clientConnection);
+        client1.configure(clientConfiguration);
+        client1.startup();
+        client1.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
+
+
+        Thread.sleep(1000);
+        Message message = new Message("type");
+        Message result = client1.sendSyncMessage(message, SERVER);
+        assertNotNull(result);
+        assertEquals("", result.getType());
+        assertEquals(message.getId(), result.getId());
+        
+        TcpCommunication client2 = new TcpCommunication();
+        ClientConfiguration clientConfiguration2 = new ClientConfiguration();
+        clientConfiguration2.setName(CLIENT);
+        ClientConnection clientConnection2 = clientConfiguration2.new ClientConnection();
+        clientConnection2.setServerIp("127.0.0.1");
+        clientConnection2.setServerPort(55558);
+        clientConnection2.setServerName(SERVER);
+        clientConfiguration2.addClientConnection(clientConnection2);
+        client2.configure(clientConfiguration2);
+        client2.startup();
+        client2.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
+
+        Thread.sleep(1000);
+        boolean threwException = false;
+        try {
+        	message = new Message("type");
+        	result = client2.sendSyncMessage(message, SERVER);
+            assertNotNull(result);
+            assertEquals("", result.getType());
+            assertEquals(message.getId(), result.getId());
+        } catch (SocketException e) {
+        	threwException = true;
+        }
+        assertTrue("No Exception has been thrown on duplicat connect.", threwException);
+        
+        client1.shutdown();
+        Thread.sleep(1000);
+
+        threwException = true;
+        try {
+        	message = new Message("type");
+        	result = client2.sendSyncMessage(message, SERVER);
+            assertNotNull(result);
+            assertEquals("", result.getType());
+            assertEquals(message.getId(), result.getId());
+        } catch (SocketException e) {
+        	fail("Duplicate Client2 should be able to connect because of client1's shutdown.");
+        	threwException = true;
+        }
+        
+        
+    }
 
     public void testRegsiterWithoutSecurity() throws Exception {
         TcpCommunication server = new TcpCommunication();

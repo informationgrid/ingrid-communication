@@ -80,7 +80,7 @@ public class RegistrationThread extends Thread {
 
             if (signatureOk) {
                 if (LOG.isEnabledFor(Level.INFO)) {
-                    LOG.info("Registration successfully for peerName: [" + peerName + "] from ip: [" + _socket.getRemoteSocketAddress() + "]");
+                    LOG.info("Registration request successfully for peerName: [" + peerName + "] from ip: [" + _socket.getRemoteSocketAddress() + "]");
                 }
                 _socket.setSoTimeout(0);
                 _communicationServer.register(peerName, _socket, _in, _out);

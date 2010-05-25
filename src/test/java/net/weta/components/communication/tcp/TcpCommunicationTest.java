@@ -107,11 +107,14 @@ public class TcpCommunicationTest extends TestCase {
         _tcpCommunicationServer.closeConnection(CLIENT);
         _tcpCommunicationServer.shutdown();
 
-        File[] files = _securityFolder.listFiles();
-        for (int i = 0; i < files.length; i++) {
-            assertTrue(files[i].delete());
+        // unable to delete files under windows, because they are locked
+        if (System.getProperty("os.name").toLowerCase().indexOf("windows") == -1) {
+	        File[] files = _securityFolder.listFiles();
+	        for (int i = 0; i < files.length; i++) {
+	            assertTrue(files[i].delete());
+	        }
+	        assertTrue(_securityFolder.delete());
         }
-        assertTrue(_securityFolder.delete());
     }
 
     public void testSendMessage() throws Exception {

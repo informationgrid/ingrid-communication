@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -137,7 +138,13 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
             registrationMessage.setSignature(signature);
             registrationMessage.write(_out);
 
-            boolean isRegistered = _in.readBoolean();
+            boolean isRegistered;
+			try {
+				isRegistered = _in.readBoolean();
+			} catch (EOFException e) {
+				LOG.warn("Registration to server failed with evidence of existing peer name: " + _peerName);
+				isRegistered = false;
+			}
             if (isRegistered) {
                 _socket.setSoTimeout(0);
                 if (LOG.isEnabledFor(Level.INFO)) {

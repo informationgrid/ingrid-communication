@@ -4,10 +4,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.OptionalDataException;
 import java.net.SocketException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -41,7 +39,7 @@ public class MessageReaderThread extends Thread {
     
     private ExecutorService _threadExecutor = null;
     
-    private Map<Runnable, Future<?>> _futures = Collections.synchronizedMap(new HashMap<Runnable, Future<?>>());
+    private Map<Runnable, Future<?>> _futures = new ConcurrentHashMap<Runnable, Future<?>>();
 
     public MessageReaderThread(String peerName, IInput in, MessageQueue messageQueue, IMessageSender messageSender,
             int maxThreadCount) {
@@ -54,6 +52,7 @@ public class MessageReaderThread extends Thread {
 
     public void run() {
         try {
+        	long nMessages = 0;
         	_threadExecutor = Executors.newFixedThreadPool(_maxThreadCount);
             if (LOG.isInfoEnabled()) {
                 LOG.info("start to read messages for peer: [" + _peerName + "]");
@@ -63,6 +62,12 @@ public class MessageReaderThread extends Thread {
                 Message message = (Message) _in.readObject();
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("read message [" + message.getId() + "] for client [" + _peerName + "]");
+                }
+                if (LOG.isInfoEnabled()) {
+                    nMessages++;
+                    if (nMessages % 100 == 0) {
+                    	LOG.info("Number of messages for peer [" + _peerName + "]: " + nMessages);
+                    }
                 }
                 waitForAnswer(message);
             }
@@ -97,7 +102,12 @@ public class MessageReaderThread extends Thread {
                 LOG.error("There is no more data in the buffered part of the stream: " + e.eof);
                 LOG.error("The number of bytes of primitive data available to be read in the current buffer: " + e.length);
             }
-            // TODO what is here todo? mailSender disconnect and connect?
+            if (_messageSender != null) {
+                // disconnect in case of client
+                _messageSender.disconnect(_peerName);
+                // connect in case of client and server 
+                _messageSender.connect(_peerName);
+            }
         } catch (IOException e) {
             if (LOG.isEnabledFor(Level.ERROR)) {
                 LOG.error("error while consuming messages for peer: " + _peerName, e);
@@ -147,7 +157,7 @@ public class MessageReaderThread extends Thread {
         }
     }
 
-    public void interrupt() {
+    public synchronized void interrupt() {
         if (LOG.isEnabledFor(Level.INFO)) {
             LOG.info("Shutdown MessageReaderThread.");
         }

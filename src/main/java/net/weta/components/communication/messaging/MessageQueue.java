@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.weta.components.communication.CommunicationException;
 
@@ -40,7 +41,7 @@ public class MessageQueue implements IMessageQueue {
 
     private List _queueSize = Collections.synchronizedList(new ArrayList());
     
-    private Map _messages = new HashMap();
+    private Map<String, Message> _messages = new ConcurrentHashMap<String, Message>();
 
     private Map _ids = new HashMap();
 
@@ -57,6 +58,9 @@ public class MessageQueue implements IMessageQueue {
         Object mutex = getSynchronizedMutex(messageId);
         synchronized (mutex) {
             if (_queueSize.size() == _maxSize) {
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("Max size of message queue reached: " + _maxSize + " with message [" + messageId + "].");
+                }
                 String oldestMessageId = (String) _queueSize.remove(0);
                 _messages.remove(oldestMessageId);
             }
@@ -73,6 +77,11 @@ public class MessageQueue implements IMessageQueue {
             if (mutex == null) {
                 mutex = new Object();
                 _ids.put(messageId, mutex);
+            }
+            if (LOGGER.isInfoEnabled()) {
+            	if (_ids.size() > 0 && _ids.size() % 100 == 0) {
+            		LOGGER.info("Size of synchronized mutex list: " + _ids.size() + ". Last message is: " + messageId);
+            	}
             }
         }
         return mutex;

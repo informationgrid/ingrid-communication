@@ -154,11 +154,14 @@ public class MultiCommunicationClientTest extends TestCase {
         _tcpCommunicationServer2.closeConnection(CLIENT);
         _tcpCommunicationServer2.shutdown();
 
-        File[] files = _securityFolder.listFiles();
-        for (int i = 0; i < files.length; i++) {
-            assertTrue(files[i].delete());
+        // unable to delete files under windows, because they are locked
+        if (System.getProperty("os.name").toLowerCase().indexOf("windows") == -1) {
+	        File[] files = _securityFolder.listFiles();
+	        for (int i = 0; i < files.length; i++) {
+	            assertTrue(files[i].delete());
+	        }
+	        assertTrue(_securityFolder.delete());
         }
-        assertTrue(_securityFolder.delete());
     }
 
     public void testSendSyncMessageFromServerToClient() throws Exception {

@@ -6,10 +6,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.weta.components.communication.messaging.IMessageQueue;
 import net.weta.components.communication.messaging.Message;
@@ -66,7 +66,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
     }
     private static final Logger LOG = Logger.getLogger(CommunicationServer.class);
 
-    private Map<String, CommunicationClientInfo> _clientInfos = new HashMap<String, CommunicationClientInfo>();
+    private Map<String, CommunicationClientInfo> _clientInfos = new ConcurrentHashMap<String, CommunicationClientInfo>();
 
     private final int _port;
 
@@ -118,7 +118,13 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
                 LOG.warn("Registration of new client from ip [" + socket.getRemoteSocketAddress() +
                         "], client with the same name already registered: [" + peerName + "]");
             }
-            deregister(peerName);
+            try {
+                LOG.info("close socket for duplicate peer: [" + peerName + "] from ip: [" + socket.getRemoteSocketAddress() + "]" );
+                socket.close();
+            } catch (IOException e) {
+                LOG.error("can not close socket for duplicate peer [" + peerName + "] from ip: [" + socket.getRemoteSocketAddress() + "]");
+            }
+            return;
         }
 
         LOG.info("Client [" + peerName + "] registered from ip [" + socket.getRemoteSocketAddress() + "]");
@@ -141,7 +147,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
     }
 
     public synchronized void deregister(String peerName) {
-        CommunicationClientInfo info = _clientInfos.remove(peerName);
+        CommunicationClientInfo info = _clientInfos.get(peerName);
         if (info != null) {
             MessageReaderThread thread = info.getMessageReaderThread();
             if (LOG.isInfoEnabled()) {
@@ -154,6 +160,12 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
                 socket.close();
             } catch (IOException e) {
                 LOG.error("can not close socket for client [" + peerName + "] from ip: [" + socket.getRemoteSocketAddress() + "]");
+            }
+            finally {
+            	// finally remove the peer from the list
+            	// this makes sure, that no registration can take place 
+            	// unless the client has completely deregistered 
+            	_clientInfos.remove(peerName);
             }
         } else {
             LOG.warn("peername does not exists, skip deregister: " + peerName);
@@ -178,11 +190,12 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
     }
 
     public void interrupt() {
+        if (LOG.isInfoEnabled()) {
+            LOG.info("interupt communication server thread.");
+        }
         super.interrupt();
-        Set peerNames = _clientInfos.keySet();
-        String[] peerNameArray = (String[]) peerNames.toArray(new String[peerNames.size()]);
-        for (int i = 0; i < peerNameArray.length; i++) {
-            String peerName = peerNameArray[i];
+        Set<String> peerNames = _clientInfos.keySet();
+        for (String peerName : peerNames) {
             deregister(peerName);
         }
         try {
@@ -202,8 +215,8 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         deregister(url);
     }
 
-    public List getRegisteredClients() {
-        return new ArrayList(_clientInfos.keySet());
+    public List<String> getRegisteredClients() {
+        return new ArrayList<String>(_clientInfos.keySet());
     }
 
     public boolean isConnected(String url) {
