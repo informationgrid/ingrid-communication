@@ -17,7 +17,7 @@ public class ConfigurationValidator implements IConfigurationValidator {
 	private Validator _validator;
 
 	public ConfigurationValidator(File xsdFile) throws Exception {
-		this(xsdFile.toURL());
+		this(xsdFile.toURI().toURL());
 	}
 
 	public ConfigurationValidator(URL xsdFileUrl) throws Exception {
