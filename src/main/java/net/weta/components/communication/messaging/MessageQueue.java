@@ -20,7 +20,6 @@ package net.weta.components.communication.messaging;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,15 +38,31 @@ public class MessageQueue implements IMessageQueue {
 
     private static Logger LOGGER = Logger.getLogger(MessageQueue.class);
 
-    private List _queueSize = Collections.synchronizedList(new ArrayList());
+    private List<String> _queueSize = Collections.synchronizedList(new ArrayList<String>());
     
     private Map<String, Message> _messages = new ConcurrentHashMap<String, Message>();
 
-    private Map _ids = new HashMap();
+    private Map<String, MutexType> _ids = new ConcurrentHashMap<String, MutexType>();
 
     private MessageProcessorRegistry _messageProcessorRegistry = new MessageProcessorRegistry();
 
     private int _maxSize = 2000;
+    
+    private class MutexType {
+    	public static final byte MUTEX_MESSAGE_PROCESSED = 1;
+    	
+    	private byte state = 0;
+    	
+    	public void setState(byte state) {
+    		this.state = state;
+    	}
+    	
+    	public byte getState() {
+    		return this.state;
+    	}
+    }
+    
+    
 
     public MessageQueue() {
         // nothing todo
@@ -55,29 +70,37 @@ public class MessageQueue implements IMessageQueue {
 
     private void addMessage(Message message) {
         String messageId = message.getId();
-        Object mutex = getSynchronizedMutex(messageId);
+        MutexType mutex = getSynchronizedMutex(messageId);
         synchronized (mutex) {
-            if (_queueSize.size() == _maxSize) {
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("Max size of message queue reached: " + _maxSize + " with message [" + messageId + "].");
+        	// check for message that have been processed already (timeout in waitForMessage())
+        	if (mutex.getState() == MutexType.MUTEX_MESSAGE_PROCESSED) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Message [" + messageId + "] already processed. Ignore this message.");
                 }
-                String oldestMessageId = (String) _queueSize.remove(0);
-                _messages.remove(oldestMessageId);
+                // remove timeout message from mutex store
+                _ids.remove(messageId);
+            } else {
+            	if (_queueSize.size() == _maxSize) {
+	                if (LOGGER.isInfoEnabled()) {
+	                    LOGGER.info("Max size of message queue reached: " + _maxSize + " with message [" + messageId + "].");
+	                }
+	                String oldestMessageId = (String) _queueSize.remove(0);
+	                _messages.remove(oldestMessageId);
+	            	_ids.remove(oldestMessageId);
+            	}
+                _messages.put(messageId, message);
+                _queueSize.add(messageId);
+                mutex.notify();
             }
-            _messages.put(messageId, message);
-            _queueSize.add(messageId);
-            mutex.notify();
         }
     }
 
-    private Object getSynchronizedMutex(String messageId) {
-        Object mutex = null;
-        synchronized (_ids) {
-            mutex = _ids.remove(messageId);
-            if (mutex == null) {
-                mutex = new Object();
-                _ids.put(messageId, mutex);
-            }
+    private MutexType getSynchronizedMutex(String messageId) {
+    	MutexType mutex = null;
+        mutex = _ids.remove(messageId);
+        if (mutex == null) {
+            mutex = new MutexType();
+            _ids.put(messageId, mutex);
             if (LOGGER.isInfoEnabled()) {
             	if (_ids.size() > 0 && _ids.size() % 100 == 0) {
             		LOGGER.info("Size of synchronized mutex list: " + _ids.size() + ". Last message is: " + messageId);
@@ -93,7 +116,7 @@ public class MessageQueue implements IMessageQueue {
 
     public Message waitForMessage(String id, int timeout) {
         Message message = null;
-        Object mutex = getSynchronizedMutex(id);
+        MutexType mutex = getSynchronizedMutex(id);
         synchronized (mutex) {
             message = (Message) _messages.remove(id);
             try {
@@ -104,14 +127,18 @@ public class MessageQueue implements IMessageQueue {
                     mutex.wait(timeout * 1000);
 
                     message = (Message) _messages.remove(id);
-                    if (null != message) {
-                        _queueSize.remove(id);
-                    }
-                } else {
-                    _queueSize.remove(id);
                 }
             } catch (InterruptedException e) {
                 Thread.interrupted();
+            }
+            finally {
+            	/* set message as state processed
+            	   messages that will be received after this point will be 
+            	   removed from mutex storage. See addMessage() as well.
+            	*/
+            	mutex.setState(MutexType.MUTEX_MESSAGE_PROCESSED);
+            	// remove message from queue
+            	_queueSize.remove(id);
             }
 
             if (LOGGER.isDebugEnabled() && message != null) {
@@ -128,6 +155,8 @@ public class MessageQueue implements IMessageQueue {
      */
     public synchronized void clear() {
         _messages.clear();
+        _ids.clear();
+        _queueSize.clear();
     }
 
     public MessageProcessorRegistry getProcessorRegistry() {
