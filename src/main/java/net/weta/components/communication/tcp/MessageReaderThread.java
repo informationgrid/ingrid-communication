@@ -4,10 +4,9 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.OptionalDataException;
 import java.net.SocketException;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import net.weta.components.communication.messaging.Message;
@@ -37,8 +36,6 @@ public class MessageReaderThread extends Thread {
 
     private final IInput _in;
     
-    private ExecutorService _threadExecutor = null;
-    
     private Map<Runnable, Future<?>> _futures = new ConcurrentHashMap<Runnable, Future<?>>();
 
     public MessageReaderThread(String peerName, IInput in, MessageQueue messageQueue, IMessageSender messageSender,
@@ -53,7 +50,7 @@ public class MessageReaderThread extends Thread {
     public void run() {
         try {
         	long nMessages = 0;
-        	_threadExecutor = Executors.newFixedThreadPool(_maxThreadCount);
+        	long startMillis = System.currentTimeMillis();
             if (LOG.isInfoEnabled()) {
                 LOG.info("start to read messages for peer: [" + _peerName + "]");
             }
@@ -65,8 +62,8 @@ public class MessageReaderThread extends Thread {
                 }
                 if (LOG.isInfoEnabled()) {
                     nMessages++;
-                    if (nMessages % 100 == 0) {
-                    	LOG.info("Number of messages for peer [" + _peerName + "]: " + nMessages);
+                    if (nMessages % 500 == 0) {
+                    	LOG.info("Number of messages for peer [" + _peerName + "]: " + nMessages + " (" + (nMessages*1.0/(System.currentTimeMillis()-startMillis)*1000*60) + " msg/min) since " + new Date(startMillis) + ".");
                     }
                 }
                 waitForAnswer(message);
