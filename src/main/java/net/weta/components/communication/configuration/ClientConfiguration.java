@@ -129,9 +129,9 @@ public class ClientConfiguration extends Configuration {
 
 	}
 
-	private List _clientConnections = new ArrayList();
+	private List<ClientConnection> _clientConnections = new ArrayList<ClientConnection>();
 
-	public List getClientConnections() {
+	public List<ClientConnection> getClientConnections() {
 		return _clientConnections;
 	}
 	
@@ -139,7 +139,7 @@ public class ClientConfiguration extends Configuration {
         return (ClientConnection) _clientConnections.get(index);
     }
 
-	public void setClientConnections(List clientConnections) {
+	public void setClientConnections(List<ClientConnection> clientConnections) {
 		_clientConnections = clientConnections;
 	}
 

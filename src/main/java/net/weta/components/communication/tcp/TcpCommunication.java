@@ -128,7 +128,7 @@ public class TcpCommunication implements ICommunication {
 			_communicationServer.start();
 		} else {
 			ClientConfiguration clientConfiguration = (ClientConfiguration) _configuration;
-			List clients = new ArrayList();
+			List<CommunicationClient> clients = new ArrayList<CommunicationClient>();
 			for (int i = 0; i < clientConfiguration.getClientConnections().size(); i++) {
 				ClientConnection clientConnection = clientConfiguration.getClientConnection(i);
 				SecurityUtil util = createSecurityUtil(clientConnection.getKeystorePath(), clientConnection
@@ -178,13 +178,13 @@ public class TcpCommunication implements ICommunication {
 				+ " MB total (" + percent + " %)" + "]");
 	}
 
-	public List getRegisteredClients() {
-		List result = new ArrayList();
+	public List<String> getRegisteredClients() {
+		List<String> result = new ArrayList<String>();
 		if (_isCommunicationServer) {
 			result = _communicationServer.getRegisteredClients();
 		} else {
 			ClientConfiguration clientConfiguration = (ClientConfiguration) _configuration;
-			List clientConnections = clientConfiguration.getClientConnections();
+			List<ClientConnection> clientConnections = clientConfiguration.getClientConnections();
 			for (int i = 0; i < clientConnections.size(); i++) {
 				ClientConnection clientConnection = (ClientConnection) clientConnections.get(i);
 				String serverName = clientConnection.getServerName();
@@ -216,8 +216,8 @@ public class TcpCommunication implements ICommunication {
 		return _configuration;
 	}
 
-	public List getServerNames() {
-		List list = new ArrayList();
+	public List<String> getServerNames() {
+		List<String> list = new ArrayList<String>();
 		if (_configuration instanceof ServerConfiguration) {
 			ServerConfiguration configuration = (ServerConfiguration) _configuration;
 			// a server has no server names, we take the name own name
@@ -226,9 +226,9 @@ public class TcpCommunication implements ICommunication {
 		} else if (_configuration instanceof ClientConfiguration) {
 			ClientConfiguration configuration = (ClientConfiguration) _configuration;
 			// collect all server names
-			List clientConnections = configuration.getClientConnections();
-			for (Iterator iterator = clientConnections.iterator(); iterator.hasNext();) {
-				ClientConnection connection = (ClientConnection) iterator.next();
+			List<ClientConnection> clientConnections = configuration.getClientConnections();
+			for (Iterator<ClientConnection> iterator = clientConnections.iterator(); iterator.hasNext();) {
+				ClientConnection connection = iterator.next();
 				String name = connection.getServerName();
 				list.add(name);
 			}
