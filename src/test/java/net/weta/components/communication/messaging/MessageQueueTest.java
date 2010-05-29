@@ -121,4 +121,26 @@ public class MessageQueueTest extends TestCase {
             assertEquals(1, queue.size());            
         }
     }
+    
+    public void testMessageGarbageCollection() throws InterruptedException {
+        MessageQueue queue = new MessageQueue();
+        queue.setMaxMutexListeSizeBeforeGarbageCollect(10);
+        queue.setMaxMutexTimeout(1000);
+        
+        PayloadMessage message = new PayloadMessage("bla", "");
+
+        for (int i = 0; i < 10; i++) {
+            message.setId("" + i);
+            queue.messageEvent(message);
+        }
+        assertEquals(10, queue.size());
+        
+        Thread.sleep(1500);
+        
+        message.setId("" + 10);
+        queue.messageEvent(message);
+        assertEquals(1, queue.size());
+        
+        
+    }
 }

@@ -18,11 +18,10 @@
 
 package net.weta.components.communication.messaging;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import net.weta.components.communication.CommunicationException;
 
@@ -38,7 +37,7 @@ public class MessageQueue implements IMessageQueue {
 
     private static Logger LOGGER = Logger.getLogger(MessageQueue.class);
 
-    private List<String> _queueSize = Collections.synchronizedList(new ArrayList<String>());
+    private List<String> _queueSize = new CopyOnWriteArrayList<String>();
     
     private Map<String, Message> _messages = new ConcurrentHashMap<String, Message>();
 
@@ -48,10 +47,16 @@ public class MessageQueue implements IMessageQueue {
 
     private int _maxSize = 2000;
     
+	private int _maxMutexTimeout = 3600000; // one hour in ms
+    
+    private int _maxMutexListeSizeBeforeGarbageCollect = 500; 
+    
     private class MutexType {
     	public static final byte MUTEX_MESSAGE_PROCESSED = 1;
     	
     	private byte state = 0;
+    	
+    	private long created = System.currentTimeMillis();
     	
     	public void setState(byte state) {
     		this.state = state;
@@ -59,6 +64,10 @@ public class MessageQueue implements IMessageQueue {
     	
     	public byte getState() {
     		return this.state;
+    	}
+    	
+    	public long getCreated() {
+    		return created;
     	}
     }
     
@@ -101,11 +110,25 @@ public class MessageQueue implements IMessageQueue {
         if (mutex == null) {
             mutex = new MutexType();
             _ids.put(messageId, mutex);
-            if (LOGGER.isInfoEnabled()) {
-            	if (_ids.size() > 0 && _ids.size() % 100 == 0) {
-            		LOGGER.info("Size of synchronized mutex list: " + _ids.size() + ". Last message is: " + messageId);
-            	}
-            }
+        	if (_ids.size() > _maxMutexListeSizeBeforeGarbageCollect) {
+				if (LOGGER.isInfoEnabled()) {
+					LOGGER.info("Start mutex list garbage collection. Removing mutex messages older than " + (_maxMutexTimeout / 1000) + " sec.");
+				}
+        		long now = System.currentTimeMillis();
+        		long then = now - _maxMutexTimeout;
+        		for (String mutexId : _ids.keySet()) {
+        			MutexType tmpMutex = _ids.get(mutexId);
+        			if (tmpMutex != null && tmpMutex.getCreated() < then) {
+        				if (LOGGER.isInfoEnabled()) {
+        					LOGGER.info("Remove old ("+((now - tmpMutex.getCreated())/1000.0) +" sec) mutex message [" + mutexId + "] from message queue.");
+        				}
+        				_ids.remove(mutexId);
+        				_messages.remove(mutexId);
+        				_queueSize.remove(mutexId);
+        				tmpMutex = null;
+        			}
+        		}
+        	}
         }
         return mutex;
     }
@@ -209,4 +232,20 @@ public class MessageQueue implements IMessageQueue {
     public void setMaxSize(int maxSize) {
         _maxSize = maxSize;
     }
+
+    /**
+     * @param maxMutexTimeout
+     */
+    public void setMaxMutexTimeout(int maxMutexTimeout) {
+		_maxMutexTimeout = maxMutexTimeout;
+	}
+
+	/**
+	 * @param maxMutexListeSizeBeforeGarbageCollect
+	 */
+	public void setMaxMutexListeSizeBeforeGarbageCollect(int maxMutexListeSizeBeforeGarbageCollect) {
+		_maxMutexListeSizeBeforeGarbageCollect = maxMutexListeSizeBeforeGarbageCollect;
+	}
+
+
 }
