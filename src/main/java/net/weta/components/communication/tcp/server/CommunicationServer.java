@@ -151,7 +151,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         if (info != null) {
             MessageReaderThread thread = info.getMessageReaderThread();
             if (LOG.isInfoEnabled()) {
-                LOG.info("interuppt message reader thread for peer: [" + peerName + "]");
+                LOG.info("interrupt message reader thread for peer: [" + peerName + "]");
             }
             thread.interrupt();
             Socket socket = info.getSocket();

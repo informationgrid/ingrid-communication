@@ -126,22 +126,30 @@ public class MessageReaderThread extends Thread {
         }
         Runnable runnable = new Runnable() {
             public void run() {
-                Message answer = _messageQueue.messageEvent(message);
-                if (answer != null) {
-                    answer.setType("");
-                    try {
-                        _messageSender.sendMessage(_peerName, answer);
-                    } catch (IOException e) {
-                        if (LOG.isEnabledFor(Level.WARN)) {
-                            LOG.warn("can not send answer message to [" + _peerName + "]: " + e.getMessage());
-                        }
-                        if (LOG.isEnabledFor(Level.DEBUG)) {
-                            LOG.debug("Stacktrace:", e);
-                        }
+                try {
+	            	Message answer = _messageQueue.messageEvent(message);
+	                if (answer != null) {
+	                    answer.setType("");
+	                    try {
+	                        _messageSender.sendMessage(_peerName, answer);
+	                    } catch (IOException e) {
+	                        if (LOG.isEnabledFor(Level.WARN)) {
+	                            LOG.warn("can not send answer message to [" + _peerName + "]: " + e.getMessage());
+	                        }
+	                        if (LOG.isEnabledFor(Level.DEBUG)) {
+	                            LOG.debug("Stacktrace:", e);
+	                        }
+	                    }
+	                }
+                } catch (Throwable t) {
+                    if (LOG.isEnabledFor(Level.INFO)) {
+                        LOG.info("Unexpected interruption of sending message [" + message + "] to peer [" + _peerName + "].", t);
                     }
                 }
-                _futures.remove(this);
-                _threadCount--;
+                finally {
+	                _futures.remove(this);
+	                _threadCount--;
+                }
             }
         };
 
