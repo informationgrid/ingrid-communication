@@ -104,7 +104,7 @@ public class MessageQueue implements IMessageQueue {
         }
     }
 
-    private MutexType getSynchronizedMutex(String messageId) {
+    private synchronized MutexType getSynchronizedMutex(String messageId) {
     	MutexType mutex = null;
         mutex = _ids.remove(messageId);
         if (mutex == null) {

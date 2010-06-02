@@ -38,6 +38,48 @@ public class MessageReaderThread extends Thread {
     
     private Map<Runnable, Future<?>> _futures = new ConcurrentHashMap<Runnable, Future<?>>();
 
+    private class WaitForAnswerRunnable implements Runnable {
+
+    	Message message = null;
+    	
+		public WaitForAnswerRunnable(Message message) {
+			this.message = message;
+		}
+    	
+    	@Override
+		public void run() {
+            try {
+            	Message answer = _messageQueue.messageEvent(message);
+                if (answer != null) {
+                    answer.setType("");
+                    try {
+                        _messageSender.sendMessage(_peerName, answer);
+                    } catch (IOException e) {
+                        if (LOG.isEnabledFor(Level.WARN)) {
+                            LOG.warn("can not send answer message to [" + _peerName + "]: " + e.getMessage());
+                        }
+                        if (LOG.isEnabledFor(Level.DEBUG)) {
+                            LOG.debug("Stacktrace:", e);
+                        }
+                    }
+                }
+            } catch (Throwable t) {
+                if (LOG.isEnabledFor(Level.INFO)) {
+                    LOG.info("Unexpected interruption of sending message [" + message + "] to peer [" + _peerName + "].", t);
+                }
+            }
+            finally {
+            	Future<?> f = _futures.get(this);
+            	if (f != null) {
+                	f.cancel(true); // make sure the thread will be canceled
+                	_futures.remove(this);
+            	}
+                _threadCount--;
+            }		
+         }
+    }
+    
+    
     public MessageReaderThread(String peerName, IInput in, MessageQueue messageQueue, IMessageSender messageSender,
             int maxThreadCount) {
         _peerName = peerName;
@@ -46,7 +88,7 @@ public class MessageReaderThread extends Thread {
         _messageSender = messageSender;
         _maxThreadCount = maxThreadCount;
     }
-
+    
     public void run() {
         try {
         	long nMessages = 0;
@@ -124,35 +166,8 @@ public class MessageReaderThread extends Thread {
             }
             throw new TooManyRunningThreads("No more threads available.");
         }
-        Runnable runnable = new Runnable() {
-            public void run() {
-                try {
-	            	Message answer = _messageQueue.messageEvent(message);
-	                if (answer != null) {
-	                    answer.setType("");
-	                    try {
-	                        _messageSender.sendMessage(_peerName, answer);
-	                    } catch (IOException e) {
-	                        if (LOG.isEnabledFor(Level.WARN)) {
-	                            LOG.warn("can not send answer message to [" + _peerName + "]: " + e.getMessage());
-	                        }
-	                        if (LOG.isEnabledFor(Level.DEBUG)) {
-	                            LOG.debug("Stacktrace:", e);
-	                        }
-	                    }
-	                }
-                } catch (Throwable t) {
-                    if (LOG.isEnabledFor(Level.INFO)) {
-                        LOG.info("Unexpected interruption of sending message [" + message + "] to peer [" + _peerName + "].", t);
-                    }
-                }
-                finally {
-	                _futures.remove(this);
-	                _threadCount--;
-                }
-            }
-        };
 
+        WaitForAnswerRunnable runnable = new WaitForAnswerRunnable(message);
         // use thread pool here
         _futures.put(runnable, PooledThreadExecutor.commit(runnable));
         
