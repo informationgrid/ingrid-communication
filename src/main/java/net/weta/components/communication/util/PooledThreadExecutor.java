@@ -3,12 +3,9 @@
  */
 package net.weta.components.communication.util;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
-
-import net.weta.components.communication.tcp.server.CommunicationServer;
 
 import org.apache.log4j.Logger;
 
@@ -44,17 +41,13 @@ public class PooledThreadExecutor {
 		PooledThreadExecutor.getInstance().execute(command);
 	}
 
-	public static Future<?> commit(Runnable command) {
+	public static Future<?> submit(Runnable command) {
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Number of current running tasks: " + PooledThreadExecutor.getInstance().getActiveCount());
 			LOG.debug("Thread pool size: " + PooledThreadExecutor.getInstance().getPoolSize());
 			LOG.debug("All time number of scheduled tasks: " + PooledThreadExecutor.getInstance().getTaskCount());
 		}
 		return PooledThreadExecutor.getInstance().submit(command);
-	}
-	
-	public static void remove(Runnable task) {
-		PooledThreadExecutor.getInstance().remove(task);
 	}
 	
 	public static void purge() {
