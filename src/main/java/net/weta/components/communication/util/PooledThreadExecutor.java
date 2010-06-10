@@ -52,5 +52,19 @@ public class PooledThreadExecutor {
 		}
 		return PooledThreadExecutor.getInstance().submit(command);
 	}
+	
+	public static void remove(Runnable task) {
+		PooledThreadExecutor.getInstance().remove(task);
+	}
+	
+	public static void purge() {
+		if (LOG.isInfoEnabled()) {
+			LOG.info("Before purge: Number of current running tasks: " + PooledThreadExecutor.getInstance().getActiveCount() + "; Thread pool size: " + PooledThreadExecutor.getInstance().getPoolSize() + "; Working queue size: " + PooledThreadExecutor.getInstance().getQueue().size());
+		}
+		PooledThreadExecutor.getInstance().purge();
+		if (LOG.isInfoEnabled()) {
+			LOG.info("After purge: Number of current running tasks: " + PooledThreadExecutor.getInstance().getActiveCount() + "; Thread pool size: " + PooledThreadExecutor.getInstance().getPoolSize() + "; Working queue size: " + PooledThreadExecutor.getInstance().getQueue().size());
+		}
+	}
 
 }

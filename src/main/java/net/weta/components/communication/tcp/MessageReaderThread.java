@@ -72,8 +72,10 @@ public class MessageReaderThread extends Thread {
             	Future<?> f = _futures.get(this);
             	if (f != null) {
                 	f.cancel(true); // make sure the thread will be canceled
+            		PooledThreadExecutor.remove(this); // try remove task from executor
                 	_futures.remove(this);
             	}
+            	this.message = null;
                 _threadCount--;
             }		
          }
@@ -127,7 +129,7 @@ public class MessageReaderThread extends Thread {
             }
         } catch (MessageSizeTooBigException e) {
             if (LOG.isEnabledFor(Level.WARN)) {
-                LOG.warn(e.getMessage() + " for peer: " + _peerName);
+                LOG.warn("MessageSizeTooBigException for peer: " + _peerName, e);
             }
             if (_messageSender != null) {
                 // disconnect in case of client
@@ -179,7 +181,10 @@ public class MessageReaderThread extends Thread {
 
     public synchronized void interrupt() {
         if (LOG.isEnabledFor(Level.INFO)) {
-            LOG.info("Shutdown MessageReaderThread.");
+            LOG.info("Shutdown MessageReaderThread: " + this._peerName);
+        }
+        if (LOG.isEnabledFor(Level.INFO)) {
+            LOG.info("Try cancel running tasks. Number of registered tasks: " + _futures.size());
         }
         if (_futures != null && !_futures.isEmpty()) {
         	for (Future<?> f : _futures.values()) {
@@ -187,6 +192,8 @@ public class MessageReaderThread extends Thread {
         	}
         	_futures.clear();
         }
+    	PooledThreadExecutor.purge();
+    	System.gc();
         super.interrupt();
     }
 }
