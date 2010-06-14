@@ -192,4 +192,20 @@ public class MultiCommunicationClientTest extends TestCase {
         assertEquals("", result.getType());
         assertEquals(message.getId(), result.getId());
     }
+    
+    public void testSendSyncMessageFromClientToServer() throws Exception {
+        Thread.sleep(3000);
+        Message message = new Message("type");
+        Message result = null;
+        try {
+            result = _tcpCommunicationClient.sendSyncMessage(message, SERVER);
+        } catch (IOException e) {
+            fail();
+        } catch (Exception e) {
+            fail();
+        }
+        assertNotNull(result);
+        assertEquals("", result.getType());
+        assertEquals(message.getId(), result.getId());
+    }
 }

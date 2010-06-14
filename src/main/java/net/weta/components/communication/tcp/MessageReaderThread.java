@@ -174,6 +174,12 @@ public class MessageReaderThread extends Thread {
         Future<?> f = PooledThreadExecutor.submit(runnable);
        	if (!f.isDone()) {
        		_futures.put(message.getId(), f);
+       		// if the task is already done just after the task was added to the future map
+       		// remove it. We don't want any finished tasks at this point. Otherwise they will 
+       		// not get removed anymore. See WaitForAnswerRunnable.run() in finally method.
+       		if (f.isDone()) {
+       			_futures.remove(message.getId());
+       		}
        	}
         
         _threadCount++;

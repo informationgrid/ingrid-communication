@@ -71,7 +71,7 @@ public class CommunicationServerTest extends TestCase {
 
     }
     
-    public void testDuplicateRegistration() throws Exception {
+    public void testDuplicateRegistrationSameIP() throws Exception {
         TcpCommunication server = new TcpCommunication();
         ServerConfiguration serverConfiguration = new ServerConfiguration();
         serverConfiguration.setName(SERVER);
@@ -102,6 +102,7 @@ public class CommunicationServerTest extends TestCase {
         assertEquals("", result.getType());
         assertEquals(message.getId(), result.getId());
         
+        System.out.println("Startup second client with same IP.");
         TcpCommunication client2 = new TcpCommunication();
         ClientConfiguration clientConfiguration2 = new ClientConfiguration();
         clientConfiguration2.setName(CLIENT);
@@ -115,36 +116,29 @@ public class CommunicationServerTest extends TestCase {
         client2.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
 
         Thread.sleep(1000);
-        boolean threwException = false;
-        try {
-        	message = new Message("type");
-        	result = client2.sendSyncMessage(message, SERVER);
-            assertNotNull(result);
-            assertEquals("", result.getType());
-            assertEquals(message.getId(), result.getId());
-        } catch (SocketException e) {
-        	threwException = true;
-        }
-        assertTrue("No Exception has been thrown on duplicat connect.", threwException);
+        System.out.println("Send Message from second client.");
+    	message = new Message("type");
+    	result = client2.sendSyncMessage(message, SERVER);
+        assertNotNull(result);
+        assertEquals("", result.getType());
+        assertEquals("", result.getId());
         
+        System.out.println("Shutdown first client.");
         client1.shutdown();
         Thread.sleep(1000);
 
-        threwException = true;
-        try {
-        	message = new Message("type");
-        	result = client2.sendSyncMessage(message, SERVER);
-            assertNotNull(result);
-            assertEquals("", result.getType());
-            assertEquals(message.getId(), result.getId());
-        } catch (SocketException e) {
-        	fail("Duplicate Client2 should be able to connect because of client1's shutdown.");
-        	threwException = true;
-        }
-        
+        System.out.println("Send message from second client.");
+    	message = new Message("type");
+    	client2.startup();
+    	Thread.sleep(1000);
+    	result = client2.sendSyncMessage(message, SERVER);
+        assertNotNull(result);
+        assertEquals("", result.getType());
+        assertEquals(message.getId(), result.getId());
         
     }
-
+    
+    
     public void testRegsiterWithoutSecurity() throws Exception {
         TcpCommunication server = new TcpCommunication();
         ServerConfiguration serverConfiguration = new ServerConfiguration();
