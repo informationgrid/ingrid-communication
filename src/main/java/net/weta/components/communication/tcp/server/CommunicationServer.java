@@ -114,17 +114,25 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
 
     public synchronized void register(String peerName, Socket socket, IInput in, IOutput out) {
         if (_clientInfos.containsKey(peerName)) {
-            if (LOG.isEnabledFor(Level.WARN)) {
-                LOG.warn("Registration of new client from ip [" + socket.getRemoteSocketAddress() +
-                        "], client with the same name already registered: [" + peerName + "]");
-            }
-            try {
-                LOG.info("close socket for duplicate peer: [" + peerName + "] from ip: [" + socket.getRemoteSocketAddress() + "]" );
-                socket.close();
-            } catch (IOException e) {
-                LOG.error("can not close socket for duplicate peer [" + peerName + "] from ip: [" + socket.getRemoteSocketAddress() + "]");
-            }
-            return;
+            CommunicationClientInfo cci =  _clientInfos.get(peerName);
+        	if (!cci.getSocket().isConnected() && cci.getSocket().getInetAddress().toString().equals(socket.getInetAddress().toString())) {
+	        	if (LOG.isEnabledFor(Level.WARN)) {
+	                LOG.warn("Registration of new client from ip [" + socket.getRemoteSocketAddress() +
+	                        "], client with the same name already registered: [" + peerName + "] from same ip. Try to reconnect.");
+	            }
+        	} else {
+	        	if (LOG.isEnabledFor(Level.WARN)) {
+	                LOG.warn("Registration of new client from ip [" + socket.getRemoteSocketAddress() +
+	                        "], client with the same name already registered: [" + peerName + "] from ip [" + cci.getSocket().getRemoteSocketAddress() + "]");
+	            }
+	            try {
+	                LOG.info("close socket for duplicate peer: [" + peerName + "] from ip: [" + socket.getRemoteSocketAddress() + "]" );
+	                socket.close();
+	            } catch (IOException e) {
+	                LOG.error("can not close socket for duplicate peer [" + peerName + "] from ip: [" + socket.getRemoteSocketAddress() + "]");
+	            }
+	            return;
+        	}
         }
 
         LOG.info("Client [" + peerName + "] registered from ip [" + socket.getRemoteSocketAddress() + "]");

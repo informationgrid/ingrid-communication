@@ -110,7 +110,17 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
         }
 
         try {
-            _socket = new Socket();
+            if (_messageReaderThread != null && _messageReaderThread.isAlive()) {
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("Previous message reader thread is still running, interruping now, close socket.");
+                }
+            	_messageReaderThread.interrupt();
+            	if (_socket != null && !_socket.isClosed()) {
+            		_socket.close();
+            	}
+            }
+        	
+        	_socket = new Socket();
             if (_proxyServer != null && _proxyPort != null) {
                 connectThroughHttpProxy();
             } else {
@@ -209,11 +219,14 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
     }
 
     public void sendMessage(String peerName, Message message) throws IOException {
-        waitUntilClientIsConnected();
-        synchronized (_out) {
-            _out.writeObject(message);
-            _out.flush();
-        }
+    	if (_isConnected) {
+	        synchronized (_out) {
+	            _out.writeObject(message);
+	            _out.flush();
+	        }
+        } else {
+            LOG.warn("Client not connected, message not sent to: " + peerName);
+    	}
     }
 
     private void waitUntilClientIsConnected() throws IOException {

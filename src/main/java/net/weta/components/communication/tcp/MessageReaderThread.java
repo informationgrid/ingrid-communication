@@ -36,14 +36,16 @@ public class MessageReaderThread extends Thread {
 
     private final IInput _in;
     
-    private Map<Runnable, Future<?>> _futures = new ConcurrentHashMap<Runnable, Future<?>>();
+    private Map<String, Future<?>> _futures = new ConcurrentHashMap<String, Future<?>>();
 
     private class WaitForAnswerRunnable implements Runnable {
 
     	Message message = null;
+    	String tracker = null;
     	
 		public WaitForAnswerRunnable(Message message) {
 			this.message = message;
+			this.tracker = message.getId();
 		}
     	
     	@Override
@@ -69,11 +71,11 @@ public class MessageReaderThread extends Thread {
                 }
             }
             finally {
-            	Future<?> f = _futures.get(this);
+            	Future<?> f = _futures.remove(this.tracker);
             	if (f != null) {
                 	f.cancel(true); // make sure the thread will be canceled
-                	_futures.remove(this);
             	}
+            	this.message = null;
                 _threadCount--;
             }		
          }
@@ -105,7 +107,7 @@ public class MessageReaderThread extends Thread {
                 if (LOG.isInfoEnabled()) {
                     nMessages++;
                     if (nMessages % 500 == 0) {
-                    	LOG.info("Number of messages for peer [" + _peerName + "]: " + nMessages + " (" + (nMessages*1.0/(System.currentTimeMillis()-startMillis)*1000*60) + " msg/min) since " + new Date(startMillis) + ".");
+                    	LOG.info("Number of messages for peer [" + _peerName + "]: " + nMessages + " (" + (nMessages*1.0/(System.currentTimeMillis()-startMillis)*1000*60) + " msg/min) since " + new Date(startMillis) + ". Number of running WaitForAnswerRunnable tasks: " + _futures.size());
                     }
                 }
                 waitForAnswer(message);
@@ -127,7 +129,7 @@ public class MessageReaderThread extends Thread {
             }
         } catch (MessageSizeTooBigException e) {
             if (LOG.isEnabledFor(Level.WARN)) {
-                LOG.warn(e.getMessage() + " for peer: " + _peerName);
+                LOG.warn("MessageSizeTooBigException for peer: " + _peerName, e);
             }
             if (_messageSender != null) {
                 // disconnect in case of client
@@ -169,7 +171,16 @@ public class MessageReaderThread extends Thread {
 
         WaitForAnswerRunnable runnable = new WaitForAnswerRunnable(message);
         // use thread pool here
-        _futures.put(runnable, PooledThreadExecutor.commit(runnable));
+        Future<?> f = PooledThreadExecutor.submit(runnable);
+       	if (!f.isDone()) {
+       		_futures.put(message.getId(), f);
+       		// if the task is already done just after the task was added to the future map
+       		// remove it. We don't want any finished tasks at this point. Otherwise they will 
+       		// not get removed anymore. See WaitForAnswerRunnable.run() in finally method.
+       		if (f.isDone()) {
+       			_futures.remove(message.getId());
+       		}
+       	}
         
         _threadCount++;
         if (LOG.isDebugEnabled()) {
@@ -179,7 +190,8 @@ public class MessageReaderThread extends Thread {
 
     public synchronized void interrupt() {
         if (LOG.isEnabledFor(Level.INFO)) {
-            LOG.info("Shutdown MessageReaderThread.");
+            LOG.info("Shutdown MessageReaderThread: " + this._peerName);
+            LOG.info("Try cancel running tasks. Number of registered tasks: " + _futures.size());
         }
         if (_futures != null && !_futures.isEmpty()) {
         	for (Future<?> f : _futures.values()) {
@@ -187,6 +199,8 @@ public class MessageReaderThread extends Thread {
         	}
         	_futures.clear();
         }
+    	PooledThreadExecutor.purge();
+    	System.gc();
         super.interrupt();
     }
 }
