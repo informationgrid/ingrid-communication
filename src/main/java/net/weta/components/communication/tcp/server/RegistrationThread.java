@@ -48,7 +48,7 @@ public class RegistrationThread extends Thread {
     }
 
     public void run() {
-        String peerName;
+        String peerName = null;
         try {
 
             _socket.setSoTimeout(_socketTimeout * 1000);
@@ -91,8 +91,8 @@ public class RegistrationThread extends Thread {
                 _out.writeBoolean(false);
                 _socket.close();
             }
-        } catch (IOException e) {
-            LOG.error("Client can not register to communication server", e);
+        } catch (Exception e) {
+            LOG.error("Client [" + peerName + "] from " + _socket.getRemoteSocketAddress()+ " can not register to communication server.", e);
             try {
                 _out.writeBoolean(false);
                 _socket.close();
