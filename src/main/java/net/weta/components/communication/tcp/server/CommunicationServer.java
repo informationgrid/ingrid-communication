@@ -6,6 +6,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,23 +19,29 @@ import net.weta.components.communication.security.SecurityUtil;
 import net.weta.components.communication.stream.IInput;
 import net.weta.components.communication.stream.IOutput;
 import net.weta.components.communication.tcp.MessageReaderThread;
+import net.weta.components.communication.util.PooledThreadExecutor;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 public class CommunicationServer extends Thread implements ICommunicationServer, IMessageSender {
 
+	
+	private static final long CLIENT_INFO_LIFE_TIME = 60 * 10 * 1000;
+	
     static class CommunicationClientInfo {
         private final MessageReaderThread _messageReaderThread;
         private final Socket _socket;
         private final IOutput _out;
         private final String _peerName;
+        private long lastLifeSign;
 
-        public CommunicationClientInfo(String peerName, MessageReaderThread messageReaderThread, Socket socket, IOutput out) {
+		public CommunicationClientInfo(String peerName, MessageReaderThread messageReaderThread, Socket socket, IOutput out) {
             _peerName = peerName;
             _messageReaderThread = messageReaderThread;
             _socket = socket;
             _out = out;
+            lastLifeSign = System.currentTimeMillis();
         }
 
         public String getPeerName() {
@@ -57,6 +64,14 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         public int hashCode() {
             return _peerName.hashCode();
         }
+        
+        public long getLastLifeSign() {
+			return this.lastLifeSign;
+		}
+
+		public void setLastLifeSign(long lastLifeSign) {
+			this.lastLifeSign = lastLifeSign;
+		}
 
         @Override
         public boolean equals(Object obj) {
@@ -64,6 +79,39 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         }
 
     }
+    
+    private class ClientInfoTimeoutScanner extends Thread {
+    	
+		@Override
+		public void run() {
+			if (LOG.isInfoEnabled()) {
+				LOG.info("Start client info timout scanner.");
+			}
+			while (!this.isInterrupted()) {
+				try {
+					sleep(CLIENT_INFO_LIFE_TIME);
+					if (LOG.isInfoEnabled()) {
+						LOG.info("Check for timed out client infos.");
+					}
+					long now = System.currentTimeMillis();
+					for (CommunicationClientInfo clientInfo : _clientInfos.values()) {
+						if (clientInfo.getLastLifeSign() + CLIENT_INFO_LIFE_TIME < now ) {
+			                LOG.warn("Remove client '"
+									+ clientInfo.getPeerName()
+									+ "' because last life sign is too old ("
+									+ new Date(clientInfo.getLastLifeSign() + CLIENT_INFO_LIFE_TIME) + " < " + new Date(now) + ")");
+							deregister(clientInfo.getPeerName());
+						}
+					}
+				} catch (InterruptedException e) {
+					LOG.warn("Timeout client info scanner has been interrupted and shut down!");
+				}
+			}
+		}
+    }
+    
+    
+    
     private static final Logger LOG = Logger.getLogger(CommunicationServer.class);
 
     private Map<String, CommunicationClientInfo> _clientInfos = new ConcurrentHashMap<String, CommunicationClientInfo>();
@@ -90,6 +138,10 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         _socketTimeout = socketTimeout;
         _maxMessageSize = maxMessageSize;
         _securityUtil = securityUtil;
+        
+        // start client info timeout scanner
+        PooledThreadExecutor.getInstance().execute(new ClientInfoTimeoutScanner());
+
     }
 
     public void run() {
@@ -126,7 +178,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
 	                        "], client with the same name already registered: [" + peerName + "] from ip [" + cci.getSocket().getRemoteSocketAddress() + "]");
 	            }
 	            try {
-	                LOG.info("close socket for duplicate peer: [" + peerName + "] from ip: [" + socket.getRemoteSocketAddress() + "]" );
+	                LOG.info("close socket for duplicate peer: [" + peerName + "] from ip: [" + socket.getRemoteSocketAddress() + "] since peer is already registered from connected socket: [" + cci.getSocket().getRemoteSocketAddress() + "].");
 	                socket.close();
 	            } catch (IOException e) {
 	                LOG.error("can not close socket for duplicate peer [" + peerName + "] from ip: [" + socket.getRemoteSocketAddress() + "]");
@@ -188,6 +240,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
                 out.writeObject(message);
                 out.flush();
             }
+            info.setLastLifeSign(System.currentTimeMillis());
         } else {
             LOG.warn("communication partner unknown, message not sent to: " + peerName);
         }
