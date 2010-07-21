@@ -27,8 +27,6 @@ import org.apache.log4j.Logger;
 public class CommunicationServer extends Thread implements ICommunicationServer, IMessageSender {
 
 	
-	private static final long CLIENT_INFO_LIFE_TIME = 60 * 10 * 1000;
-	
     static class CommunicationClientInfo {
         private final MessageReaderThread _messageReaderThread;
         private final Socket _socket;
@@ -85,21 +83,21 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
 		@Override
 		public void run() {
 			if (LOG.isInfoEnabled()) {
-				LOG.info("Start client info timout scanner.");
+				LOG.info("Start client info timeout scanner.");
 			}
 			while (!this.isInterrupted()) {
 				try {
-					sleep(CLIENT_INFO_LIFE_TIME);
+					sleep(clientInfoLifeTime);
 					if (LOG.isInfoEnabled()) {
 						LOG.info("Check for timed out client infos.");
 					}
 					long now = System.currentTimeMillis();
 					for (CommunicationClientInfo clientInfo : _clientInfos.values()) {
-						if (clientInfo.getLastLifeSign() + CLIENT_INFO_LIFE_TIME < now ) {
+						if (clientInfo.getLastLifeSign() + clientInfoLifeTime < now ) {
 			                LOG.warn("Remove client '"
 									+ clientInfo.getPeerName()
 									+ "' because last life sign is too old ("
-									+ new Date(clientInfo.getLastLifeSign() + CLIENT_INFO_LIFE_TIME) + " < " + new Date(now) + ")");
+									+ new Date(clientInfo.getLastLifeSign() + clientInfoLifeTime) + " < " + new Date(now) + ")");
 							deregister(clientInfo.getPeerName());
 						}
 					}
@@ -129,15 +127,18 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
     private final SecurityUtil _securityUtil;
 
     private int _maxMessageSize;
+    
+    private long clientInfoLifeTime;
 
-    public CommunicationServer(int port, MessageQueue messageQueue, int maxThreadCount, int socketTimeout,
-            int maxMessageSize, SecurityUtil securityUtil) {
+	public CommunicationServer(int port, MessageQueue messageQueue, int maxThreadCount, int socketTimeout,
+            int maxMessageSize, SecurityUtil securityUtil, long clientInfoLifeTime) {
         _port = port;
         _messageQueue = messageQueue;
         _maxThreadCount = maxThreadCount;
         _socketTimeout = socketTimeout;
         _maxMessageSize = maxMessageSize;
         _securityUtil = securityUtil;
+        this.clientInfoLifeTime = clientInfoLifeTime;
         
         // start client info timeout scanner
         PooledThreadExecutor.getInstance().execute(new ClientInfoTimeoutScanner());
@@ -240,6 +241,9 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
                 out.writeObject(message);
                 out.flush();
             }
+            if (LOG.isDebugEnabled()) {
+            	LOG.debug("Update last life time for client: " + peerName);
+            }
             info.setLastLifeSign(System.currentTimeMillis());
         } else {
             LOG.warn("communication partner unknown, message not sent to: " + peerName);
@@ -283,4 +287,5 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
     public boolean isConnected(String url) {
         return _clientInfos.containsKey(url);
     }
+    
 }

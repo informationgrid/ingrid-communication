@@ -138,6 +138,40 @@ public class CommunicationServerTest extends TestCase {
         
     }
     
+    public void testTimeoutClientInfo() throws Exception {
+        TcpCommunication server = new TcpCommunication();
+        ServerConfiguration serverConfiguration = new ServerConfiguration();
+        serverConfiguration.setName(SERVER);
+        serverConfiguration.setPort(55568);
+        serverConfiguration.setMaxClientInfoLifetime(1000);
+        server.configure(serverConfiguration);
+        server.startup();
+        server.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
+        
+        System.out.println("Wait 1000 ms.");
+        Thread.sleep(1000);
+        System.out.println("Continue...");
+
+        TcpCommunication client1 = new TcpCommunication();
+        ClientConfiguration clientConfiguration = new ClientConfiguration();
+        clientConfiguration.setName(CLIENT);
+        ClientConnection clientConnection = clientConfiguration.new ClientConnection();
+        clientConnection.setServerIp("127.0.0.1");
+        clientConnection.setServerPort(55568);
+        clientConnection.setServerName(SERVER);
+        clientConfiguration.addClientConnection(clientConnection);
+        client1.configure(clientConfiguration);
+        client1.startup();
+        client1.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
+        
+        System.out.println("Wait 2000 ms.");
+        Thread.sleep(2000);
+        System.out.println("Continue...");
+        
+        client1.shutdown();
+        server.shutdown();
+    }    
+    
     
     public void testRegsiterWithoutSecurity() throws Exception {
         TcpCommunication server = new TcpCommunication();

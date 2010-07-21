@@ -13,7 +13,8 @@ public class ServerConfiguration extends Configuration {
 	private int _maxMessageSize = 1048576;
 
 	private int _messageThreadCount = 10;
-
+	
+	private long maxClientInfoLifetime = 60 * 10 * 1000;
 	
 
 	public int getPort() {
@@ -62,6 +63,14 @@ public class ServerConfiguration extends Configuration {
 
 	public void setMessageThreadCount(int messageThreadCount) {
 		_messageThreadCount = messageThreadCount;
+	}
+	
+	public long getMaxClientInfoLifetime() {
+		return maxClientInfoLifetime;
+	}
+
+	public void setMaxClientInfoLifetime(long maxClientInfoLifetime) {
+		this.maxClientInfoLifetime = maxClientInfoLifetime;
 	}
 	
 }
