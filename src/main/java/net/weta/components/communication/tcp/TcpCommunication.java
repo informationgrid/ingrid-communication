@@ -124,7 +124,7 @@ public class TcpCommunication implements ICommunication {
 					.getKeystorePassword());
 			_communicationServer = new CommunicationServer(serverConfiguration.getPort(), _messageQueue,
 					serverConfiguration.getMessageThreadCount(), serverConfiguration.getSocketTimeout(),
-					serverConfiguration.getMaxMessageSize(), util);
+					serverConfiguration.getMaxMessageSize(), util, serverConfiguration.getMaxClientInfoLifetime());
 			_communicationServer.start();
 		} else {
 			ClientConfiguration clientConfiguration = (ClientConfiguration) _configuration;

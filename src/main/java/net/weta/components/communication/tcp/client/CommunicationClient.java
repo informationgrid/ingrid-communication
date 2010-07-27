@@ -219,13 +219,16 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
     }
 
     public void sendMessage(String peerName, Message message) throws IOException {
-    	if (_isConnected) {
-	        synchronized (_out) {
+    	waitUntilClientIsConnected();
+    	if (_isConnected) { 
+	    	synchronized (_out) {
 	            _out.writeObject(message);
 	            _out.flush();
 	        }
-        } else {
-            LOG.warn("Client not connected, message not sent to: " + peerName);
+    	} else {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("Client is not connected, skip sending message.");
+            }
     	}
     }
 
