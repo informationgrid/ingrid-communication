@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 import net.weta.components.communication.messaging.IMessageQueue;
 import net.weta.components.communication.messaging.Message;
@@ -129,6 +130,8 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
     private int _maxMessageSize;
     
     private long clientInfoLifeTime;
+    
+    private Future<?> clientInfoTimeoutScannerFuture;
 
 	public CommunicationServer(int port, MessageQueue messageQueue, int maxThreadCount, int socketTimeout,
             int maxMessageSize, SecurityUtil securityUtil, long clientInfoLifeTime) {
@@ -141,7 +144,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         this.clientInfoLifeTime = clientInfoLifeTime;
         
         // start client info timeout scanner
-        PooledThreadExecutor.getInstance().execute(new ClientInfoTimeoutScanner());
+        clientInfoTimeoutScannerFuture = PooledThreadExecutor.getInstance().submit(new ClientInfoTimeoutScanner());
 
     }
 
@@ -269,6 +272,10 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
             }
         } catch (IOException e) {
             LOG.error(e);
+        }
+        finally {
+        	// make sure the client info scanner is terminated
+        	clientInfoTimeoutScannerFuture.cancel(true);
         }
     }
 
