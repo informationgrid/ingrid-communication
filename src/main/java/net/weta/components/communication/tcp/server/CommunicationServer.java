@@ -79,14 +79,17 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
 
     }
     
-    private class ClientInfoTimeoutScanner extends Thread {
+    private class ClientInfoTimeoutScanner implements Runnable {
+    	
+    	private volatile boolean cancelled;
     	
 		@Override
 		public void run() {
 			if (LOG.isInfoEnabled()) {
 				LOG.info("Start client info timeout scanner.");
 			}
-			while (!this.isInterrupted()) {
+			cancelled = false;
+			while (!cancelled) {
 				try {
 					sleep(clientInfoLifeTime);
 					if (LOG.isInfoEnabled()) {
@@ -103,9 +106,12 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
 						}
 					}
 				} catch (InterruptedException e) {
-					LOG.warn("Timeout client info scanner has been interrupted and shut down!");
+					LOG.warn("Timeout client info scanner has been interrupted!");
+					// stop thread execution
+					cancelled = true;
 				}
 			}
+			LOG.info("Timeout client info scanner has shut down!");
 		}
     }
     

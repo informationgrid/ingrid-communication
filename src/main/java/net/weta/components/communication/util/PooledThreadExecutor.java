@@ -6,6 +6,7 @@ package net.weta.components.communication.util;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
@@ -28,6 +29,8 @@ public class PooledThreadExecutor {
 	public static ThreadPoolExecutor getInstance() {
 		if (executorService == null) {
 			executorService = (ThreadPoolExecutor)Executors.newCachedThreadPool();
+			executorService.setKeepAliveTime(1000, TimeUnit.MILLISECONDS);
+			executorService.allowCoreThreadTimeOut(true);
 		}
 		return executorService;
 	}
