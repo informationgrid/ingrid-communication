@@ -47,8 +47,10 @@ public class MessageQueue implements IMessageQueue {
 
     private int _maxSize = 2000;
     
-	private int _maxMutexTimeout = 3600000; // one hour in ms
-    
+	private long _maxMutexTimeout = 600 * 1000; // one hour in ms
+
+	private long lastMutexTimeout = 0; // one hour in ms
+	
     private int _maxMutexListeSizeBeforeGarbageCollect = 500; 
     
     private class MutexType {
@@ -111,23 +113,26 @@ public class MessageQueue implements IMessageQueue {
             mutex = new MutexType();
             _ids.put(messageId, mutex);
         	if (_ids.size() > _maxMutexListeSizeBeforeGarbageCollect) {
-				if (LOGGER.isInfoEnabled()) {
-					LOGGER.info("Start mutex list garbage collection. Removing mutex messages older than " + (_maxMutexTimeout / 1000) + " sec.");
-				}
         		long now = System.currentTimeMillis();
         		long then = now - _maxMutexTimeout;
-        		for (String mutexId : _ids.keySet()) {
-        			MutexType tmpMutex = _ids.get(mutexId);
-        			if (tmpMutex != null && tmpMutex.getCreated() < then) {
-        				if (LOGGER.isInfoEnabled()) {
-        					LOGGER.info("Remove old ("+((now - tmpMutex.getCreated())/1000.0) +" sec) mutex message [" + mutexId + "] from message queue.");
-        				}
-        				_ids.remove(mutexId);
-        				_messages.remove(mutexId);
-        				_queueSize.remove(mutexId);
-        				tmpMutex = null;
-        			}
-        		}
+				if (lastMutexTimeout < then) {
+	        		if (LOGGER.isInfoEnabled()) {
+						LOGGER.info("Start mutex list garbage collection. Removing mutex messages older than " + (_maxMutexTimeout / 1000) + " sec.");
+					}
+	        		for (String mutexId : _ids.keySet()) {
+	        			MutexType tmpMutex = _ids.get(mutexId);
+	        			if (tmpMutex != null && tmpMutex.getCreated() < then) {
+	        				if (LOGGER.isInfoEnabled()) {
+	        					LOGGER.info("Remove old ("+((now - tmpMutex.getCreated())/1000.0) +" sec) mutex message [" + mutexId + "] from message queue.");
+	        				}
+	        				_ids.remove(mutexId);
+	        				_messages.remove(mutexId);
+	        				_queueSize.remove(mutexId);
+	        				tmpMutex = null;
+	        			}
+	        		}
+	        		lastMutexTimeout = then;
+				}
         	}
         }
         return mutex;
