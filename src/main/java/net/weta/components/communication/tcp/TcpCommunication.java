@@ -105,7 +105,7 @@ public class TcpCommunication implements ICommunication {
 	public void shutdown() {
 		if (_isCommunicationServer) {
 			if (LOG.isEnabledFor(Level.INFO)) {
-				LOG.info("Shutdown the server.");
+				LOG.info("Shutdown/Interrupt the server.");
 			}
 			_communicationServer.interrupt();
 		} else {
@@ -127,6 +127,11 @@ public class TcpCommunication implements ICommunication {
 					serverConfiguration.getMaxMessageSize(), util, serverConfiguration.getMaxClientInfoLifetime());
 			_communicationServer.start();
 		} else {
+			// shut down old communication clients
+			if (_communicationClient != null) {
+				_communicationClient.shutdown();
+				_communicationClient = null;
+			}
 			ClientConfiguration clientConfiguration = (ClientConfiguration) _configuration;
 			List<CommunicationClient> clients = new ArrayList<CommunicationClient>();
 			for (int i = 0; i < clientConfiguration.getClientConnections().size(); i++) {

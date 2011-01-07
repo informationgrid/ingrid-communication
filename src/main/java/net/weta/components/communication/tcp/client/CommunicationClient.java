@@ -115,9 +115,15 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
                     LOG.info("Previous message reader thread is still running, interruping now, close socket.");
                 }
             	_messageReaderThread.interrupt();
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("MessageReaderThread interrupted successfully.");
+                }
             	if (_socket != null && !_socket.isClosed()) {
             		_socket.close();
             	}
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("Socket closed.");
+                }
             }
         	
         	_socket = new Socket();

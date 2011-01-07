@@ -118,6 +118,9 @@ public class MessageReaderThread extends Thread {
                 LOG.info("connection shutdown by peer (SocketException, " + e.getMessage() + "): " + _peerName);
             }
             if (_messageSender != null) {
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("Try to reconnect to peer: " + _peerName);
+                }
                 _messageSender.connect(_peerName);
             }
         } catch (EOFException e) {
@@ -189,7 +192,7 @@ public class MessageReaderThread extends Thread {
     }
 
     public synchronized void interrupt() {
-        if (LOG.isEnabledFor(Level.INFO)) {
+        if (LOG.isInfoEnabled()) {
             LOG.info("Shutdown MessageReaderThread: " + this._peerName);
             LOG.info("Try cancel running tasks. Number of registered tasks: " + _futures.size());
         }
