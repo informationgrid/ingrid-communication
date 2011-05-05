@@ -2,13 +2,13 @@
   <parent>
     <artifactId>ingrid-base-pom</artifactId>
     <groupId>de.ingrid</groupId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.ingrid</groupId>
   <artifactId>ingrid-communication</artifactId>
   <packaging>jar</packaging>
-  <version>3.0.0-SNAPSHOT</version>
+  <version>3.0.0-RELEASE-SNAPSHOT</version>
   <name>ingrid-communication</name>
   <scm>
     <connection>scm:svn:https://harrison.its-technidata.de:444/svn/ingrid/ingrid-communication/trunk</connection>
