@@ -48,5 +48,13 @@ public class ReflectMessageTest extends TestCase {
         assertEquals(object1, argumentClasses[0]);
         assertEquals(object2, argumentClasses[1]);
     }
+    
+    public void testHashCode() {
+        String p1 = "param";
+        ReflectMessage m1 = new ReflectMessage("search", ReflectMessage.class.getName(), new Object[] { p1, 10, 1 });
+        String p2 = "param";
+        ReflectMessage m2 = new ReflectMessage("search", ReflectMessage.class.getName(), new Object[] { p1, 10, 1 });
+        assertTrue(m1.hashCode() == m2.hashCode());
+    }
 
 }
