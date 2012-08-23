@@ -240,4 +240,17 @@ public class TcpCommunication implements ICommunication {
 		}
 		return list;
 	}
+	
+	public String getRemoteIpFrom(String url) {
+	    return _communicationServer.getRemoteIpFrom(url);
+	}
+	
+	/**
+     * Get the duration the iplug is registered in milliseconds.
+     * @param url
+     * @return
+     */
+	public long getTimeSinceRegistrationInMs(String url) {
+        return _communicationServer.getTimeSinceRegistrationInMs(url);
+    }
 }

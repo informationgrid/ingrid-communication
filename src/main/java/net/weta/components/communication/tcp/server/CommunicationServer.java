@@ -34,6 +34,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         private final IOutput _out;
         private final String _peerName;
         private long lastLifeSign;
+        private long _registeredSince;
 
 		public CommunicationClientInfo(String peerName, MessageReaderThread messageReaderThread, Socket socket, IOutput out) {
             _peerName = peerName;
@@ -41,6 +42,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
             _socket = socket;
             _out = out;
             lastLifeSign = System.currentTimeMillis();
+            _registeredSince = System.currentTimeMillis();
         }
 
         public String getPeerName() {
@@ -75,6 +77,10 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         @Override
         public boolean equals(Object obj) {
             return ((CommunicationClientInfo) obj)._peerName.equals(_peerName);
+        }
+
+        public long getRegisteredSince() {
+            return _registeredSince;
         }
 
     }
@@ -299,6 +305,19 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
 
     public boolean isConnected(String url) {
         return _clientInfos.containsKey(url);
+    }
+    
+    public String getRemoteIpFrom(String url) {
+        return _clientInfos.get(url).getSocket().getInetAddress().toString() + ":" + _clientInfos.get(url).getSocket().getPort();
+    }
+    
+    /**
+     * Get the duration the iplug is registered in milliseconds.
+     * @param url
+     * @return
+     */
+    public long getTimeSinceRegistrationInMs(String url) {
+        return System.currentTimeMillis() - _clientInfos.get(url).getRegisteredSince();
     }
     
 }
