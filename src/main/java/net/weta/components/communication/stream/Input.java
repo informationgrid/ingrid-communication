@@ -24,7 +24,11 @@ public class Input implements IInput {
     public byte[] readBytes() throws MessageSizeTooBigException, IOException {
         int length = readInt();
         if (length > _maxMessageSize) {
-            throw new MessageSizeTooBigException("message size too big: [" + length + "]");
+            byte[] bytes = new byte[256];
+            try {
+                _dataInput.readFully(bytes);
+            } catch (Exception e) {}
+            throw new MessageSizeTooBigException("message size too big: [" + length + "]. Message starts with: " + new String(bytes, "UTF-8"));
         }
         byte[] bytes = new byte[length];
         _dataInput.readFully(bytes);
