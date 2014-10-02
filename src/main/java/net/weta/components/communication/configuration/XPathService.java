@@ -3,6 +3,7 @@ package net.weta.components.communication.configuration;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStream;
+import java.io.Writer;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -194,8 +195,10 @@ public class XPathService implements IXPathService {
         LSSerializer writer = impl.createLSSerializer();
         LSOutput output = impl.createLSOutput();
         output.setEncoding("UTF-8");
-        output.setCharacterStream(new FileWriter(xmlFile));
+        Writer fileWriter = new FileWriter(xmlFile);
+        output.setCharacterStream(fileWriter );
         writer.write(_document, output);
+        fileWriter.close();
     }
 
 
