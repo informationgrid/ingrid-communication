@@ -32,7 +32,7 @@ import java.net.UnknownHostException;
 import junit.framework.TestCase;
 import net.weta.components.communication.security.JavaKeystore;
 import net.weta.components.communication.security.SecurityUtil;
-import sun.security.tools.KeyTool;
+import sun.security.tools.keytool.Main;
 
 public class RegistrationThreadTest extends TestCase {
 
@@ -50,7 +50,7 @@ public class RegistrationThreadTest extends TestCase {
         _securityFolder.mkdirs();
         _keystore = new File(_securityFolder, "keystore");
 
-        KeyTool.main(new String[] { "-genkey", "-keystore", _keystore.getAbsolutePath(), "-alias", "testAlias",
+        Main.main(new String[] { "-genkey", "-keystore", _keystore.getAbsolutePath(), "-alias", "testAlias",
                 "-keypass", "password", "-storepass", "password", "-dname",
                 "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
         JavaKeystore keystore = new JavaKeystore(_keystore, "password");

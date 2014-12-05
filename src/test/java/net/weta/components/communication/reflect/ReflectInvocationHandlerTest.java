@@ -31,7 +31,7 @@ import net.weta.components.communication.configuration.ServerConfiguration;
 import net.weta.components.communication.configuration.ClientConfiguration.ClientConnection;
 import net.weta.components.communication.tcp.TcpCommunication;
 import net.weta.components.communication.tcp.TimeoutException;
-import sun.security.tools.KeyTool;
+import sun.security.tools.keytool.*;
 
 public class ReflectInvocationHandlerTest extends TestCase {
 
@@ -56,15 +56,15 @@ public class ReflectInvocationHandlerTest extends TestCase {
         final File keystoreClient = new File(_securityFolder, "keystore-client");
         File clientCertificate = new File(_securityFolder, "client.cer");
 
-        KeyTool.main(new String[] { "-genkey", "-keystore", keystoreServer.getAbsolutePath(), "-alias", SERVER,
+        Main.main(new String[] { "-genkey", "-keystore", keystoreServer.getAbsolutePath(), "-alias", SERVER,
                 "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
                 "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
-        KeyTool.main(new String[] { "-genkey", "-keystore", keystoreClient.getAbsolutePath(), "-alias", CLIENT,
+        Main.main(new String[] { "-genkey", "-keystore", keystoreClient.getAbsolutePath(), "-alias", CLIENT,
                 "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
                 "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
-        KeyTool.main(new String[] { "-export", "-keystore", keystoreClient.getAbsolutePath(), "-storepass", "password",
+        Main.main(new String[] { "-export", "-keystore", keystoreClient.getAbsolutePath(), "-storepass", "password",
                 "-alias", CLIENT, "-file", clientCertificate.getAbsolutePath() });
-        KeyTool.main(new String[] { "-import", "-keystore", keystoreServer.getAbsolutePath(), "-noprompt",
+        Main.main(new String[] { "-import", "-keystore", keystoreServer.getAbsolutePath(), "-noprompt",
                 "-storepass", "password", "-alias", CLIENT, "-file", clientCertificate.getAbsolutePath() });
 
         _tcpCommunicationServer = new TcpCommunication();

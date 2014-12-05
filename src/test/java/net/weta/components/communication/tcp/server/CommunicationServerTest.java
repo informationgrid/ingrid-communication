@@ -27,12 +27,12 @@ import java.net.SocketException;
 
 import junit.framework.TestCase;
 import net.weta.components.communication.configuration.ClientConfiguration;
-import net.weta.components.communication.configuration.ServerConfiguration;
 import net.weta.components.communication.configuration.ClientConfiguration.ClientConnection;
+import net.weta.components.communication.configuration.ServerConfiguration;
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.TestMessageProcessor;
 import net.weta.components.communication.tcp.TcpCommunication;
-import sun.security.tools.KeyTool;
+import sun.security.tools.keytool.Main;
 
 public class CommunicationServerTest extends TestCase {
 
@@ -59,24 +59,24 @@ public class CommunicationServerTest extends TestCase {
         File clientCertificate = new File(_securityFolder, "client.cer");
         File clientCertificate2 = new File(_securityFolder, "client2.cer");
 
-        KeyTool.main(new String[] { "-genkey", "-keystore", _keystoreServer.getAbsolutePath(), "-alias", SERVER,
+        Main.main(new String[] { "-genkey", "-keystore", _keystoreServer.getAbsolutePath(), "-alias", SERVER,
                 "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
                 "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
-        KeyTool.main(new String[] { "-genkey", "-keystore", _keystoreClient.getAbsolutePath(), "-alias", CLIENT,
+        Main.main(new String[] { "-genkey", "-keystore", _keystoreClient.getAbsolutePath(), "-alias", CLIENT,
                 "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
                 "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
-        KeyTool.main(new String[] { "-genkey", "-keystore", _keystoreClient2.getAbsolutePath(), "-alias", CLIENT2,
+        Main.main(new String[] { "-genkey", "-keystore", _keystoreClient2.getAbsolutePath(), "-alias", CLIENT2,
                 "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
                 "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
 
-        KeyTool.main(new String[] { "-export", "-keystore", _keystoreClient.getAbsolutePath(), "-storepass",
+        Main.main(new String[] { "-export", "-keystore", _keystoreClient.getAbsolutePath(), "-storepass",
                 "password", "-alias", CLIENT, "-file", clientCertificate.getAbsolutePath() });
-        KeyTool.main(new String[] { "-export", "-keystore", _keystoreClient2.getAbsolutePath(), "-storepass",
+        Main.main(new String[] { "-export", "-keystore", _keystoreClient2.getAbsolutePath(), "-storepass",
                 "password", "-alias", CLIENT2, "-file", clientCertificate2.getAbsolutePath() });
 
-        KeyTool.main(new String[] { "-import", "-keystore", _keystoreServer.getAbsolutePath(), "-noprompt",
+        Main.main(new String[] { "-import", "-keystore", _keystoreServer.getAbsolutePath(), "-noprompt",
                 "-storepass", "password", "-alias", CLIENT, "-file", clientCertificate.getAbsolutePath() });
-        KeyTool.main(new String[] { "-import", "-keystore", _keystoreServer.getAbsolutePath(), "-noprompt",
+        Main.main(new String[] { "-import", "-keystore", _keystoreServer.getAbsolutePath(), "-noprompt",
                 "-storepass", "password", "-alias", CLIENT2, "-file", clientCertificate2.getAbsolutePath() });
     }
 
