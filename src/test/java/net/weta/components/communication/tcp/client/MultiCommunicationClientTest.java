@@ -34,8 +34,8 @@ import net.weta.components.communication.configuration.ClientConfiguration.Clien
 import net.weta.components.communication.configuration.ServerConfiguration;
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.TestMessageProcessor;
+import net.weta.components.communication.security.JavaKeystoreTest;
 import net.weta.components.communication.tcp.TcpCommunication;
-import sun.security.tools.keytool.Main;
 
 public class MultiCommunicationClientTest extends TestCase {
 
@@ -68,21 +68,12 @@ public class MultiCommunicationClientTest extends TestCase {
         final File keystoreClient = new File(_securityFolder, "keystore-client");
         File clientCertificate = new File(_securityFolder, "client.cer");
 
-        Main.main(new String[] { "-genkey", "-keystore", keystoreServer.getAbsolutePath(), "-alias", SERVER,
-                "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
-                "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
-        Main.main(new String[] { "-genkey", "-keystore", keystoreServer2.getAbsolutePath(), "-alias", SERVER2,
-                "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
-                "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
-        Main.main(new String[] { "-genkey", "-keystore", keystoreClient.getAbsolutePath(), "-alias", CLIENT,
-                "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
-                "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
-        Main.main(new String[] { "-export", "-keystore", keystoreClient.getAbsolutePath(), "-storepass", "password",
-                "-alias", CLIENT, "-file", clientCertificate.getAbsolutePath() });
-        Main.main(new String[] { "-import", "-keystore", keystoreServer.getAbsolutePath(), "-noprompt",
-                "-storepass", "password", "-alias", CLIENT, "-file", clientCertificate.getAbsolutePath() });
-        Main.main(new String[] { "-import", "-keystore", keystoreServer2.getAbsolutePath(), "-noprompt",
-                "-storepass", "password", "-alias", CLIENT, "-file", clientCertificate.getAbsolutePath() });
+        JavaKeystoreTest.generateKeyInKeyStore(keystoreServer, SERVER);
+        JavaKeystoreTest.generateKeyInKeyStore(keystoreServer2, SERVER2);
+        JavaKeystoreTest.generateKeyInKeyStore(keystoreClient, CLIENT);
+        JavaKeystoreTest.exportCertficate(keystoreClient, CLIENT, clientCertificate);
+        JavaKeystoreTest.importCertficate(keystoreServer, CLIENT, clientCertificate);
+        JavaKeystoreTest.importCertficate(keystoreServer2, CLIENT, clientCertificate);
 
         _serverRunnable = new Runnable() {
             public void run() {
@@ -143,7 +134,7 @@ public class MultiCommunicationClientTest extends TestCase {
 
                 clientConfiguration.addClientConnection(clientConnection);
                 clientConfiguration.addClientConnection(clientConnection2);
-                
+
                 _tcpCommunicationClient.configure(clientConfiguration);
 
                 try {
@@ -178,11 +169,11 @@ public class MultiCommunicationClientTest extends TestCase {
 
         // unable to delete files under windows, because they are locked
         if (System.getProperty("os.name").toLowerCase().indexOf("windows") == -1) {
-	        File[] files = _securityFolder.listFiles();
-	        for (int i = 0; i < files.length; i++) {
-	            assertTrue(files[i].delete());
-	        }
-	        assertTrue(_securityFolder.delete());
+            File[] files = _securityFolder.listFiles();
+            for (int i = 0; i < files.length; i++) {
+                assertTrue(files[i].delete());
+            }
+            assertTrue(_securityFolder.delete());
         }
     }
 
@@ -214,7 +205,7 @@ public class MultiCommunicationClientTest extends TestCase {
         assertEquals("", result.getType());
         assertEquals(message.getId(), result.getId());
     }
-    
+
     public void testSendSyncMessageFromClientToServer() throws Exception {
         Thread.sleep(3000);
         Message message = new Message("type");

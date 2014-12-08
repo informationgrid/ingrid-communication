@@ -36,7 +36,7 @@ public class SecurityUtil {
 
     private static final Logger LOG = Logger.getLogger(SecurityUtil.class);
 
-    public static final String SHA1_DSA = "SHA1withDSA";
+    public static final String SHA256_RSA = "SHA256WithRSAEncryption";
 
     private final JavaKeystore _javaKeystore;
 
@@ -63,7 +63,7 @@ public class SecurityUtil {
     private byte[] computeSignature(PrivateKey key, byte[] bytesToSign) throws SecurityException {
         byte[] ret = null;
         try {
-            Signature signature = Signature.getInstance(SHA1_DSA);
+            Signature signature = Signature.getInstance(SHA256_RSA);
             signature.initSign(key);
             signature.update(bytesToSign, 0, bytesToSign.length);
             ret = signature.sign();
@@ -82,7 +82,7 @@ public class SecurityUtil {
         PublicKey publicKey = certificate.getPublicKey();
         boolean ret = false;
         try {
-            Signature sig = Signature.getInstance(SHA1_DSA);
+            Signature sig = Signature.getInstance(SHA256_RSA);
             sig.initVerify(publicKey);
             sig.update(data);
             ret = sig.verify(signature);

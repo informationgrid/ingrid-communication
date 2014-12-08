@@ -34,7 +34,7 @@ import net.weta.components.communication.configuration.ClientConfiguration.Clien
 import net.weta.components.communication.configuration.ServerConfiguration;
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.TestMessageProcessor;
-import sun.security.tools.keytool.Main;
+import net.weta.components.communication.security.JavaKeystoreTest;
 
 public class TcpCommunicationTest extends TestCase {
 
@@ -60,16 +60,10 @@ public class TcpCommunicationTest extends TestCase {
         final File keystoreClient = new File(_securityFolder, "keystore-client");
         File clientCertificate = new File(_securityFolder, "client.cer");
 
-        Main.main(new String[] { "-genkey", "-keystore", keystoreServer.getAbsolutePath(), "-alias", SERVER,
-                "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
-                "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
-        Main.main(new String[] { "-genkey", "-keystore", keystoreClient.getAbsolutePath(), "-alias", CLIENT,
-                "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
-                "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
-        Main.main(new String[] { "-export", "-keystore", keystoreClient.getAbsolutePath(), "-storepass", "password",
-                "-alias", CLIENT, "-file", clientCertificate.getAbsolutePath() });
-        Main.main(new String[] { "-import", "-keystore", keystoreServer.getAbsolutePath(), "-noprompt",
-                "-storepass", "password", "-alias", CLIENT, "-file", clientCertificate.getAbsolutePath() });
+        JavaKeystoreTest.generateKeyInKeyStore(keystoreServer, SERVER);
+        JavaKeystoreTest.generateKeyInKeyStore(keystoreClient, CLIENT);
+        JavaKeystoreTest.exportCertficate(keystoreClient, CLIENT, clientCertificate);
+        JavaKeystoreTest.importCertficate(keystoreServer, CLIENT, clientCertificate);
 
         _serverRunnable = new Runnable() {
             public void run() {

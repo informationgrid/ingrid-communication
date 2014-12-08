@@ -31,8 +31,8 @@ import net.weta.components.communication.configuration.ClientConfiguration.Clien
 import net.weta.components.communication.configuration.ServerConfiguration;
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.TestMessageProcessor;
+import net.weta.components.communication.security.JavaKeystoreTest;
 import net.weta.components.communication.tcp.TcpCommunication;
-import sun.security.tools.keytool.Main;
 
 public class CommunicationServerTest extends TestCase {
 
@@ -59,25 +59,14 @@ public class CommunicationServerTest extends TestCase {
         File clientCertificate = new File(_securityFolder, "client.cer");
         File clientCertificate2 = new File(_securityFolder, "client2.cer");
 
-        Main.main(new String[] { "-genkey", "-keystore", _keystoreServer.getAbsolutePath(), "-alias", SERVER,
-                "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
-                "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
-        Main.main(new String[] { "-genkey", "-keystore", _keystoreClient.getAbsolutePath(), "-alias", CLIENT,
-                "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
-                "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
-        Main.main(new String[] { "-genkey", "-keystore", _keystoreClient2.getAbsolutePath(), "-alias", CLIENT2,
-                "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
-                "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
+        JavaKeystoreTest.generateKeyInKeyStore(_keystoreServer, SERVER);
+        JavaKeystoreTest.generateKeyInKeyStore(_keystoreClient, CLIENT);
+        JavaKeystoreTest.generateKeyInKeyStore(_keystoreClient2, CLIENT2);
+        JavaKeystoreTest.exportCertficate(_keystoreClient, CLIENT, clientCertificate);
+        JavaKeystoreTest.exportCertficate(_keystoreClient, CLIENT2, clientCertificate2);
+        JavaKeystoreTest.importCertficate(_keystoreServer, CLIENT, clientCertificate);
+        JavaKeystoreTest.importCertficate(_keystoreServer, CLIENT2, clientCertificate2);
 
-        Main.main(new String[] { "-export", "-keystore", _keystoreClient.getAbsolutePath(), "-storepass",
-                "password", "-alias", CLIENT, "-file", clientCertificate.getAbsolutePath() });
-        Main.main(new String[] { "-export", "-keystore", _keystoreClient2.getAbsolutePath(), "-storepass",
-                "password", "-alias", CLIENT2, "-file", clientCertificate2.getAbsolutePath() });
-
-        Main.main(new String[] { "-import", "-keystore", _keystoreServer.getAbsolutePath(), "-noprompt",
-                "-storepass", "password", "-alias", CLIENT, "-file", clientCertificate.getAbsolutePath() });
-        Main.main(new String[] { "-import", "-keystore", _keystoreServer.getAbsolutePath(), "-noprompt",
-                "-storepass", "password", "-alias", CLIENT2, "-file", clientCertificate2.getAbsolutePath() });
     }
 
     protected void tearDown() throws Exception {
@@ -85,14 +74,14 @@ public class CommunicationServerTest extends TestCase {
         File[] files = _securityFolder.listFiles();
         // unable to delete files under windows, because they are locked
         if (System.getProperty("os.name").toLowerCase().indexOf("windows") == -1) {
-	        for (int i = 0; i < files.length; i++) {
-	            assertTrue(files[i].delete());
-	        }
-	        assertTrue(_securityFolder.delete());
+            for (int i = 0; i < files.length; i++) {
+                assertTrue(files[i].delete());
+            }
+            assertTrue(_securityFolder.delete());
         }
 
     }
-    
+
     public void testDuplicateRegistrationSameIP() throws Exception {
         TcpCommunication server = new TcpCommunication();
         ServerConfiguration serverConfiguration = new ServerConfiguration();
@@ -101,7 +90,7 @@ public class CommunicationServerTest extends TestCase {
         server.configure(serverConfiguration);
         server.startup();
         server.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
-        
+
         Thread.sleep(1000);
 
         TcpCommunication client1 = new TcpCommunication();
@@ -116,14 +105,13 @@ public class CommunicationServerTest extends TestCase {
         client1.startup();
         client1.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
 
-
         Thread.sleep(1000);
         Message message = new Message("type");
         Message result = client1.sendSyncMessage(message, SERVER);
         assertNotNull(result);
         assertEquals("", result.getType());
         assertEquals(message.getId(), result.getId());
-        
+
         System.out.println("Startup second client with same IP.");
         TcpCommunication client2 = new TcpCommunication();
         ClientConfiguration clientConfiguration2 = new ClientConfiguration();
@@ -139,27 +127,27 @@ public class CommunicationServerTest extends TestCase {
 
         Thread.sleep(1000);
         System.out.println("Send Message from second client.");
-    	message = new Message("type");
-    	result = client2.sendSyncMessage(message, SERVER);
+        message = new Message("type");
+        result = client2.sendSyncMessage(message, SERVER);
         assertNotNull(result);
         assertEquals("", result.getType());
         assertEquals("", result.getId());
-        
+
         System.out.println("Shutdown first client.");
         client1.shutdown();
         Thread.sleep(1000);
 
         System.out.println("Send message from second client.");
-    	message = new Message("type");
-    	client2.startup();
-    	Thread.sleep(1000);
-    	result = client2.sendSyncMessage(message, SERVER);
+        message = new Message("type");
+        client2.startup();
+        Thread.sleep(1000);
+        result = client2.sendSyncMessage(message, SERVER);
         assertNotNull(result);
         assertEquals("", result.getType());
         assertEquals(message.getId(), result.getId());
-        
+
     }
-    
+
     public void testTimeoutClientInfo() throws Exception {
         TcpCommunication server = new TcpCommunication();
         ServerConfiguration serverConfiguration = new ServerConfiguration();
@@ -169,7 +157,7 @@ public class CommunicationServerTest extends TestCase {
         server.configure(serverConfiguration);
         server.startup();
         server.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
-        
+
         System.out.println("Wait 1000 ms.");
         Thread.sleep(1000);
         System.out.println("Continue...");
@@ -185,16 +173,15 @@ public class CommunicationServerTest extends TestCase {
         client1.configure(clientConfiguration);
         client1.startup();
         client1.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
-        
+
         System.out.println("Wait 2000 ms.");
         Thread.sleep(2000);
         System.out.println("Continue...");
-        
+
         client1.shutdown();
         server.shutdown();
-    }    
-    
-    
+    }
+
     public void testRegsiterWithoutSecurity() throws Exception {
         TcpCommunication server = new TcpCommunication();
         ServerConfiguration serverConfiguration = new ServerConfiguration();
@@ -203,7 +190,7 @@ public class CommunicationServerTest extends TestCase {
         server.configure(serverConfiguration);
         server.startup();
         server.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
-        
+
         Thread.sleep(1000);
 
         TcpCommunication client1 = new TcpCommunication();
@@ -218,15 +205,12 @@ public class CommunicationServerTest extends TestCase {
         client1.startup();
         client1.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
 
-
-
         Thread.sleep(1000);
         Message message = new Message("type");
         Message result = client1.sendSyncMessage(message, SERVER);
         assertNotNull(result);
         assertEquals("", result.getType());
         assertEquals(message.getId(), result.getId());
-        
 
         TcpCommunication client2 = new TcpCommunication();
         ClientConfiguration clientConfiguration2 = new ClientConfiguration();
@@ -242,8 +226,8 @@ public class CommunicationServerTest extends TestCase {
 
         Thread.sleep(1000);
         try {
-        	message = new Message("type");
-        	result = client2.sendSyncMessage(message, SERVER);
+            message = new Message("type");
+            result = client2.sendSyncMessage(message, SERVER);
             assertNotNull(result);
             assertEquals("", result.getType());
             assertEquals(message.getId(), result.getId());
@@ -263,7 +247,6 @@ public class CommunicationServerTest extends TestCase {
         server.configure(serverConfiguration);
         server.startup();
         server.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
-        
 
         Thread.sleep(1000);
 
@@ -302,12 +285,11 @@ public class CommunicationServerTest extends TestCase {
         client2.configure(clientConfiguration2);
         client2.startup();
         client2.getMessageQueue().addMessageHandler("type", new TestMessageProcessor());
-        
 
         Thread.sleep(1000);
         try {
-        	message = new Message("type");
-        	result = client2.sendSyncMessage(message, SERVER);
+            message = new Message("type");
+            result = client2.sendSyncMessage(message, SERVER);
             assertNotNull(result);
             assertEquals("", result.getType());
             assertEquals(message.getId(), result.getId());

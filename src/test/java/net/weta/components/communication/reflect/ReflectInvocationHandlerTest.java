@@ -27,11 +27,11 @@ import java.lang.reflect.Proxy;
 
 import junit.framework.TestCase;
 import net.weta.components.communication.configuration.ClientConfiguration;
-import net.weta.components.communication.configuration.ServerConfiguration;
 import net.weta.components.communication.configuration.ClientConfiguration.ClientConnection;
+import net.weta.components.communication.configuration.ServerConfiguration;
+import net.weta.components.communication.security.JavaKeystoreTest;
 import net.weta.components.communication.tcp.TcpCommunication;
 import net.weta.components.communication.tcp.TimeoutException;
-import sun.security.tools.keytool.*;
 
 public class ReflectInvocationHandlerTest extends TestCase {
 
@@ -56,30 +56,24 @@ public class ReflectInvocationHandlerTest extends TestCase {
         final File keystoreClient = new File(_securityFolder, "keystore-client");
         File clientCertificate = new File(_securityFolder, "client.cer");
 
-        Main.main(new String[] { "-genkey", "-keystore", keystoreServer.getAbsolutePath(), "-alias", SERVER,
-                "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
-                "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
-        Main.main(new String[] { "-genkey", "-keystore", keystoreClient.getAbsolutePath(), "-alias", CLIENT,
-                "-keyalg", "DSA", "-sigalg", "SHA1withDSA", "-keypass", "password", "-storepass", "password", "-dname",
-                "CN=hmmm, OU=hmmm, O=hmmm, L=hmmm, ST=hmmm, C=hmmm" });
-        Main.main(new String[] { "-export", "-keystore", keystoreClient.getAbsolutePath(), "-storepass", "password",
-                "-alias", CLIENT, "-file", clientCertificate.getAbsolutePath() });
-        Main.main(new String[] { "-import", "-keystore", keystoreServer.getAbsolutePath(), "-noprompt",
-                "-storepass", "password", "-alias", CLIENT, "-file", clientCertificate.getAbsolutePath() });
+        JavaKeystoreTest.generateKeyInKeyStore(keystoreServer, SERVER);
+        JavaKeystoreTest.generateKeyInKeyStore(keystoreClient, CLIENT);
+        JavaKeystoreTest.exportCertficate(keystoreClient, CLIENT, clientCertificate);
+        JavaKeystoreTest.importCertficate(keystoreServer, CLIENT, clientCertificate);
 
         _tcpCommunicationServer = new TcpCommunication();
-        
+
         ServerConfiguration serverConfiguration = new ServerConfiguration();
         serverConfiguration.setPort(55556);
         serverConfiguration.setKeystorePath(keystoreServer.getAbsolutePath());
         serverConfiguration.setKeystorePassword("password");
         serverConfiguration.setName(SERVER);
-        
+
         _tcpCommunicationServer.configure(serverConfiguration);
         _tcpCommunicationServer.startup();
 
         _tcpCommunicationClient = new TcpCommunication();
-        
+
         ClientConfiguration clientConfiguration = new ClientConfiguration();
         clientConfiguration.setName(CLIENT);
         ClientConnection clientConnection = clientConfiguration.new ClientConnection();
@@ -91,8 +85,7 @@ public class ReflectInvocationHandlerTest extends TestCase {
         clientConfiguration.setHandleTimeout(2);
         clientConfiguration.addClientConnection(clientConnection);
         _tcpCommunicationClient.configure(clientConfiguration);
-        
-        
+
         _tcpCommunicationClient.startup();
 
     }
@@ -102,13 +95,13 @@ public class ReflectInvocationHandlerTest extends TestCase {
         _tcpCommunicationServer.shutdown();
 
         File[] files = _securityFolder.listFiles();
-        
+
         // unable to delete files under windows, because they are locked
         if (System.getProperty("os.name").toLowerCase().indexOf("windows") == -1) {
-	        for (int i = 0; i < files.length; i++) {
-	            assertTrue(files[i].delete());
-	        }
-	        assertTrue(_securityFolder.delete());
+            for (int i = 0; i < files.length; i++) {
+                assertTrue(files[i].delete());
+            }
+            assertTrue(_securityFolder.delete());
         }
 
     }

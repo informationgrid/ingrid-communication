@@ -1,4 +1,0 @@
-addFlatDirResolver('buildLib', new File(rootDir, 'src/build/resources/lib'))
-
-dependencies(":svnkit:1.1.6")
-dependencies(":svnkit-javahl:1.1.6")

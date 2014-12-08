@@ -27,10 +27,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -99,7 +95,17 @@ public class MessageReaderThreadTest extends TestCase {
             assertTrue(true);
         } catch (IOException e) {
             fail();
+        } finally {
+            if (socket != null) {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
         }
+        
         try {
             _serverSocket.close();
         } catch (IOException e) {
@@ -108,13 +114,15 @@ public class MessageReaderThreadTest extends TestCase {
     }
 
     public void testMaxThreadCount() {
+        Socket socket = null;
+        
         try {
             synchronized (_thread) {
                 if (!_isStarted) {
                     _thread.wait();
                 }
             }
-            Socket socket = new Socket("localhost", 65535);
+            socket = new Socket("localhost", 65535);
             IOutput os = new Output(new DataOutputStream(new BufferedOutputStream(socket.getOutputStream())));
             PayloadMessage pmsg = new PayloadMessage(new DummyExternalizable(), "bla");
             pmsg.setId("1");
@@ -124,6 +132,15 @@ public class MessageReaderThreadTest extends TestCase {
         } catch (Exception e) {
             e.printStackTrace();
             fail();
+        } finally {
+            if (socket != null) {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
         }
         try {
             if (_thread != null) {
