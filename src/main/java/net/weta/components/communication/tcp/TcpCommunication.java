@@ -201,7 +201,7 @@ public class TcpCommunication implements ICommunication {
 		long reservedMemory = runtime.totalMemory();
 		long used = reservedMemory - freeMemory;
 		float percent = 100 * used / maxMemory;
-		LOG.info("Memory Usage: [" + (used / (1024 * 1024)) + " MB used of " + (maxMemory / (1024 * 1024))
+		LOG.debug("Memory Usage: [" + (used / (1024 * 1024)) + " MB used of " + (maxMemory / (1024 * 1024))
 				+ " MB total (" + percent + " %)" + "]");
 	}
 

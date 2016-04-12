@@ -99,6 +99,9 @@ public class ReflectMessageHandler implements IMessageHandler {
         try {
             Object object = getObjectToCall(reflectMessage);
             Method method = getMethod(object, reflectMessage);
+            if (_LOGGER.isDebugEnabled()) {
+                _LOGGER.debug("Invoke [" + object + "].[" + method + "] with arguments [" + reflectMessage.getArguments() + "]");
+            }
             reply = (Serializable) method.invoke(object, reflectMessage.getArguments());
         } catch (Throwable e) {
             if (_LOGGER.isEnabledFor(Level.ERROR)) {
