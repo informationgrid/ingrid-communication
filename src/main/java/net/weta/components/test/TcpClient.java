@@ -32,7 +32,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.HashMap;
 
-import sun.misc.BASE64Encoder;
+import javax.xml.bind.DatatypeConverter;
 
 public class TcpClient {
 
@@ -100,7 +100,7 @@ public class TcpClient {
 
             StringBuffer builder = new StringBuffer();
             String authString = userName + ":" + password;
-            String auth = "Basic " + new BASE64Encoder().encode(authString.getBytes());
+            String auth = "Basic " + DatatypeConverter.printBase64Binary(authString.getBytes("UTF-8"));
             builder.append("CONNECT " + host + ":" + port + " HTTP/1.1" + CRLF);
             builder.append("HOST: " + host + ":" + port + CRLF);
             builder.append(("Proxy-Authorization: " + auth + CRLF));

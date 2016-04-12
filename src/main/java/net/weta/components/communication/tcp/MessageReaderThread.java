@@ -73,10 +73,16 @@ public class MessageReaderThread extends Thread {
     	@Override
 		public void run() {
             try {
-            	Message answer = _messageQueue.messageEvent(message);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Send message [" + message.getId() + "] to messager queue. Thread [" + Thread.currentThread().getName() + "].");
+                }
+                Message answer = _messageQueue.messageEvent(message);
                 if (answer != null) {
                     answer.setType("");
                     try {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Got answer [" + answer.getId() + "], type [" + answer + "] for message [" + message.getId() + "]. Send message to peer [" + _peerName + "]");
+                        }
                         _messageSender.sendMessage(_peerName, answer);
                     } catch (IOException e) {
                         if (LOG.isEnabledFor(Level.WARN)) {
@@ -94,8 +100,17 @@ public class MessageReaderThread extends Thread {
             }
             finally {
             	Future<?> f = _futures.remove(this.tracker);
+                if (LOG.isEnabledFor(Level.DEBUG)) {
+                    LOG.debug("Remove future from future list by message [" + this.tracker + "]. Thread [" + Thread.currentThread().getName() + "].");
+                }
+            	
             	if (f != null) {
-                	f.cancel(true); // make sure the thread will be canceled
+            	    // DO NOT cancel the future because this causes an InterruptedException in MessageQueue.waitForMessage() 
+            	    if (!f.isDone()) {
+                        if (LOG.isEnabledFor(Level.DEBUG)) {
+                            LOG.debug("Future [" + f.toString() + "] for message [" + this.tracker + "] is NOT done yet.");
+                        }
+            	    }
             	}
             	this.message = null;
                 _threadCount--;
@@ -124,7 +139,7 @@ public class MessageReaderThread extends Thread {
             while (!isInterrupted()) {
                 Message message = (Message) _in.readObject();
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("read message [" + message.getId() + "] for client [" + _peerName + "]");
+                    LOG.debug("Read message [" + message.getId() + "] of type [" + message.getType() + "] and id [" + message + "] for client [" + _peerName + "]");
                 }
                 if (LOG.isInfoEnabled()) {
                     nMessages++;
@@ -195,14 +210,25 @@ public class MessageReaderThread extends Thread {
         }
 
         WaitForAnswerRunnable runnable = new WaitForAnswerRunnable(message);
+
         // use thread pool here
         Future<?> f = PooledThreadExecutor.submit(runnable);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Executed WaitForAnswerRunnable [" + runnable.toString() + "] in future [" + f.toString() + "] in thread [" + this.getName() + "] for message [" + message.getId()
+                    + "] for client [" + _peerName + "]: " + runnable.toString());
+        }
        	if (!f.isDone()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Future [" + f.toString() + "] is not done. Place in future list for message [" + message.getId() + "].");
+            }
        		_futures.put(message.getId(), f);
        		// if the task is already done just after the task was added to the future map
        		// remove it. We don't want any finished tasks at this point. Otherwise they will 
        		// not get removed anymore. See WaitForAnswerRunnable.run() in finally method.
        		if (f.isDone()) {
+                if (LOG.isEnabledFor(Level.WARN)) {
+                    LOG.warn("Future [" + f.toString() + "] already done after adding to future list. Remove from list for message [" + message.getId() + "].");
+                }
        			_futures.remove(message.getId());
        		}
        	}
@@ -219,7 +245,11 @@ public class MessageReaderThread extends Thread {
             LOG.info("Try cancel running tasks. Number of registered tasks: " + _futures.size());
         }
         if (_futures != null && !_futures.isEmpty()) {
-        	for (Future<?> f : _futures.values()) {
+        	for (String key : _futures.keySet()) {
+        	    Future<?> f = _futures.get( key );
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Cancel future [" + f.toString() + "] for message [" + key + "].");
+                }
         		f.cancel(true);
         	}
         	_futures.clear();

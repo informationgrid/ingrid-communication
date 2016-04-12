@@ -178,7 +178,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         this.clientInfoLifeTime = clientInfoLifeTime;
         
         // start client info timeout scanner
-        clientInfoTimeoutScannerFuture = PooledThreadExecutor.getInstance().submit(new ClientInfoTimeoutScanner());
+        clientInfoTimeoutScannerFuture = PooledThreadExecutor.submit(new ClientInfoTimeoutScanner());
 
     }
 

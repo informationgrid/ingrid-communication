@@ -103,6 +103,9 @@ public class MessageQueue implements IMessageQueue {
 
     private void addMessage(Message message) {
         String messageId = message.getId();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Add Message [" + messageId + "].");
+        }
         MutexType mutex = getSynchronizedMutex(messageId);
         synchronized (mutex) {
         	// check for message that have been processed already (timeout in waitForMessage())
@@ -123,6 +126,10 @@ public class MessageQueue implements IMessageQueue {
             	}
                 _messages.put(messageId, message);
                 _queueSize.add(messageId);
+                
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Notify mutex: [" + mutex + "].");
+                }
                 mutex.notify();
             }
         }
@@ -157,6 +164,10 @@ public class MessageQueue implements IMessageQueue {
 				}
         	}
         }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Get mutex: [" + mutex + "] in thread [" + Thread.currentThread().getName() + "] for message id [" + messageId + "].");
+        }
+        
         return mutex;
     }
 
@@ -172,13 +183,19 @@ public class MessageQueue implements IMessageQueue {
             try {
                 if (null == message) {
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("message [" + id + "] not found, wait for max. " + timeout + " sec.");
+                        LOGGER.debug("message [" + id + "] not found, wait thread [" + Thread.currentThread().getName() + "] for max. " + timeout + " sec on mutex [" + mutex + "].");
                     }
                     mutex.wait(timeout * 1000);
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("message [" + id + "] was found or timeout was reached on mutex [" + mutex + "].");
+                    }
 
                     message = (Message) _messages.remove(id);
                 }
             } catch (InterruptedException e) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("message [" + id + "]: thread [" + Thread.currentThread().getName() + "] waiting was interrupted on mutex [" + mutex + "].", e);
+                }
                 Thread.interrupted();
             }
             finally {
