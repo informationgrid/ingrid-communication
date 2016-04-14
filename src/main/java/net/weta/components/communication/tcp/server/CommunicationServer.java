@@ -293,7 +293,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
 
     public void interrupt() {
         if (LOG.isInfoEnabled()) {
-            LOG.info("interupt communication server thread.");
+            LOG.info("interupt communication server thread [" + super.getName() + "].");
         }
         super.interrupt();
         Set<String> peerNames = _clientInfos.keySet();

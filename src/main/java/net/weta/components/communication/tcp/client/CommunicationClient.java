@@ -134,7 +134,7 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
         try {
             if (_messageReaderThread != null && _messageReaderThread.isAlive()) {
                 if (LOG.isInfoEnabled()) {
-                    LOG.info("Previous message reader thread is still running, interruping now, close socket.");
+                    LOG.info("Previous message reader thread [" + _messageReaderThread.getName() + "] is still running, interruping now, close socket.");
                 }
             	_messageReaderThread.interrupt();
                 if (LOG.isInfoEnabled()) {
@@ -241,6 +241,9 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
 
     public void interrupt() {
         if (_messageReaderThread != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Interrupt thread [" + _messageReaderThread.getName() + "]");
+            }
             _messageReaderThread.interrupt();
         }
         disconnect(null);
