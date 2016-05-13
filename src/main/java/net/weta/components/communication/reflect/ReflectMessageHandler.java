@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2015 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2016 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -99,6 +99,9 @@ public class ReflectMessageHandler implements IMessageHandler {
         try {
             Object object = getObjectToCall(reflectMessage);
             Method method = getMethod(object, reflectMessage);
+            if (_LOGGER.isDebugEnabled()) {
+                _LOGGER.debug("Invoke [" + object + "].[" + method + "] with arguments [" + reflectMessage.getArguments() + "]");
+            }
             reply = (Serializable) method.invoke(object, reflectMessage.getArguments());
         } catch (Throwable e) {
             if (_LOGGER.isEnabledFor(Level.ERROR)) {

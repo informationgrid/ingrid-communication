@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2015 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2016 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -201,7 +201,7 @@ public class TcpCommunication implements ICommunication {
 		long reservedMemory = runtime.totalMemory();
 		long used = reservedMemory - freeMemory;
 		float percent = 100 * used / maxMemory;
-		LOG.info("Memory Usage: [" + (used / (1024 * 1024)) + " MB used of " + (maxMemory / (1024 * 1024))
+		LOG.debug("Memory Usage: [" + (used / (1024 * 1024)) + " MB used of " + (maxMemory / (1024 * 1024))
 				+ " MB total (" + percent + " %)" + "]");
 	}
 

@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2015 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2016 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -178,7 +178,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         this.clientInfoLifeTime = clientInfoLifeTime;
         
         // start client info timeout scanner
-        clientInfoTimeoutScannerFuture = PooledThreadExecutor.getInstance().submit(new ClientInfoTimeoutScanner());
+        clientInfoTimeoutScannerFuture = PooledThreadExecutor.submit(new ClientInfoTimeoutScanner());
 
     }
 
@@ -293,7 +293,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
 
     public void interrupt() {
         if (LOG.isInfoEnabled()) {
-            LOG.info("interupt communication server thread.");
+            LOG.info("interupt communication server thread [" + super.getName() + "].");
         }
         super.interrupt();
         Set<String> peerNames = _clientInfos.keySet();
