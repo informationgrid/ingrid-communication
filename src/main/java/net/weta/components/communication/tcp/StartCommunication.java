@@ -47,6 +47,13 @@ public class StartCommunication {
         return communication;
     }
 
+    public static ICommunication create(Configuration configuration) throws IOException {
+        TcpCommunication communication = new TcpCommunication();
+        communication.setPeerName(configuration.getName());
+        communication.configure(configuration);
+        return communication;
+    }
+
     private static TcpCommunication configureFromXmlFile(InputStream inputStream, TcpCommunication communication) throws IOException {
         try {
             URL xsdFileUrl = StartCommunication.class.getResource("/communication.xsd");
