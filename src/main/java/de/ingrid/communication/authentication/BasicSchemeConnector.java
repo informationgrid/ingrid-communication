@@ -7,12 +7,12 @@
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- * 
+ *
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- * 
+ *
  * http://ec.europa.eu/idabc/eupl5
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,22 +22,16 @@
  */
 package de.ingrid.communication.authentication;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
-
 import org.apache.commons.codec.binary.Base64;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.*;
+import java.net.Socket;
 
 public class BasicSchemeConnector implements IHttpProxyConnector {
 
-    private static Logger LOG = Logger.getLogger(BasicSchemeConnector.class);
+    private static Logger LOG = LogManager.getLogger(BasicSchemeConnector.class);
 
     private static final String CRLF = "\r\n";
 
@@ -55,7 +49,7 @@ public class BasicSchemeConnector implements IHttpProxyConnector {
         dataOutput.flush();
         boolean success = readMessageFromHttpProxy(dataInput, errorBuffer);
         if (!success) {
-            if (LOG.isEnabledFor(Level.WARN)) {
+            if (LOG.isWarnEnabled()) {
                 LOG.error(errorBuffer);
             }
         }
@@ -72,7 +66,7 @@ public class BasicSchemeConnector implements IHttpProxyConnector {
         dataOutput.flush();
         boolean success = readMessageFromHttpProxy(dataInput, errorBuffer);
         if (!success) {
-            if (LOG.isEnabledFor(Level.WARN)) {
+            if (LOG.isWarnEnabled()) {
                 LOG.error(errorBuffer);
             }
         }

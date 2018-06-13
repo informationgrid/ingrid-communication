@@ -22,6 +22,9 @@
  */
 package net.weta.components.communication.security;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -30,11 +33,10 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.X509Certificate;
 
-import org.apache.log4j.Logger;
 
 public class SecurityUtil {
 
-    private static final Logger LOG = Logger.getLogger(SecurityUtil.class);
+    private static final Logger LOG = LogManager.getLogger(SecurityUtil.class);
 
     public static final String SHA256_RSA = "SHA256WithRSAEncryption";
 

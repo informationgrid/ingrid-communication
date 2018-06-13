@@ -28,12 +28,12 @@ import java.util.Iterator;
 
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.tcp.server.IMessageSender;
-
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class MultiCommunicationClient extends Thread implements IMessageSender, ICommunicationClient {
 
-    private static final Logger LOG = Logger.getLogger(MultiCommunicationClient.class);
+    private static final Logger LOG = LogManager.getLogger(MultiCommunicationClient.class);
 
     private final HashMap _clients = new HashMap();
 

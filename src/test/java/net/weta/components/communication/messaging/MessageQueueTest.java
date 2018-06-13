@@ -25,9 +25,6 @@ package net.weta.components.communication.messaging;
 import junit.framework.TestCase;
 import net.weta.components.test.DummyExternalizable;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
 /**
  * test case created on 27.12.2004
  * 
@@ -60,8 +57,6 @@ public class MessageQueueTest extends TestCase {
      * @throws Exception
      */
     public void testWaitForMessage() throws Exception {
-        Logger logger = Logger.getLogger(MessageQueue.class);
-        logger.setLevel(Level.DEBUG);
         final MessageQueue messageQueue = new MessageQueue();
         messageQueue.getProcessorRegistry().addMessageHandler("type", new TestMessageProcessor());
         Message message1 = new PayloadMessage(new DummyExternalizable(), "");

@@ -43,9 +43,8 @@ import net.weta.components.communication.stream.IInput;
 import net.weta.components.communication.stream.IOutput;
 import net.weta.components.communication.tcp.MessageReaderThread;
 import net.weta.components.communication.util.PooledThreadExecutor;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class CommunicationServer extends Thread implements ICommunicationServer, IMessageSender {
 
@@ -145,7 +144,7 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
     
     
     
-    private static final Logger LOG = Logger.getLogger(CommunicationServer.class);
+    private static final Logger LOG = LogManager.getLogger(CommunicationServer.class);
 
     private Map<String, CommunicationClientInfo> _clientInfos = new ConcurrentHashMap<String, CommunicationClientInfo>();
 
@@ -206,12 +205,12 @@ public class CommunicationServer extends Thread implements ICommunicationServer,
         if (_clientInfos.containsKey(peerName)) {
             CommunicationClientInfo cci =  _clientInfos.get(peerName);
         	if (!cci.getSocket().isConnected() && cci.getSocket().getInetAddress().toString().equals(socket.getInetAddress().toString())) {
-	        	if (LOG.isEnabledFor(Level.WARN)) {
+	        	if (LOG.isWarnEnabled()) {
 	                LOG.warn("Registration of new client from ip [" + socket.getRemoteSocketAddress() +
 	                        "], client with the same name already registered: [" + peerName + "] from same ip. Try to reconnect.");
 	            }
         	} else {
-	        	if (LOG.isEnabledFor(Level.WARN)) {
+	        	if (LOG.isWarnEnabled()) {
 	                LOG.warn("Registration of new client from ip [" + socket.getRemoteSocketAddress() +
 	                        "], client with the same name already registered: [" + peerName + "] from ip [" + cci.getSocket().getRemoteSocketAddress() + "]");
 	            }

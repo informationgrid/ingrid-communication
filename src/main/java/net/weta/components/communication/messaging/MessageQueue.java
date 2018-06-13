@@ -46,8 +46,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import net.weta.components.communication.CommunicationException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Logger;
 
 /**
  * A Queue for messages. Handles diffeent type of messages and calls their
@@ -57,7 +58,7 @@ import org.apache.log4j.Logger;
  */
 public class MessageQueue implements IMessageQueue {
 
-    private static Logger LOGGER = Logger.getLogger( MessageQueue.class );
+    private static Logger LOGGER = LogManager.getLogger( MessageQueue.class );
 
     private List<String> _queueSize = new CopyOnWriteArrayList<String>();
 

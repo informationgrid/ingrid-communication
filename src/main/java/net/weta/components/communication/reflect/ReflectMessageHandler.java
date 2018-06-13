@@ -50,9 +50,8 @@ import net.weta.components.communication.CommunicationException;
 import net.weta.components.communication.messaging.IMessageHandler;
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.PayloadMessage;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * TODO comment for ReflectMessageHandler
@@ -66,7 +65,7 @@ import org.apache.log4j.Logger;
  */
 public class ReflectMessageHandler implements IMessageHandler {
 
-    private static Logger _LOGGER = Logger.getLogger(ReflectMessageHandler.class);
+    private static Logger _LOGGER = LogManager.getLogger(ReflectMessageHandler.class);
 
     /***/
     public static final String MESSAGE_TYPE = ReflectMessageHandler.class.getName();
@@ -104,7 +103,7 @@ public class ReflectMessageHandler implements IMessageHandler {
             }
             reply = (Serializable) method.invoke(object, reflectMessage.getArguments());
         } catch (Throwable e) {
-            if (_LOGGER.isEnabledFor(Level.ERROR)) {
+            if (_LOGGER.isErrorEnabled()) {
                 _LOGGER.error("local exception on proxy-method-call '" + reflectMessage.getMethodName() + "' on object '" + reflectMessage.getObjectToCallClass() + "' for message-id " + "["
                         + message.getId() + "]", e);
             }

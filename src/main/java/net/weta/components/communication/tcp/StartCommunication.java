@@ -34,12 +34,12 @@ import net.weta.components.communication.configuration.IConfigurationService;
 import net.weta.components.communication.configuration.IConfigurationValidator;
 import net.weta.components.communication.configuration.IXPathService;
 import net.weta.components.communication.configuration.XPathService;
-
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class StartCommunication {
 
-    private static final Logger LOG = Logger.getLogger(StartCommunication.class);
+    private static final Logger LOG = LogManager.getLogger(StartCommunication.class);
 
     public static ICommunication create(InputStream inputStream) throws IOException {
         TcpCommunication communication = new TcpCommunication();

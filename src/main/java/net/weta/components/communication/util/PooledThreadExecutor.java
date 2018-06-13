@@ -25,11 +25,12 @@
  */
 package net.weta.components.communication.util;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
-
-import org.apache.log4j.Logger;
 
 /**
  * Pooled Executor singlton. Provides access to a thread pool.
@@ -42,7 +43,7 @@ public class PooledThreadExecutor {
 
     private static ThreadPoolExecutor executorService = null;
 
-    private static final Logger LOG = Logger.getLogger( PooledThreadExecutor.class );
+    private static final Logger LOG = LogManager.getLogger( PooledThreadExecutor.class );
 
     private PooledThreadExecutor() {};
 

@@ -38,13 +38,12 @@ import net.weta.components.communication.stream.IInput;
 import net.weta.components.communication.stream.MessageSizeTooBigException;
 import net.weta.components.communication.tcp.server.IMessageSender;
 import net.weta.components.communication.util.PooledThreadExecutor;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class MessageReaderThread extends Thread {
 
-    protected static final Logger LOG = Logger.getLogger(MessageReaderThread.class);
+    protected static final Logger LOG = LogManager.getLogger(MessageReaderThread.class);
 
     protected final MessageQueue _messageQueue;
 
@@ -85,29 +84,29 @@ public class MessageReaderThread extends Thread {
                         }
                         _messageSender.sendMessage(_peerName, answer);
                     } catch (IOException e) {
-                        if (LOG.isEnabledFor(Level.WARN)) {
+                        if (LOG.isWarnEnabled()) {
                             LOG.warn("can not send answer message to [" + _peerName + "]: " + e.getMessage());
                         }
-                        if (LOG.isEnabledFor(Level.DEBUG)) {
+                        if (LOG.isDebugEnabled()) {
                             LOG.debug("Stacktrace:", e);
                         }
                     }
                 }
             } catch (Throwable t) {
-                if (LOG.isEnabledFor(Level.INFO)) {
+                if (LOG.isInfoEnabled()) {
                     LOG.info("Unexpected interruption of sending message [" + message + "] to peer [" + _peerName + "].", t);
                 }
             }
             finally {
             	Future<?> f = _futures.remove(this.tracker);
-                if (LOG.isEnabledFor(Level.DEBUG)) {
+                if (LOG.isDebugEnabled()) {
                     LOG.debug("Remove future from future list by message [" + this.tracker + "]. Thread [" + Thread.currentThread().getName() + "].");
                 }
             	
             	if (f != null) {
             	    // DO NOT cancel the future because this causes an InterruptedException in MessageQueue.waitForMessage() 
             	    if (!f.isDone()) {
-                        if (LOG.isEnabledFor(Level.DEBUG)) {
+                        if (LOG.isDebugEnabled()) {
                             LOG.debug("Future [" + f.toString() + "] for message [" + this.tracker + "] is NOT done yet.");
                         }
             	    }
@@ -168,7 +167,7 @@ public class MessageReaderThread extends Thread {
                 _messageSender.connect(_peerName);
             }
         } catch (MessageSizeTooBigException e) {
-            if (LOG.isEnabledFor(Level.WARN)) {
+            if (LOG.isWarnEnabled()) {
                 LOG.warn("MessageSizeTooBigException for peer: " + _peerName, e);
             }
             if (_messageSender != null) {
@@ -178,7 +177,7 @@ public class MessageReaderThread extends Thread {
                 _messageSender.connect(_peerName);
             }
         } catch (OptionalDataException e) {
-            if (LOG.isEnabledFor(Level.ERROR)) {
+            if (LOG.isErrorEnabled()) {
                 LOG.error("Optional Data Exception: " + _peerName, e);
                 LOG.error("There is no more data in the buffered part of the stream: " + e.eof);
                 LOG.error("The number of bytes of primitive data available to be read in the current buffer: " + e.length);
@@ -190,7 +189,7 @@ public class MessageReaderThread extends Thread {
                 _messageSender.connect(_peerName);
             }
         } catch (IOException e) {
-            if (LOG.isEnabledFor(Level.ERROR)) {
+            if (LOG.isErrorEnabled()) {
                 LOG.error("error while consuming messages for peer: " + _peerName, e);
             }
         } 
@@ -203,7 +202,7 @@ public class MessageReaderThread extends Thread {
         }
 
         if (_threadCount >= _maxThreadCount) {
-            if (LOG.isEnabledFor(Level.WARN)) {
+            if (LOG.isWarnEnabled()) {
                 LOG.warn("message not handled because, max thread count reached: " + _maxThreadCount);
             }
             throw new TooManyRunningThreads("No more threads available.");
@@ -226,7 +225,7 @@ public class MessageReaderThread extends Thread {
        		// remove it. We don't want any finished tasks at this point. Otherwise they will 
        		// not get removed anymore. See WaitForAnswerRunnable.run() in finally method.
        		if (f.isDone()) {
-                if (LOG.isEnabledFor(Level.WARN)) {
+                if (LOG.isWarnEnabled()) {
                     LOG.warn("Future [" + f.toString() + "] already done after adding to future list. Remove from list for message [" + message.getId() + "].");
                 }
        			_futures.remove(message.getId());

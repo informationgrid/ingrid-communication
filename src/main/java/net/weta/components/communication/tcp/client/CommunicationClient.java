@@ -43,16 +43,15 @@ import net.weta.components.communication.stream.Output;
 import net.weta.components.communication.tcp.MessageReaderThread;
 import net.weta.components.communication.tcp.server.IMessageSender;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
 import de.ingrid.communication.authentication.IHttpProxyConnector;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class CommunicationClient implements IMessageSender, ICommunicationClient {
 
     private static final int BUFFER_SIZE = 65535;
 
-    private static final Logger LOG = Logger.getLogger(CommunicationClient.class);
+    private static final Logger LOG = LogManager.getLogger(CommunicationClient.class);
 
     private Socket _socket;
 
@@ -162,7 +161,7 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
 
             byte[] signature = new byte[0];
             if (_securityUtil != null) {
-                if (LOG.isEnabledFor(Level.INFO)) {
+                if (LOG.isInfoEnabled()) {
                     LOG.info("Begin to read authentication token for signing.");
                 }
                 AuthenticationMessage message = new AuthenticationMessage(new byte[0]);
@@ -185,7 +184,7 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
 			}
             if (isRegistered) {
                 _socket.setSoTimeout(0);
-                if (LOG.isEnabledFor(Level.INFO)) {
+                if (LOG.isInfoEnabled()) {
                     LOG.info("Registration to server [" + _serverHost + ":" + _serverPort + "] successfully.");
                 }
                 _messageReaderThread = new MessageReaderThread(_peerName, _in, _messageQueue, this, _maxThreadCount);
@@ -195,7 +194,7 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
                     this.notify();
                 }
             } else {
-                if (LOG.isEnabledFor(Level.WARN)) {
+                if (LOG.isWarnEnabled()) {
                     LOG.warn("Registration to server [" + _serverHost + ":" + _serverPort + "] fails.");
                 }
                 _isConnected = false;
@@ -274,7 +273,7 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
                 }
                 connect(null);
             } else {
-                if (LOG.isEnabledFor(Level.WARN)) {
+                if (LOG.isWarnEnabled()) {
                     LOG.warn("client not yet connected but is in connecting process, waiting...");
                 }
                 try {
@@ -282,7 +281,7 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
                         this.wait(_socketTimeout * 1000);
                     }
                 } catch (InterruptedException e) {
-                    if (LOG.isEnabledFor(Level.ERROR)) {
+                    if (LOG.isErrorEnabled()) {
                         LOG.error("Interrupted during wait for connection with server." + e);
                     }
                     throw new IOException("Cannot connect with server: " + e.getMessage());

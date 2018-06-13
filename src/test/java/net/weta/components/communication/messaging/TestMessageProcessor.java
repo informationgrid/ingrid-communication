@@ -40,7 +40,8 @@
 
 package net.weta.components.communication.messaging;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Message handler for testing. Prints out the received message.
@@ -51,7 +52,7 @@ import org.apache.log4j.Logger;
  */
 public class TestMessageProcessor implements IMessageHandler {
 
-    private static Logger LOGGER = Logger.getLogger(TestMessageProcessor.class);
+    private static Logger LOGGER = LogManager.getLogger(TestMessageProcessor.class);
 
     public Message handleMessage(Message message) {
         if (LOGGER.isInfoEnabled()) {
