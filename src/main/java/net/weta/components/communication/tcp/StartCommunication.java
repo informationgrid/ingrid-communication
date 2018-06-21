@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2016 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2018 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -34,16 +34,23 @@ import net.weta.components.communication.configuration.IConfigurationService;
 import net.weta.components.communication.configuration.IConfigurationValidator;
 import net.weta.components.communication.configuration.IXPathService;
 import net.weta.components.communication.configuration.XPathService;
-
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class StartCommunication {
 
-    private static final Logger LOG = Logger.getLogger(StartCommunication.class);
+    private static final Logger LOG = LogManager.getLogger(StartCommunication.class);
 
     public static ICommunication create(InputStream inputStream) throws IOException {
         TcpCommunication communication = new TcpCommunication();
         configureFromXmlFile(inputStream, communication);
+        return communication;
+    }
+
+    public static ICommunication create(Configuration configuration) throws IOException {
+        TcpCommunication communication = new TcpCommunication();
+        communication.setPeerName(configuration.getName());
+        communication.configure(configuration);
         return communication;
     }
 

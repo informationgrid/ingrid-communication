@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2016 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2018 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -22,13 +22,13 @@
  */
 package net.weta.components.communication.stream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 public class Input implements IInput {
 
@@ -36,7 +36,7 @@ public class Input implements IInput {
 
     private final int _maxMessageSize;
 
-    private static final Logger LOG = Logger.getLogger(Input.class);
+    private static final Logger LOG = LogManager.getLogger(Input.class);
     
     public Input(DataInput dataInput, int maxMessageSize) {
         _dataInput = dataInput;
@@ -68,7 +68,7 @@ public class Input implements IInput {
         try {
             object = stream.readObject();
         } catch (ClassNotFoundException e) {
-            LOG.log(Level.ERROR, "class not found: " + e.getMessage(), e);
+            LOG.error("class not found: " + e.getMessage(), e);
             throw new IOException("class not found: " + e.getMessage());
         } finally {
             stream.close();

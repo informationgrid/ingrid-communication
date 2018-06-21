@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2016 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2018 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -36,15 +36,14 @@ import net.weta.components.communication.stream.IInput;
 import net.weta.components.communication.stream.IOutput;
 import net.weta.components.communication.stream.Input;
 import net.weta.components.communication.stream.Output;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class RegistrationThread extends Thread {
 
     private static final int BUFFER_SIZE = 65535;
 
-    private static final Logger LOG = Logger.getLogger(RegistrationThread.class);
+    private static final Logger LOG = LogManager.getLogger(RegistrationThread.class);
 
     private final Socket _socket;
 
@@ -80,7 +79,7 @@ public class RegistrationThread extends Thread {
 
             AuthenticationMessage authenticationMessage = null;
             if (_securityUtil != null) {
-                if (LOG.isEnabledFor(Level.INFO)) {
+                if (LOG.isInfoEnabled()) {
                     LOG.info("Send bytes for signing.");
                 }
                 authenticationMessage = new AuthenticationMessage(("" + System.currentTimeMillis()).getBytes());
@@ -94,20 +93,20 @@ public class RegistrationThread extends Thread {
             boolean signatureOk = true;
             if (_securityUtil != null) {
                 byte[] signature = registrationMessage.getSignature();
-                if (LOG.isEnabledFor(Level.INFO)) {
+                if (LOG.isInfoEnabled()) {
                     LOG.info("Security is enabled, verify signature from peerName: [" + peerName + "] from ip: [" + _socket.getRemoteSocketAddress() + "]");
                 }
                 signatureOk = _securityUtil.verifySignature(peerName, authenticationMessage.getToken(), signature);
             }
 
             if (signatureOk) {
-                if (LOG.isEnabledFor(Level.INFO)) {
+                if (LOG.isInfoEnabled()) {
                     LOG.info("Registration request successfully for peerName: [" + peerName + "] from ip: [" + _socket.getRemoteSocketAddress() + "]");
                 }
                 _socket.setSoTimeout(0);
                 _communicationServer.register(peerName, _socket, _in, _out);
             } else {
-                if (LOG.isEnabledFor(Level.WARN)) {
+                if (LOG.isWarnEnabled()) {
                     LOG.warn("Registration failed for peerName: [" + peerName + "] from ip: [" + _socket.getRemoteSocketAddress() + "]");
                 }
                 _out.writeBoolean(false);

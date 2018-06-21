@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2016 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2018 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -22,6 +22,9 @@
  */
 package net.weta.components.communication.security;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -37,7 +40,6 @@ import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 
 public class JavaKeystore {
 
@@ -47,7 +49,7 @@ public class JavaKeystore {
 
     private String fPassw;
 
-    private static final Logger LOG = Logger.getLogger(JavaKeystore.class);
+    private static final Logger LOG = LogManager.getLogger(JavaKeystore.class);
     
     /**
      * Load an keystore by the given parameter.

@@ -1,6 +1,6 @@
 /*
  * **************************************************-
- * ingrid-communication
+ * Ingrid Communication Authentication
  * ==================================================
  * Copyright (C) 2014 - 2018 wemove digital solutions GmbH
  * ==================================================
@@ -20,20 +20,14 @@
  * limitations under the Licence.
  * **************************************************#
  */
-package net.weta.components.communication.tcp.server;
+package de.ingrid.communication.authentication;
 
 import java.io.IOException;
+import java.net.Socket;
 
-import net.weta.components.communication.messaging.Message;
+public interface IHttpProxyConnector {
 
-public interface IMessageSender {
+    boolean connect(Socket socket, String host, int port) throws IOException;
 
-    void sendMessage(String peerName, Message message) throws IOException;
-
-    void connect(String url);
-    
-    void disconnect(String url);
-
-    boolean isConnected(String url);
-
+    boolean connect(Socket socket, String host, int port, String userName, String password) throws IOException;
 }

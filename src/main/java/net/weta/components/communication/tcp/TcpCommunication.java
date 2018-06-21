@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2016 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2018 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -43,15 +43,14 @@ import net.weta.components.communication.tcp.client.CommunicationClient;
 import net.weta.components.communication.tcp.client.MultiCommunicationClient;
 import net.weta.components.communication.tcp.server.CommunicationServer;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
 import de.ingrid.communication.authentication.BasicSchemeConnector;
 import de.ingrid.communication.authentication.IHttpProxyConnector;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class TcpCommunication implements ICommunication {
 
-	private static final Logger LOG = Logger.getLogger(TcpCommunication.class);
+	private static final Logger LOG = LogManager.getLogger(TcpCommunication.class);
 
 	private String _peerName;
 
@@ -126,12 +125,12 @@ public class TcpCommunication implements ICommunication {
 
 	public void shutdown() {
 		if (_isCommunicationServer) {
-			if (LOG.isEnabledFor(Level.INFO)) {
+			if (LOG.isInfoEnabled()) {
 				LOG.info("Shutdown/Interrupt the server.");
 			}
 			_communicationServer.interrupt();
 		} else {
-			if (LOG.isEnabledFor(Level.INFO)) {
+			if (LOG.isInfoEnabled()) {
 				LOG.info("Shutdown the client.");
 			}
 			_communicationClient.shutdown();
@@ -148,6 +147,9 @@ public class TcpCommunication implements ICommunication {
 					serverConfiguration.getMessageThreadCount(), serverConfiguration.getSocketTimeout(),
 					serverConfiguration.getMaxMessageSize(), util, serverConfiguration.getMaxClientInfoLifetime());
 			_communicationServer.start();
+			LOG.info("Communication Server started on port: " +
+					serverConfiguration.getPort() + " with ID: " +
+					serverConfiguration.getName());
 		} else {
 			// shut down old communication clients
 			if (_communicationClient != null) {
@@ -174,6 +176,10 @@ public class TcpCommunication implements ICommunication {
 					.size()]);
 			_communicationClient = new MultiCommunicationClient(clientArray);
 			_communicationClient.start();
+			LOG.info("Communication Client started with ID: " +
+					clientConfiguration.getName() + " connecting to: " +
+					clientConfiguration.getClientConnections().stream()
+							.map( conn -> conn.getServerName() + "(" + conn.getServerIp() + ":" + conn.getServerPort() + ")"));
 		}
 	}
 
