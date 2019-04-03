@@ -2,29 +2,35 @@
   <parent>
     <artifactId>ingrid-base-pom</artifactId>
     <groupId>de.ingrid</groupId>
-    <version>4.2.2</version>
+    <version>5.0.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ingrid-communication</artifactId>
   <packaging>jar</packaging>
-  <version>4.4.0</version>
+  <version>5.0.0</version>
   <name>ingrid-communication</name>
+
+  <!-- ==================== Source Code Management ==================== -->
   <scm>
     <connection>scm:git:git@github.com:informationgrid/ingrid-communication.git</connection>
     <developerConnection>scm:git:git@github.com:informationgrid/ingrid-communication.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>de.ingrid</groupId>
-        <artifactId>ingrid-version-management-pom</artifactId>
-        <version>3.6.0</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+
+  <!-- ==================== REPOSITORIES ==================== -->
+  <repositories>
+    <!-- Repo of parent pom needed, parent pom may not be installed locally
+      yet -->
+    <repository>
+      <id>nexus</id>
+      <name>Nexus Repo</name>
+      <url>https://nexus.informationgrid.eu/repository/maven-public</url>
+    </repository>
+  </repositories>
+
+  <!-- ==================== DEPENDENCY MANAGEMENT ==================== -->
+
+  <!-- ==================== DEPENDENCIES ==================== -->
   <dependencies>
     <dependency>
       <groupId>commons-codec</groupId>
@@ -54,8 +60,13 @@
       <version>4.11</version>
     </dependency>
   </dependencies>
+
+  <!-- ==================== Build Configuration ==================== -->
   <build>
     <plugins>
+      <!--
+        This plugin configures the git-flow for this project
+      -->
       <plugin>
         <groupId>external.atlassian.jgitflow</groupId>
         <artifactId>jgitflow-maven-plugin</artifactId>
@@ -67,13 +78,4 @@
       </plugin>
     </plugins>
   </build>
-  <repositories>
-    <!-- Repo of parent pom needed, parent pom may not be installed locally
-      yet -->
-    <repository>
-      <id>nexus</id>
-      <name>Nexus Repo</name>
-      <url>https://nexus.informationgrid.eu/repository/maven-public</url>
-    </repository>
-  </repositories>
 </project>
