@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2019 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2020 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -191,6 +191,12 @@ public class MessageReaderThread extends Thread {
         } catch (IOException e) {
             if (LOG.isErrorEnabled()) {
                 LOG.error("error while consuming messages for peer: " + _peerName, e);
+            }
+            if (_messageSender != null) {
+                // disconnect in case of client
+                _messageSender.disconnect(_peerName);
+                // connect in case of client and server
+                _messageSender.connect(_peerName);
             }
         } 
     }

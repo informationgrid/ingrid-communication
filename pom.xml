@@ -7,7 +7,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ingrid-communication</artifactId>
   <packaging>jar</packaging>
-  <version>5.0.0</version>
+  <version>5.6.1</version>
   <name>ingrid-communication</name>
 
   <!-- ==================== Source Code Management ==================== -->
@@ -57,7 +57,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.11</version>
+      <version>4.13</version>
     </dependency>
   </dependencies>
 
