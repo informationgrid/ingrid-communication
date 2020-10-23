@@ -192,6 +192,12 @@ public class MessageReaderThread extends Thread {
             if (LOG.isErrorEnabled()) {
                 LOG.error("error while consuming messages for peer: " + _peerName, e);
             }
+            if (_messageSender != null) {
+                // disconnect in case of client
+                _messageSender.disconnect(_peerName);
+                // connect in case of client and server
+                _messageSender.connect(_peerName);
+            }
         } 
     }
 
