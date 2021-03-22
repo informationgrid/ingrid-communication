@@ -188,7 +188,7 @@ public class MessageReaderThread extends Thread {
                 // connect in case of client and server 
                 _messageSender.connect(_peerName);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             if (LOG.isErrorEnabled()) {
                 LOG.error("error while consuming messages for peer: " + _peerName, e);
             }
@@ -198,7 +198,7 @@ public class MessageReaderThread extends Thread {
                 // connect in case of client and server
                 _messageSender.connect(_peerName);
             }
-        } 
+        }
     }
 
     private void waitForAnswer(final Message message) throws IOException {
