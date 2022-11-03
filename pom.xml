@@ -28,6 +28,12 @@
     </repository>
   </repositories>
 
+  <!-- ==================== PROPERTIES ==================== -->
+  <properties>
+    <java.version>17</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
   <!-- ==================== DEPENDENCY MANAGEMENT ==================== -->
 
   <!-- ==================== DEPENDENCIES ==================== -->
@@ -79,24 +85,6 @@
       <!--
         This plugin configures the git-flow for this project
       -->
-      <plugin>
-        <groupId>org.openrewrite.maven</groupId>
-        <artifactId>rewrite-maven-plugin</artifactId>
-        <version>4.35.1</version>
-        <configuration>
-          <activeRecipes>
-            <recipe>org.openrewrite.java.migrate.UpgradeJava17</recipe>
-            <recipe>org.openrewrite.java.migrate.JavaxMigrationToJakarta</recipe>
-          </activeRecipes>
-        </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>org.openrewrite.recipe</groupId>
-            <artifactId>rewrite-migrate-java</artifactId>
-            <version>1.13.0</version>
-          </dependency>
-        </dependencies>
-      </plugin>
       <plugin>
         <groupId>external.atlassian.jgitflow</groupId>
         <artifactId>jgitflow-maven-plugin</artifactId>
