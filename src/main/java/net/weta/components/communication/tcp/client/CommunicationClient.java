@@ -103,7 +103,7 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
         _serverHost = serverHost;
         _serverPort = serverPort;
         _proxyServer = proxyServer;
-        _proxyPort = new Integer(proxyPort);
+        _proxyPort = Integer.valueOf(proxyPort);
         _proxyUser = proxyUser;
         _proxyPassword = proxyPassword;
         _messageQueue = messageQueue;

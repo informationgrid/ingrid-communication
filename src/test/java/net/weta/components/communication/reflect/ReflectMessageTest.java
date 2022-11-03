@@ -59,7 +59,7 @@ public class ReflectMessageTest {
         Class[] argumentClasses = message.getArgumentClasses();
         assertEquals(0, argumentClasses.length);
 
-        message = new ReflectMessage("method", "class", new Object[] { new Integer(0), new Object() });
+        message = new ReflectMessage("method", "class", new Object[] { Integer.valueOf(0), new Object() });
         argumentClasses = message.getArgumentClasses();
         assertNotNull(argumentClasses);
     }

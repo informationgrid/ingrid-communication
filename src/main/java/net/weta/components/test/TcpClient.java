@@ -32,7 +32,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.HashMap;
 
-import javax.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.DatatypeConverter;
 
 public class TcpClient {
 
