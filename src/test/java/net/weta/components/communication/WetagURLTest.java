@@ -22,10 +22,15 @@
  */
 package net.weta.components.communication;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
 
-public class WetagURLTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
+public class WetagURLTest {
+
+    @Test
     public void testUrl() throws Exception {
         WetagURL wetagURL = new WetagURL("/101tec-group:client");
         assertEquals("wetag:///101tec-group:client", wetagURL.getURL());
@@ -35,6 +40,7 @@ public class WetagURLTest extends TestCase {
         assertEquals("wetag:///101tec-group:client", wetagURL.toString());
     }
 
+    @Test
     public void testNullPointerException() {
         try {
             new WetagURL(null);
@@ -44,6 +50,7 @@ public class WetagURLTest extends TestCase {
         }
     }
 
+    @Test
     public void testIllegalArgumentException() {
         try {
             new WetagURL("wetag_abc");
@@ -59,6 +66,7 @@ public class WetagURLTest extends TestCase {
         }
     }
 
+    @Test
     public void testURLPATH() {
         try {
             WetagURL wetagURL = new WetagURL("wetag:///group");
@@ -68,17 +76,20 @@ public class WetagURLTest extends TestCase {
         }
     }
 
+    @Test
     public void testGetUrl() {
         WetagURL wetagURL = new WetagURL("/101tec-group:client");
         String url = wetagURL.getURL();
     }
 
+    @Test
     public void testCreate() throws Exception {
         WetagURL wetagURL = WetagURL.createUrl("/101tec-group", "client");
         assertEquals(new WetagURL("/101tec-group:client").toString(), wetagURL.toString());
         assertTrue(wetagURL.hasPeerName());
     }
 
+    @Test
     public void testFailure() throws Exception {
         try {
             new WetagURL("101tec-group");

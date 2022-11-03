@@ -22,10 +22,13 @@
  */
 package net.weta.components.communication.tcp;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
 
-public class TimeoutExceptionTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+public class TimeoutExceptionTest {
+
+    @Test
     public void testTimeoutException() {
         TimeoutException exception = new TimeoutException("exception message");
         assertEquals("exception message", exception.getMessage());

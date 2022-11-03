@@ -22,8 +22,13 @@
  */
 package net.weta.components.communication.messaging;
 
-import junit.framework.TestCase;
 import net.weta.components.test.DummyExternalizable;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * test case created on 27.12.2004
@@ -31,11 +36,12 @@ import net.weta.components.test.DummyExternalizable;
  * @version $Revision$
  * 
  */
-public class MessageQueueTest extends TestCase {
+public class MessageQueueTest {
 
     /**
      * @throws Exception
      */
+    @Test
     public void testAddMessage() throws Exception {
         MessageQueue messageQueue = new MessageQueue();
         messageQueue.getProcessorRegistry().addMessageHandler("type", new TestMessageProcessor());
@@ -56,6 +62,7 @@ public class MessageQueueTest extends TestCase {
     /**
      * @throws Exception
      */
+    @Test
     public void testWaitForMessage() throws Exception {
         final MessageQueue messageQueue = new MessageQueue();
         messageQueue.getProcessorRegistry().addMessageHandler("type", new TestMessageProcessor());
@@ -88,6 +95,7 @@ public class MessageQueueTest extends TestCase {
         assertEquals(1, messageQueue.size());
     }
 
+    @Test
     public void testGetProcessorRegistry() throws Exception {
         MessageQueue messageQueue = new MessageQueue();
         IMessageHandler[] messageHandlers = messageQueue.getProcessorRegistry().getMessageHandlers();
@@ -98,6 +106,7 @@ public class MessageQueueTest extends TestCase {
         assertEquals(1, messageHandlers.length);
     }
 
+    @Test
     public void testClear() throws Exception {
         MessageQueue messageQueue = new MessageQueue();
         messageQueue.getProcessorRegistry().addMessageHandler("type", new TestMessageProcessor());
@@ -109,13 +118,14 @@ public class MessageQueueTest extends TestCase {
         assertEquals(0, messageQueue.size());
     }
 
+    @Test
     public void testMessageEvent() throws Exception {
         MessageQueue messageQueue = new MessageQueue();
         Message message = new PayloadMessage(new DummyExternalizable(), "type");
         PayloadMessage replyMessage = (PayloadMessage) messageQueue.messageEvent(message);
 
-        assertTrue(replyMessage.getType().equals(message.getType()));
-        assertTrue(replyMessage.getId() == message.getId());
+        assertEquals(replyMessage.getType(), message.getType());
+        assertEquals(replyMessage.getId(), message.getId());
         System.out.println(replyMessage.getPayload().toString());
 
         messageQueue.getProcessorRegistry().addMessageHandler("type", new TestMessageProcessor() {
@@ -126,6 +136,7 @@ public class MessageQueueTest extends TestCase {
         messageQueue.messageEvent(message);
     }
 
+    @Test
     public void testMessageOverrun() {
         MessageQueue queue = new MessageQueue();
         queue.setMaxSize(1);
@@ -138,7 +149,8 @@ public class MessageQueueTest extends TestCase {
             assertEquals(1, queue.size());            
         }
     }
-    
+
+    @Test
     public void testMessageGarbageCollection() throws InterruptedException {
         MessageQueue queue = new MessageQueue();
         queue.setMaxMutexListeSizeBeforeGarbageCollect(10);

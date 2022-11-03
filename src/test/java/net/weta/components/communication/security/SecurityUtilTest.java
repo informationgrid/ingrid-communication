@@ -25,25 +25,32 @@ package net.weta.components.communication.security;
 import java.io.File;
 import java.io.IOException;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test for the SecurityUtil class. Created on 06.06.2005.
  */
-public class SecurityUtilTest extends TestCase {
+public class SecurityUtilTest {
 
     private File _file;
 
     private File _securityFolder;
 
-    protected void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() throws Exception {
         _securityFolder = new File(System.getProperty("java.io.tmpdir"), "" + System.currentTimeMillis());
         _securityFolder.mkdirs();
         _file = new File(_securityFolder, "keystore");
         JavaKeystoreTest.generateKeyInKeyStore(_file, "alice");
     }
 
-    protected void tearDown() {
+    @AfterEach
+    public void tearDown() {
         File[] files = _securityFolder.listFiles();
         for (int i = 0; i < files.length; i++) {
             files[i].delete();
@@ -56,6 +63,7 @@ public class SecurityUtilTest extends TestCase {
      * @throws IOException
      * 
      */
+    @Test
     public void testSign() throws SecurityException, IOException {
         byte[] bytes = "Hello World!".getBytes();
         JavaKeystore keystore = new JavaKeystore(_file, "password");

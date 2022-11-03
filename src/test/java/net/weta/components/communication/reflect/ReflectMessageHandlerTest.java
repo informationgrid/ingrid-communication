@@ -24,21 +24,27 @@ package net.weta.components.communication.reflect;
 
 import java.io.Serializable;
 
-import junit.framework.TestCase;
 import net.weta.components.communication.CommunicationException;
 import net.weta.components.communication.ExternalizableCreator;
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.PayloadMessage;
 import net.weta.components.test.DummyExternalizable;
+import org.junit.jupiter.api.Test;
 
-public class ReflectMessageHandlerTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
+public class ReflectMessageHandlerTest {
+
+    @Test
     public void testAddObjectToCall() throws Exception {
         ReflectMessageHandler handler = new ReflectMessageHandler();
         String s = "hello";
         handler.addObjectToCall(String.class, s);
     }
 
+    @Test
     public void testHandleMessage() {
         ReflectMessageHandler handler = new ReflectMessageHandler();
         ExternalizableCreator creator = new ExternalizableCreator();

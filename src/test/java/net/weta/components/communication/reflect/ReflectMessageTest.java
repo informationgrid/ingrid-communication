@@ -22,30 +22,38 @@
  */
 package net.weta.components.communication.reflect;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
 
-public class ReflectMessageTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+public class ReflectMessageTest {
+
+    @Test
     public void testReflectMessageStringString() {
         ReflectMessage message = new ReflectMessage("method", "class");
         assertNotNull(message);
     }
 
+    @Test
     public void testReflectMessageStringStringObjectArray() {
         ReflectMessage message = new ReflectMessage("method", "class", new Object[] {});
         assertNotNull(message);
     }
 
+    @Test
     public void testGetMethodName() {
         ReflectMessage message = new ReflectMessage("method", "class", new Object[] {});
         assertEquals("method", message.getMethodName());
     }
 
+    @Test
     public void testGetObjectToCallClass() {
         ReflectMessage message = new ReflectMessage("method", "class", new Object[] {});
         assertEquals("class", message.getObjectToCallClass());
     }
 
+    @Test
     public void testGetArgumentClasses() {
         ReflectMessage message = new ReflectMessage("method", "class");
         Class[] argumentClasses = message.getArgumentClasses();
@@ -56,6 +64,7 @@ public class ReflectMessageTest extends TestCase {
         assertNotNull(argumentClasses);
     }
 
+    @Test
     public void testGetArguments() {
         Object[] argumentClasses = null;
         ReflectMessage message = new ReflectMessage("method", "class");
@@ -70,13 +79,14 @@ public class ReflectMessageTest extends TestCase {
         assertEquals(object1, argumentClasses[0]);
         assertEquals(object2, argumentClasses[1]);
     }
-    
+
+    @Test
     public void testHashCode() {
         String p1 = "param";
         ReflectMessage m1 = new ReflectMessage("search", ReflectMessage.class.getName(), new Object[] { p1, 10, 1 });
         String p2 = "param";
         ReflectMessage m2 = new ReflectMessage("search", ReflectMessage.class.getName(), new Object[] { p1, 10, 1 });
-        assertTrue(m1.hashCode() == m2.hashCode());
+        assertEquals(m1.hashCode(), m2.hashCode());
     }
 
 }

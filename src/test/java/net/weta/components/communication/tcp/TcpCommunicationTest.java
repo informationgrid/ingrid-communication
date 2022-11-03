@@ -28,15 +28,22 @@ package net.weta.components.communication.tcp;
 import java.io.File;
 import java.io.IOException;
 
-import junit.framework.TestCase;
 import net.weta.components.communication.configuration.ClientConfiguration;
 import net.weta.components.communication.configuration.ClientConfiguration.ClientConnection;
 import net.weta.components.communication.configuration.ServerConfiguration;
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.TestMessageProcessor;
 import net.weta.components.communication.security.JavaKeystoreTest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class TcpCommunicationTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
+public class TcpCommunicationTest {
 
     private static final String CLIENT = "/kug-group:client";
 
@@ -52,7 +59,8 @@ public class TcpCommunicationTest extends TestCase {
 
     private File _securityFolder;
 
-    protected void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() throws Exception {
 
         _securityFolder = new File(System.getProperty("java.io.tmpdir"), "" + System.currentTimeMillis());
         _securityFolder.mkdirs();
@@ -117,7 +125,8 @@ public class TcpCommunicationTest extends TestCase {
 
     }
 
-    protected void tearDown() throws Exception {
+    @AfterEach
+    public void tearDown() throws Exception {
         _tcpCommunicationClient.closeConnection(null);
         _tcpCommunicationClient.shutdown();
         _tcpCommunicationServer.closeConnection(CLIENT);
@@ -133,6 +142,7 @@ public class TcpCommunicationTest extends TestCase {
         }
     }
 
+    @Test
     public void testSendMessage() throws Exception {
         Thread.sleep(3000);
         sendSyncMessageFromClientToServer();
