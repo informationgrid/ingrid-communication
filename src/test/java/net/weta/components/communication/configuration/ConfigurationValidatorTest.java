@@ -25,19 +25,24 @@ package net.weta.components.communication.configuration;
 import java.io.File;
 import java.io.IOException;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
 
-public class ConfigurationValidatorTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
-	public void testValidateServer() throws Exception {
+public class ConfigurationValidatorTest {
+
+    @Test
+    public void testValidateServer() throws Exception {
 		IConfigurationValidator validator = new ConfigurationValidator(
 				new File("src/main/resources/communication.xsd"));
 		validator.validateConfiguration(new File(
 				"src/test/resources/validServerConfiguration.xml"));
 		assertTrue(true);
 	}
-	
-	public void testValidateClient() throws Exception {
+
+    @Test
+    public void testValidateClient() throws Exception {
 		IConfigurationValidator validator = new ConfigurationValidator(
 				new File("src/main/resources/communication.xsd"));
 		validator.validateConfiguration(new File(
@@ -45,7 +50,8 @@ public class ConfigurationValidatorTest extends TestCase {
 		assertTrue(true);
 	}
 
-	public void testInValidateServer() throws Exception {
+    @Test
+    public void testInValidateServer() throws Exception {
 		IConfigurationValidator validator = new ConfigurationValidator(
 				new File("src/main/resources/communication.xsd"));
 		try {
@@ -56,7 +62,8 @@ public class ConfigurationValidatorTest extends TestCase {
 		}
 	}
 
-	public void testInValidateClient() throws Exception {
+    @Test
+    public void testInValidateClient() throws Exception {
 		IConfigurationValidator validator = new ConfigurationValidator(
 				new File("src/main/resources/communication.xsd"));
 		try {

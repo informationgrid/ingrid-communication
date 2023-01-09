@@ -40,18 +40,24 @@
 
 package net.weta.components.communication.messaging;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Test the message processor registry. Created on 28.12.2004.
  * 
  * @version $Revision$
  */
-public class MessageProcessorRegistryTest extends TestCase {
+public class MessageProcessorRegistryTest {
 
     /**
      * @throws Exception
      */
+    @Test
     public void testAddHandler() throws Exception {
         TestMessageProcessor handler = new TestMessageProcessor();
         MessageProcessorRegistry instance = new MessageProcessorRegistry();
@@ -65,6 +71,7 @@ public class MessageProcessorRegistryTest extends TestCase {
     /**
      * @throws Exception
      */
+    @Test
     public void testGetHandlerForType() throws Exception {
         TestMessageProcessor handler = new TestMessageProcessor();
         MessageProcessorRegistry instance = new MessageProcessorRegistry();
@@ -75,6 +82,7 @@ public class MessageProcessorRegistryTest extends TestCase {
         assertEquals(1, handlersForType.length);
     }
 
+    @Test
     public void testAddMessageHandler() throws Exception {
         TestMessageProcessor handler = new TestMessageProcessor();
         MessageProcessorRegistry instance = new MessageProcessorRegistry();
@@ -96,6 +104,7 @@ public class MessageProcessorRegistryTest extends TestCase {
         }
     }
 
+    @Test
     public void testRemoveMessageHandlers() throws Exception {
         TestMessageProcessor handler = new TestMessageProcessor();
         MessageProcessorRegistry instance = new MessageProcessorRegistry();
@@ -106,7 +115,7 @@ public class MessageProcessorRegistryTest extends TestCase {
         assertEquals(1, handlersForType.length);
 
         IMessageHandler[] removedHandlers = instance.removeMessageHandlers("test4");
-        assertTrue(removedHandlers.length == 1);
+        assertEquals(removedHandlers.length, 1);
         assertEquals(0, instance.getMessageHandlers().length);
     }
 }

@@ -24,16 +24,23 @@ package net.weta.components.communication.util;
 
 import java.util.Set;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class One2ManyHashMapTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class One2ManyHashMapTest {
 
     One2ManyHashMap _one2ManyHashMap;
 
-    protected void setUp() {
+    @BeforeEach
+    public void setUp() {
         _one2ManyHashMap = new One2ManyHashMap();
     }
 
+    @Test
     public void testRemoveValue() {
         Object key = new String("key1");
         Object value1 = new String("value1");
@@ -52,6 +59,7 @@ public class One2ManyHashMapTest extends TestCase {
         assertNull(_one2ManyHashMap.getValues(key));
     }
 
+    @Test
     public void testRemoveKey() {
         Object key = new String("key1");
         Object value1 = new String("value1");

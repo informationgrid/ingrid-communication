@@ -25,7 +25,6 @@ package net.weta.components.communication.tcp.server;
 import java.io.File;
 import java.net.SocketException;
 
-import junit.framework.TestCase;
 import net.weta.components.communication.configuration.ClientConfiguration;
 import net.weta.components.communication.configuration.ClientConfiguration.ClientConnection;
 import net.weta.components.communication.configuration.ServerConfiguration;
@@ -33,8 +32,16 @@ import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.TestMessageProcessor;
 import net.weta.components.communication.security.JavaKeystoreTest;
 import net.weta.components.communication.tcp.TcpCommunication;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class CommunicationServerTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
+public class CommunicationServerTest {
 
     private File _securityFolder;
 
@@ -50,7 +57,8 @@ public class CommunicationServerTest extends TestCase {
 
     private static final String SERVER = "/kug-group:server";
 
-    protected void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() throws Exception {
         _securityFolder = new File(System.getProperty("java.io.tmpdir"), "" + System.currentTimeMillis());
         _securityFolder.mkdirs();
         _keystoreServer = new File(_securityFolder, "keystore-server");
@@ -69,7 +77,8 @@ public class CommunicationServerTest extends TestCase {
 
     }
 
-    protected void tearDown() throws Exception {
+    @AfterEach
+    public void tearDown() throws Exception {
 
         File[] files = _securityFolder.listFiles();
         // unable to delete files under windows, because they are locked
@@ -82,6 +91,7 @@ public class CommunicationServerTest extends TestCase {
 
     }
 
+    @Test
     public void testDuplicateRegistrationSameIP() throws Exception {
         TcpCommunication server = new TcpCommunication();
         ServerConfiguration serverConfiguration = new ServerConfiguration();
@@ -148,6 +158,7 @@ public class CommunicationServerTest extends TestCase {
 
     }
 
+    @Test
     public void testTimeoutClientInfo() throws Exception {
         TcpCommunication server = new TcpCommunication();
         ServerConfiguration serverConfiguration = new ServerConfiguration();
@@ -182,6 +193,7 @@ public class CommunicationServerTest extends TestCase {
         server.shutdown();
     }
 
+    @Test
     public void testRegsiterWithoutSecurity() throws Exception {
         TcpCommunication server = new TcpCommunication();
         ServerConfiguration serverConfiguration = new ServerConfiguration();
@@ -236,6 +248,7 @@ public class CommunicationServerTest extends TestCase {
         }
     }
 
+    @Test
     public void testWithSecurity() throws Exception {
         TcpCommunication server = new TcpCommunication();
         ServerConfiguration serverConfiguration = new ServerConfiguration();
