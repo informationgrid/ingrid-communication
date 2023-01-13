@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2022 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2023 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -25,12 +25,17 @@ package net.weta.components.communication.configuration;
 import java.io.File;
 import java.util.List;
 
-import junit.framework.TestCase;
 import net.weta.components.communication.configuration.ClientConfiguration.ClientConnection;
+import org.junit.jupiter.api.Test;
 
-public class ConfigurationServiceTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-	public void testCreateServer() throws Exception {
+public class ConfigurationServiceTest {
+
+    @Test
+    public void testCreateServer() throws Exception {
 		final IXPathService xpathService = new XPathService();
 		final IConfigurationValidator validator = new ConfigurationValidator(
 				new File("src/main/resources/communication.xsd"));
@@ -52,7 +57,8 @@ public class ConfigurationServiceTest extends TestCase {
 		assertEquals(10, serverConfiguration.getSocketTimeout());
 	}
 
-	public void testCreateClient() throws Exception {
+    @Test
+    public void testCreateClient() throws Exception {
 		final IXPathService xpathService = new XPathService();
 		final IConfigurationValidator validator = new ConfigurationValidator(
 				new File("src/main/resources/communication.xsd"));
@@ -93,13 +99,13 @@ public class ConfigurationServiceTest extends TestCase {
 		assertEquals(82, clientConnection2.getServerPort());
 		assertEquals(10, clientConnection2.getSocketTimeout());
 
-		assertEquals(null, clientConnection2.getProxyIp());
+        assertNull(clientConnection2.getProxyIp());
 		assertEquals(0, clientConnection2.getProxyPort());
-		assertEquals(null, clientConnection2.getProxyPassword());
-		assertEquals(null, clientConnection2.getProxyUser());
+        assertNull(clientConnection2.getProxyPassword());
+        assertNull(clientConnection2.getProxyUser());
 
-		assertEquals(null, clientConnection2.getKeystorePassword());
-		assertEquals(null, clientConnection2.getKeystorePath());
+        assertNull(clientConnection2.getKeystorePassword());
+        assertNull(clientConnection2.getKeystorePath());
 		assertEquals(1048576, clientConnection2.getMaxMessageSize());
 		assertEquals(100, clientConnection2.getMessageThreadCount());
 

@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2022 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2023 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import junit.framework.TestCase;
 import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.MessageQueue;
 import net.weta.components.communication.messaging.PayloadMessage;
@@ -39,8 +38,13 @@ import net.weta.components.communication.stream.IOutput;
 import net.weta.components.communication.stream.Input;
 import net.weta.components.communication.stream.Output;
 import net.weta.components.test.DummyExternalizable;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class MessageReaderThreadTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
+public class MessageReaderThreadTest {
 
     Thread _thread;
 
@@ -50,7 +54,8 @@ public class MessageReaderThreadTest extends TestCase {
 
     private ServerSocket _serverSocket;
 
-    protected void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() throws Exception {
         Runnable runnable = new Runnable() {
 
             public void run() {
@@ -80,6 +85,7 @@ public class MessageReaderThreadTest extends TestCase {
         _thread.start();
     }
 
+    @Test
     public void testEOFException() throws InterruptedException {
         Socket socket = null;
         try {
@@ -113,6 +119,7 @@ public class MessageReaderThreadTest extends TestCase {
         }
     }
 
+    @Test
     public void testMaxThreadCount() {
         Socket socket = null;
         

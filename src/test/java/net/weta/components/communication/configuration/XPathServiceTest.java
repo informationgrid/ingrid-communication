@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2022 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2023 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -24,9 +24,14 @@ package net.weta.components.communication.configuration;
 
 import java.io.File;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class XPathServiceTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class XPathServiceTest {
 
     private final static String FILE_PATH = "src/test/resources/validClientConfiguration.xml";
     
@@ -35,7 +40,8 @@ public class XPathServiceTest extends TestCase {
     private File _xml = null;
     
     private IXPathService _service = null;
-    
+
+    @BeforeEach
     public void setUp() {
         _xml = new File(FILE_PATH);
         try {
@@ -46,15 +52,17 @@ public class XPathServiceTest extends TestCase {
             e.printStackTrace();
         }
     }
-    
-	public void testParseAttribute() throws Exception {
+
+    @Test
+    public void testParseAttribute() throws Exception {
 		String name = _service.parseAttribute(SERVER_NODE_PATH, "name");
 		assertEquals("peerName", name);
 		name = _service.parseAttribute(SERVER_NODE_PATH, "name", 1);
 		assertEquals("peerName2", name);
 	}
-	
-	public void testSetAttribute() throws Exception {
+
+    @Test
+    public void testSetAttribute() throws Exception {
 	    _service.setAttribute(SERVER_NODE_PATH, "name", "changed");
 	    String name = _service.parseAttribute(SERVER_NODE_PATH, "name");
 	    assertEquals("changed", name);
@@ -63,15 +71,17 @@ public class XPathServiceTest extends TestCase {
 	    name = _service.parseAttribute(SERVER_NODE_PATH, "name", 1);
 	    assertEquals("another", name);
 	}
-	
-	public void testExistsAttribute() {
+
+    @Test
+    public void testExistsAttribute() {
 	    assertTrue(_service.existsAttribute(SERVER_NODE_PATH, "name"));
         assertTrue(_service.existsAttribute(SERVER_NODE_PATH, "name", 1));
         assertFalse(_service.existsAttribute(SERVER_NODE_PATH, "invalid"));
         assertFalse(_service.existsAttribute(SERVER_NODE_PATH, "invalid", 1));
 	}
-	
-	public void testRemoveAttribute() throws Exception {
+
+    @Test
+    public void testRemoveAttribute() throws Exception {
 	    _service.removeAttribute(SERVER_NODE_PATH, "name");
 	    assertFalse(_service.existsAttribute(SERVER_NODE_PATH, "name"));
 	    assertTrue(_service.existsAttribute(SERVER_NODE_PATH, "name", 1));
@@ -83,7 +93,8 @@ public class XPathServiceTest extends TestCase {
 	    assertFalse(_service.existsAttribute(SERVER_NODE_PATH + "/socket", "port"));
 	    assertFalse(_service.existsAttribute(SERVER_NODE_PATH + "/socket", "port", 1));
 	}
-	
+
+    @Test
     public void testAddAttribute() throws Exception {
         _service.addAttribute(SERVER_NODE_PATH, "test", "true");
         assertEquals("true", _service.parseAttribute(SERVER_NODE_PATH, "test"));
@@ -92,8 +103,9 @@ public class XPathServiceTest extends TestCase {
         assertEquals("true", _service.parseAttribute(SERVER_NODE_PATH, "test"));
         assertEquals("false", _service.parseAttribute(SERVER_NODE_PATH, "test", 1));
     }
-	
-	public void testExistsNode() {
+
+    @Test
+    public void testExistsNode() {
 	    boolean exists = _service.exsistsNode(SERVER_NODE_PATH);
 	    assertTrue(exists);
 	    exists = _service.exsistsNode(SERVER_NODE_PATH, 1);
@@ -103,13 +115,15 @@ public class XPathServiceTest extends TestCase {
 	    exists = _service.exsistsNode(SERVER_NODE_PATH + "/invalid", 1);
         assertFalse(exists);
 	}
-	
-	public void testCountNodes() throws Exception {
+
+    @Test
+    public void testCountNodes() throws Exception {
 	    int count = _service.countNodes(SERVER_NODE_PATH);
 	    assertEquals(2, count);
 	}
-	
-	public void testAddNode() throws Exception {
+
+    @Test
+    public void testAddNode() throws Exception {
 	    _service.addNode("/communication/client/connections", "server");
 	    int count = _service.countNodes(SERVER_NODE_PATH);
         assertEquals(3, count);
@@ -118,26 +132,30 @@ public class XPathServiceTest extends TestCase {
         count = _service.countNodes(SERVER_NODE_PATH + "/test");
         assertEquals(1, count);
 	}
-	
-	public void testRemoveFirstNode() throws Exception {
+
+    @Test
+    public void testRemoveFirstNode() throws Exception {
 	    _service.removeNode(SERVER_NODE_PATH);
 	    String name = _service.parseAttribute(SERVER_NODE_PATH, "name");
 	    assertEquals("peerName2", name);
 	}
-	
-	public void testRemoveSecondNode() throws Exception {
+
+    @Test
+    public void testRemoveSecondNode() throws Exception {
         _service.removeNode(SERVER_NODE_PATH, 1);
         String name = _service.parseAttribute(SERVER_NODE_PATH, "name");
         assertEquals("peerName", name);
     }
-	
-	public void testRemoveAllNodes() throws Exception {
+
+    @Test
+    public void testRemoveAllNodes() throws Exception {
         _service.removeNodes(SERVER_NODE_PATH);
         boolean exists = _service.exsistsNode(SERVER_NODE_PATH);
         assertFalse(exists);
     }
-	
-	public void testStore() throws Exception {
+
+    @Test
+    public void testStore() throws Exception {
 	    File file = new File(System.getProperty("java.io.tmpdir"), "temp.xml"); 
 	    _service.setAttribute(SERVER_NODE_PATH, "name", "changed", 1);
 	    _service.store(file);

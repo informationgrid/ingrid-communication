@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2022 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2023 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -28,7 +28,6 @@ package net.weta.components.communication.tcp.client;
 import java.io.File;
 import java.io.IOException;
 
-import junit.framework.TestCase;
 import net.weta.components.communication.configuration.ClientConfiguration;
 import net.weta.components.communication.configuration.ClientConfiguration.ClientConnection;
 import net.weta.components.communication.configuration.ServerConfiguration;
@@ -36,8 +35,16 @@ import net.weta.components.communication.messaging.Message;
 import net.weta.components.communication.messaging.TestMessageProcessor;
 import net.weta.components.communication.security.JavaKeystoreTest;
 import net.weta.components.communication.tcp.TcpCommunication;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class MultiCommunicationClientTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
+public class MultiCommunicationClientTest {
 
     private static final String CLIENT = "/kug-group:client";
 
@@ -59,7 +66,8 @@ public class MultiCommunicationClientTest extends TestCase {
 
     private File _securityFolder;
 
-    protected void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() throws Exception {
 
         _securityFolder = new File(System.getProperty("java.io.tmpdir"), "" + System.currentTimeMillis());
         _securityFolder.mkdirs();
@@ -159,7 +167,8 @@ public class MultiCommunicationClientTest extends TestCase {
         thread3.join();
     }
 
-    protected void tearDown() throws Exception {
+    @AfterEach
+    public void tearDown() throws Exception {
         _tcpCommunicationClient.closeConnection(null);
         _tcpCommunicationClient.shutdown();
         _tcpCommunicationServer.closeConnection(CLIENT);
@@ -177,6 +186,7 @@ public class MultiCommunicationClientTest extends TestCase {
         }
     }
 
+    @Test
     public void testSendSyncMessageFromServerToClient() throws Exception {
         Thread.sleep(3000);
         Message message = new Message("type");
@@ -206,6 +216,7 @@ public class MultiCommunicationClientTest extends TestCase {
         assertEquals(message.getId(), result.getId());
     }
 
+    @Test
     public void testSendSyncMessageFromClientToServer() throws Exception {
         Thread.sleep(3000);
         Message message = new Message("type");

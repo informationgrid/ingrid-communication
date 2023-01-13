@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2022 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2023 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -43,8 +43,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
@@ -54,6 +52,14 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * To test the keystore.
@@ -61,7 +67,7 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
  * created on 06.06.2005
  * <p>
  */
-public class JavaKeystoreTest extends TestCase {
+public class JavaKeystoreTest {
 
     static {
         Security.addProvider(new BouncyCastleProvider());
@@ -73,7 +79,8 @@ public class JavaKeystoreTest extends TestCase {
 
     private File _securityFolder;
 
-    protected void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() throws Exception {
         _securityFolder = new File(System.getProperty("java.io.tmpdir"), "" + System.currentTimeMillis());
         _securityFolder.mkdirs();
         _keystore = new File(_securityFolder, "keystore");
@@ -84,7 +91,8 @@ public class JavaKeystoreTest extends TestCase {
 
     }
 
-    protected void tearDown() {
+    @AfterEach
+    public void tearDown() {
         File[] files = _securityFolder.listFiles();
         for (int i = 0; i < files.length; i++) {
             files[i].delete();
@@ -97,6 +105,7 @@ public class JavaKeystoreTest extends TestCase {
      * @throws SecurityException
      * 
      */
+    @Test
     public void testNewKeyStore() throws Exception {
         JavaKeystore keystore = null;
         keystore = new JavaKeystore(_keystore, "password");

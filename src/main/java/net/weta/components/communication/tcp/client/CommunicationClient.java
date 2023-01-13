@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2022 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2023 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -103,7 +103,7 @@ public class CommunicationClient implements IMessageSender, ICommunicationClient
         _serverHost = serverHost;
         _serverPort = serverPort;
         _proxyServer = proxyServer;
-        _proxyPort = new Integer(proxyPort);
+        _proxyPort = Integer.valueOf(proxyPort);
         _proxyUser = proxyUser;
         _proxyPassword = proxyPassword;
         _messageQueue = messageQueue;

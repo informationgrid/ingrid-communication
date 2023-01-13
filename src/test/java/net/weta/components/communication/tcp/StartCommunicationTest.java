@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2022 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2023 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -25,13 +25,17 @@ package net.weta.components.communication.tcp;
 import java.io.IOException;
 import java.io.InputStream;
 
-import junit.framework.TestCase;
 import net.weta.components.communication.configuration.ClientConfiguration;
 import net.weta.components.communication.configuration.Configuration;
+import org.junit.jupiter.api.Test;
 import net.weta.components.communication.configuration.ClientConfiguration.ClientConnection;
 
-public class StartCommunicationTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
+public class StartCommunicationTest {
+
+    @Test
     public void testStart() {
         InputStream resourceAsStream = StartCommunication.class.getResourceAsStream("/validClientConfiguration.xml");
         try {

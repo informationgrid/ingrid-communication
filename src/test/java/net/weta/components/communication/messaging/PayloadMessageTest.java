@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2022 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2023 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -22,11 +22,14 @@
  */
 package net.weta.components.communication.messaging;
 
-import junit.framework.TestCase;
 import net.weta.components.test.DummyExternalizable;
+import org.junit.jupiter.api.Test;
 
-public class PayloadMessageTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+public class PayloadMessageTest {
+
+    @Test
     public void testSetPayload() {
         DummyExternalizable externalizable1 = new DummyExternalizable();
         PayloadMessage msg = new PayloadMessage(externalizable1, String.class.getName());

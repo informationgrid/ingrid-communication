@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2022 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2023 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -29,12 +29,16 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import junit.framework.TestCase;
 import net.weta.components.communication.security.JavaKeystore;
 import net.weta.components.communication.security.JavaKeystoreTest;
 import net.weta.components.communication.security.SecurityUtil;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class RegistrationThreadTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.fail;
+
+public class RegistrationThreadTest {
 
     Thread _thread;
 
@@ -44,7 +48,8 @@ public class RegistrationThreadTest extends TestCase {
 
     private File _securityFolder;
 
-    protected void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() throws Exception {
         _isStarted = false;
         _securityFolder = new File(System.getProperty("java.io.tmpdir"), "" + System.currentTimeMillis());
         _securityFolder.mkdirs();
@@ -82,7 +87,8 @@ public class RegistrationThreadTest extends TestCase {
         _thread.start();
     }
 
-    protected void tearDown() {
+    @AfterEach
+    public void tearDown() {
         File[] files = _securityFolder.listFiles();
         for (int i = 0; i < files.length; i++) {
             files[i].delete();
@@ -90,6 +96,7 @@ public class RegistrationThreadTest extends TestCase {
         _securityFolder.delete();
     }
 
+    @Test
     public void testMessageSizeTooBig() throws UnknownHostException, IOException, InterruptedException {
         try {
             synchronized (_thread) {
@@ -115,6 +122,7 @@ public class RegistrationThreadTest extends TestCase {
 
     }
 
+    @Test
     public void testTimeout() throws UnknownHostException, IOException, InterruptedException {
         try {
             synchronized (_thread) {

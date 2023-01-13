@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2022 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2023 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -25,15 +25,20 @@ package net.weta.components.communication.reflect;
 import java.io.File;
 import java.lang.reflect.Proxy;
 
-import junit.framework.TestCase;
 import net.weta.components.communication.configuration.ClientConfiguration;
 import net.weta.components.communication.configuration.ClientConfiguration.ClientConnection;
 import net.weta.components.communication.configuration.ServerConfiguration;
 import net.weta.components.communication.security.JavaKeystoreTest;
 import net.weta.components.communication.tcp.TcpCommunication;
 import net.weta.components.communication.tcp.TimeoutException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class ReflectInvocationHandlerTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class ReflectInvocationHandlerTest {
 
     public interface ITest {
         String testMethod();
@@ -49,7 +54,8 @@ public class ReflectInvocationHandlerTest extends TestCase {
 
     private static final String SERVER = "/kug-group:server";
 
-    protected void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() throws Exception {
         _securityFolder = new File(System.getProperty("java.io.tmpdir"), "" + System.currentTimeMillis());
         _securityFolder.mkdirs();
         final File keystoreServer = new File(_securityFolder, "keystore-server");
@@ -90,7 +96,8 @@ public class ReflectInvocationHandlerTest extends TestCase {
 
     }
 
-    protected void tearDown() throws Exception {
+    @AfterEach
+    public void tearDown() throws Exception {
         _tcpCommunicationClient.shutdown();
         _tcpCommunicationServer.shutdown();
 
@@ -106,6 +113,7 @@ public class ReflectInvocationHandlerTest extends TestCase {
 
     }
 
+    @Test
     public void testInvoke() throws Exception {
 
         ReflectInvocationHandler handler = new ReflectInvocationHandler(_tcpCommunicationClient, "/kug-group:a");

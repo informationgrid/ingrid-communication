@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2022 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2023 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -22,10 +22,13 @@
  */
 package net.weta.components.communication.tcp;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
 
-public class TimeoutExceptionTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+public class TimeoutExceptionTest {
+
+    @Test
     public void testTimeoutException() {
         TimeoutException exception = new TimeoutException("exception message");
         assertEquals("exception message", exception.getMessage());

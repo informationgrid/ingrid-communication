@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2022 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2023 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -22,13 +22,14 @@
  */
 package net.weta.components.communication.reflect;
 
-import junit.framework.TestCase;
 import net.weta.components.communication.ICommunication;
 import net.weta.components.communication.messaging.IMessageHandler;
 import net.weta.components.communication.tcp.TcpCommunication;
+import org.junit.jupiter.api.Test;
 
-public class ProxyServiceTest extends TestCase {
+public class ProxyServiceTest {
 
+    @Test
     public void testCreateProxyICommunicationClassString() {
         ICommunication communication = new TcpCommunication();
         Class theInterface = IMessageHandler.class;
@@ -36,6 +37,7 @@ public class ProxyServiceTest extends TestCase {
         ProxyService.createProxy(communication, theInterface, proxyServerUrl);
     }
 
+    @Test
     public void testCreateProxyServer() {
         ICommunication communication = new TcpCommunication();
         Class theInterface = IMessageHandler.class;

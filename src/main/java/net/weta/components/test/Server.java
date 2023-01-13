@@ -2,7 +2,7 @@
  * **************************************************-
  * ingrid-communication
  * ==================================================
- * Copyright (C) 2014 - 2022 wemove digital solutions GmbH
+ * Copyright (C) 2014 - 2023 wemove digital solutions GmbH
  * ==================================================
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -54,7 +54,7 @@ public class Server {
         DummyExternalizable externalizable2 = new DummyExternalizable();
         externalizable2.put("a", "b");
         for (int i = 0; i < 1000; i++) {
-            externalizable2.put(new Integer(i), ""+System.currentTimeMillis()+"dfdsgfdhfghfgjgf");
+            externalizable2.put(Integer.valueOf(i), ""+System.currentTimeMillis()+"dfdsgfdhfghfgjgf");
         }
         externalizable.put("key", externalizable2);
 
